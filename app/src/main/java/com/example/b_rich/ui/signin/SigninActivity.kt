@@ -173,7 +173,7 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
                 // For example:
                 // navController.navigate("home")
                 Text(text = "Login successful!", color = Color.Green)
-                loginUiState.token?.let { Text(text = it, color = Color.Green) }
+                //loginUiState.token?.let { Text(text = it, color = Color.Green) }
             }
 
 
