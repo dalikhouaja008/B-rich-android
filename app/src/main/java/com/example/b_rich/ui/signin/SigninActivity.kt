@@ -1,5 +1,8 @@
 package com.example.b_rich.ui.signin
 
+import android.app.Activity
+import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.unit.dp
@@ -31,18 +34,43 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavHostController
 import com.example.b_rich.R
+import com.example.b_rich.ui.theme.EMAIL
+import com.example.b_rich.ui.theme.IS_REMEMBERED
+import com.example.b_rich.ui.theme.PASSWORD
+import com.example.b_rich.ui.theme.PREF_FILE
 
 @Composable
-fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
+fun LoginScreen(viewModel: SigninViewModel = viewModel(),navHostController: NavHostController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val isChecked = remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
-
     val loginUiState by viewModel.loginUiState.observeAsState(LoginUiState())
+    val context = LocalContext.current
+    val mSharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
+
+    // Gérer la navigation avec LaunchedEffect
+    LaunchedEffect(key1 = loginUiState.isLoggedIn) {
+        if (loginUiState.isLoggedIn) {
+            navHostController.navigate("exchangeRate") {
+                // Effacer le back stack pour empêcher le retour
+                popUpTo("login") { inclusive = true }
+            }
+        }
+    }
+    // Vérifier l'état "Remember me" au lancement
+    LaunchedEffect(Unit) {
+        if (mSharedPreferences.getBoolean(IS_REMEMBERED, false)) {
+            navHostController.navigate("exchangeRate") {
+                popUpTo("login") { inclusive = true }
+            }
+        }
+    }
 
     //background
     Box(
@@ -138,8 +166,14 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
 
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.padding(2.dp), verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = isChecked.value, onCheckedChange = { isChecked.value = it })
+                Checkbox(
+                    checked = isChecked.value,
+                    onCheckedChange = {
+                        isChecked.value = it
+                        print(isChecked.value)
+                    })
                 Text(text = "Remember me")
+                Text(text = isChecked.value.toString())
             }
             //forgetpwd
             ClickableText(
@@ -157,8 +191,22 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
                     val isPasswordValid = viewModel.validatePassword(password) { passwordError = it }
 
                     //login
-                    if (isEmailValid && isPasswordValid) {
-                        viewModel.loginUser(email, password)
+                   if (isEmailValid && isPasswordValid) {
+
+
+                       mSharedPreferences.edit().apply {
+                           if (isChecked.value) {
+                               putString(EMAIL, email)
+                               putString(PASSWORD, password)
+                               putBoolean(IS_REMEMBERED, true)
+                           } else {
+                               remove(EMAIL)
+                               remove(PASSWORD)
+                               putBoolean(IS_REMEMBERED, false)
+                           }
+                       }.apply()
+
+                       viewModel.loginUser(email, password)
                     }
 
                 },
@@ -180,8 +228,8 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
             }
             //navigation pour page principale et detruire signin page /////TO DO
            if (loginUiState.isLoggedIn) {
-                Text(text = "Login successful!", color = Color.Green)
-                //loginUiState.token?.let { Text(text = it, color = Color.Green) }
+             Text(text = "Login successful!", color = Color.Green)
+
             }
             //signup txt
             Row(
@@ -204,10 +252,9 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
     }
 }
 
-/*
-@Preview(showBackground = true)
+
+/*@Preview(showBackground = true)
 @Composable
 fun PreviewSignInScreen() {
     SignInScreen()
-}
-*/
+}*/
