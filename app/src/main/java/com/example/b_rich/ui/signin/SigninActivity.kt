@@ -54,7 +54,6 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(),navHostController: NavH
     val context = LocalContext.current
     val mSharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
 
-    // Gérer la navigation avec LaunchedEffect
     LaunchedEffect(key1 = loginUiState.isLoggedIn) {
         if (loginUiState.isLoggedIn) {
             navHostController.navigate("exchangeRate") {

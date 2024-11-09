@@ -76,7 +76,6 @@ dependencies {
     val nav_version = "2.8.0"
     // Jetpack Compose integration
     implementation("androidx.navigation:navigation-compose:$nav_version")
-
     //Room injection
     val room_version = "2.6.1"
     implementation("androidx.room:room-runtime:$room_version")
@@ -86,9 +85,12 @@ dependencies {
     //Retrofit
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-
     //live data
     implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.5.1")
-
+    //icones
     implementation ("androidx.compose.material:material-icons-extended:1.5.0")
+    //biometric
+    implementation("androidx.biometric:biometric:1.1.0")
+    //appcompatActivity
+    implementation("androidx.appcompat:appcompat:1.7.0")
 }
