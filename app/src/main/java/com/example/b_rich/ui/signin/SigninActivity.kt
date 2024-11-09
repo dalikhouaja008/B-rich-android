@@ -38,8 +38,9 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val isChecked = remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
+    var emailError by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf("") }
 
     val loginUiState by viewModel.loginUiState.observeAsState(LoginUiState())
 
@@ -94,6 +95,7 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
+                isError = emailError.isNotEmpty(),
                 label = { Text(text = "Email") },
                 leadingIcon = { Icon(imageVector = Icons.Outlined.Email, contentDescription = "Email Icon") },
                 placeholder = { Text(text = "Email") },
@@ -103,6 +105,9 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
                     .background(Color.White, shape = RoundedCornerShape(16.dp)),
                 shape = RoundedCornerShape(16.dp)
             )
+            if (emailError.isNotEmpty()) {
+                Text(emailError, color = Color.Red)
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -110,6 +115,7 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
+                isError = passwordError.isNotEmpty(),
                 label = { Text(text = "Password") },
                 leadingIcon = { Icon(imageVector = Icons.Outlined.Lock, contentDescription = "Password Icon") },
                 placeholder = { Text(text = "Password") },
@@ -126,26 +132,35 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
                     .background(Color.White, shape = RoundedCornerShape(16.dp)),
                 shape = RoundedCornerShape(16.dp)
             )
+            if (passwordError.isNotEmpty()) {
+                Text(passwordError, color = Color.Red)
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.padding(2.dp), verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = isChecked.value, onCheckedChange = { isChecked.value = it })
                 Text(text = "Remember me")
             }
-
             //forgetpwd
             ClickableText(
                 text = AnnotatedString("Forgot your password?"),
                 onClick = { },
                 style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
             )
-
             Spacer(modifier = Modifier.height(16.dp))
 
             //sign in boutton
             Button(
                 onClick = {
-                    viewModel.loginUser(email, password)
+                    //valider inputs
+                    val isEmailValid = viewModel.validateEmail(email) { emailError = it }
+                    val isPasswordValid = viewModel.validatePassword(password) { passwordError = it }
+
+                    //login
+                    if (isEmailValid && isPasswordValid) {
+                        viewModel.loginUser(email, password)
+                    }
+
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -158,25 +173,16 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
                     Text(text = "Sign In")
                 }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
-
             // Error Message
             loginUiState.errorMessage?.let { errorMessage ->
                 Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
             }
-
-            // Navigate to another screen if logged in
-            if (loginUiState.isLoggedIn) {
-                // Navigate to the next screen or show success message
-                // For example:
-                // navController.navigate("home")
+            //navigation pour page principale et detruire signin page /////TO DO
+           if (loginUiState.isLoggedIn) {
                 Text(text = "Login successful!", color = Color.Green)
                 //loginUiState.token?.let { Text(text = it, color = Color.Green) }
             }
-
-
             //signup txt
             Row(
                 modifier = Modifier.fillMaxWidth(),

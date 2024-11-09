@@ -1,5 +1,6 @@
 package com.example.b_rich.ui.signin
 
+import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -22,6 +23,7 @@ class SigninViewModel(private val userRepository: UserRepository) : ViewModel() 
 
     private var _loginUiState: MutableLiveData<LoginUiState> = MutableLiveData(LoginUiState())
     val loginUiState: LiveData<LoginUiState> get() = _loginUiState // Expose as LiveData
+
 
     // Function to handle user login
     fun loginUser(email: String, password: String) {
@@ -56,6 +58,34 @@ class SigninViewModel(private val userRepository: UserRepository) : ViewModel() 
                 // Handle exceptions during the network call
                 _loginUiState.value = LoginUiState(errorMessage = e.message)
             }
+        }
+    }
+
+    fun validateEmail(email: String, setError: (String) -> Unit): Boolean {
+        return when {
+            email.isEmpty() -> {
+                setError("Email must not be empty")
+                false
+            }
+            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                setError("Please enter a valid email")
+                false
+            }
+            else -> true
+        }
+    }
+
+    fun validatePassword(password: String, setError: (String) -> Unit): Boolean {
+        return when {
+            password.isEmpty() -> {
+                setError("Password must not be empty")
+                false
+            }
+            password.length < 6 -> {
+                setError("Password must be at least 6 characters")
+                false
+            }
+            else -> true
         }
     }
 }

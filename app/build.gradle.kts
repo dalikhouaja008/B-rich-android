@@ -89,4 +89,6 @@ dependencies {
 
     //live data
     implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.5.1")
+
+    implementation ("androidx.compose.material:material-icons-extended:1.5.0")
 }
