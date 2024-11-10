@@ -63,6 +63,40 @@ class SigninViewModel(private val userRepository: UserRepository) : ViewModel() 
         }
     }
 
+    fun loginUserWithBiometricAuth(email: String, password: String) {
+        viewModelScope.launch {
+            _loginUiState.value = LoginUiState(isLoading = true)  // Set loading state
+
+            try {
+                // Make the login request
+                val response: Response<LoginResponse> = userRepository.loginwithbiometric(email, password)
+
+                if (response.isSuccessful) {
+                    // recup token, id, refresh token
+                    val loginResponse = response.body()
+                    print(loginResponse)
+                    if (loginResponse != null) {
+                        val accessToken = loginResponse.accessToken
+                        val refreshToken = loginResponse.refreshToken
+                        val userId = loginResponse.userId
+                        // Update state with success
+                        _loginUiState.value = LoginUiState(isLoggedIn = true, token = accessToken, refreshToken = refreshToken, userId = userId)
+
+                    } else {
+                        //reponse est nulle
+                        _loginUiState.value = LoginUiState(errorMessage = "Login failed: No response body")
+                    }
+                } else {
+                    //log failed
+                    _loginUiState.value = LoginUiState(errorMessage = "Login failed: ${response.message()}")
+                }
+            } catch (e: Exception) {
+                //throw exception
+                _loginUiState.value = LoginUiState(errorMessage = e.message)
+            }
+        }
+    }
+
     fun validateEmail(email: String, setError: (String) -> Unit): Boolean {
         return when {
             email.isEmpty() -> {

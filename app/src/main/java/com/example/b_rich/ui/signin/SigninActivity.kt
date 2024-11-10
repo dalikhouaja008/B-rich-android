@@ -30,11 +30,10 @@ import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.platform.LocalContext
+import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavHostController
 import com.example.b_rich.R
-import com.example.b_rich.ui.biometricDialog.BiometricPromptManager
-import com.example.b_rich.ui.biometricDialog.biometricDialog
-import com.example.b_rich.ui.biometricDialog.biometricDialogViewModel
+import com.example.b_rich.ui.biometricDialog.BiometricAuthenticator
 import com.example.b_rich.ui.theme.EMAIL
 import com.example.b_rich.ui.theme.IS_REMEMBERED
 import com.example.b_rich.ui.theme.PASSWORD
@@ -51,33 +50,17 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
     val loginUiState by viewModel.loginUiState.observeAsState(LoginUiState())
     val context = LocalContext.current
     val mSharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
-
-
-   //var Biometric
-  // var showBiometricDialog by remember { mutableStateOf(false) }
-   // val biometricResult by biometricPrompt.promptResult.collectAsState(initial = null)
-
-    LaunchedEffect(key1 = loginUiState.isLoggedIn) {
-        if (loginUiState.isLoggedIn) {
-            navHostController.navigate("exchangeRate") {
-                // Effacer le back stack pour empêcher le retour
-                popUpTo("login") { inclusive = true }
-            }
-        }
+    //biometric var
+    val biometricAuthenticator= BiometricAuthenticator(context)
+    val activity = LocalContext.current as FragmentActivity
+    var message by  remember{
+        mutableStateOf("")
     }
-    // Vérifier l'état "Remember me" au lancement
-    LaunchedEffect(Unit) {
-        if (mSharedPreferences.getBoolean(IS_REMEMBERED, false)) {
-            navHostController.navigate("exchangeRate") {
-                popUpTo("login") { inclusive = true }
-            }
-        }
-    }
+    var showBiometricDialog by remember { mutableStateOf(false) }
 
 
-
-
-   /* LaunchedEffect(key1 = loginUiState.isLoggedIn) {
+    //login standard
+  LaunchedEffect(key1 = loginUiState.isLoggedIn) {
         if (loginUiState.isLoggedIn) {
             navHostController.navigate("exchangeRate") {
                 // Effacer le back stack pour empêcher le retour
@@ -87,52 +70,44 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
     }
     // Vérifier l'état "Remember me" au lancement
     // Effet de lancement pour vérifier l'authentification biométrique
-    LaunchedEffect(Unit) {
+   LaunchedEffect(Unit) {
         if (mSharedPreferences.getBoolean(IS_REMEMBERED, false)) {
             val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
             val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
             if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
                 showBiometricDialog = true
                 // Déclencher l'authentification biométrique
-                biometricPrompt.showBiometricPrompt(
-                    title = "Authenticate to continue",
-                    description = "Use your biometric credential to login"
+                biometricAuthenticator.promptBiometricAuth(
+                    title ="login",
+                    subTitle ="Use your finger print or face id",
+                    negativeButtonText ="Cancel",
+                    fragmentActivity = activity,
+                    onSuccess = {
+                        message="Success"
+                    },
+                    onFailed = {
+                        message="Wrong fingerprint or face id"
+                    },
+                    onError = { _, error->
+                        message= error.toString()
+
+                    }
                 )
             }
         }
     }
 
     // Gérer le résultat de l'authentification biométrique
-    LaunchedEffect(biometricResult) {
-        when (biometricResult) {
-            is BiometricPromptManager.BiometricResult.AuthenticationSuccess -> {
-                // Récupérer les identifiants sauvegardés
-                val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
-                val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
-                if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
-                    // Appeler loginWithBiometric au lieu de login normal
-                    biometricViewModel.loginUser(savedEmail, savedPassword)
-                }
-            }
-            is BiometricPromptManager.BiometricResult.AuthenticationError -> {
-                showBiometricDialog = false
-                // Afficher l'erreur à l'utilisateur
-                Toast.makeText(
-                    context,
-                    "Authentication failed: ${(biometricResult as BiometricPromptManager.BiometricResult.AuthenticationError).error}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-            is BiometricPromptManager.BiometricResult.AuthenticationFailed -> {
-                showBiometricDialog = false
-                Toast.makeText(context, "Authentication failed", Toast.LENGTH_SHORT).show()
-            }
-            else -> {
-                // Gérer les autres cas si nécessaire
+    LaunchedEffect(message) {
+        if (message == "Success") {
+            val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
+            val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
+            if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
+                // Appeler loginWithBiometric au lieu de login normal
+                viewModel.loginUserWithBiometricAuth(savedEmail, savedPassword)
             }
         }
-    }*/
-
+    }
     //background
     Box(
         modifier = Modifier
@@ -231,10 +206,8 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
                     checked = isChecked.value,
                     onCheckedChange = {
                         isChecked.value = it
-                        print(isChecked.value)
                     })
                 Text(text = "Remember me")
-                Text(text = isChecked.value.toString())
             }
             //forgetpwd
             ClickableText(
@@ -319,3 +292,20 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
 fun PreviewSignInScreen() {
     SignInScreen()
 }*/
+
+/* LaunchedEffect(key1 = loginUiState.isLoggedIn) {
+     if (loginUiState.isLoggedIn) {
+         navHostController.navigate("exchangeRate") {
+             // Effacer le back stack pour empêcher le retour
+             popUpTo("login") { inclusive = true }
+         }
+     }
+ }
+ // Vérifier l'état "Remember me" au lancement
+ LaunchedEffect(Unit) {
+     if (mSharedPreferences.getBoolean(IS_REMEMBERED, false)) {
+         navHostController.navigate("exchangeRate") {
+             popUpTo("login") { inclusive = true }
+         }
+     }
+ }*/
