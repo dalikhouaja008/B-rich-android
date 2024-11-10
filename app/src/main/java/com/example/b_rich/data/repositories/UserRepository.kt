@@ -18,10 +18,13 @@ public class UserRepository(private val apiService: ApiService) {
             Response.error(500, ResponseBody.create(null, "Error creating user"))
         }
     }
-
     // Add login function
     suspend fun login(email: String, password: String): Response<LoginResponse> {
         return apiService.login(LoginRequest(email, password))
+    }
+
+    suspend fun loginwithbiometric(email: String,password: String):Response<LoginResponse>{
+        return apiService.loginwithbiometric(LoginRequest(email,password))
     }
 
 }

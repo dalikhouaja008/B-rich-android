@@ -20,9 +20,12 @@ data class LoginResponse(
 )
 
 interface ApiService {
-    @POST("auth/signup")  // Adjust this endpoint according to your backend
+    @POST("auth/signup")
     suspend fun createUser(@Body user: user): Response<user>
-    // Login API
-    @POST("auth/login")  // Adjust to match your login endpoint in the backend
+
+    @POST("auth/login")
     suspend fun login(@Body loginRequest: LoginRequest): Response<LoginResponse>
+
+    @POST("auth/loginwithbiometric")
+    suspend fun loginwithbiometric(@Body loginRequest: LoginRequest):Response<LoginResponse>
 }

@@ -1,15 +1,11 @@
 package com.example.b_rich.ui.signin
 
-import android.app.Activity
 import android.content.Context
-import android.content.Context.MODE_PRIVATE
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.text.ClickableText
@@ -27,7 +23,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
@@ -37,13 +32,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.example.b_rich.R
+import com.example.b_rich.ui.biometricDialog.BiometricPromptManager
+import com.example.b_rich.ui.biometricDialog.biometricDialog
+import com.example.b_rich.ui.biometricDialog.biometricDialogViewModel
 import com.example.b_rich.ui.theme.EMAIL
 import com.example.b_rich.ui.theme.IS_REMEMBERED
 import com.example.b_rich.ui.theme.PASSWORD
 import com.example.b_rich.ui.theme.PREF_FILE
 
 @Composable
-fun LoginScreen(viewModel: SigninViewModel = viewModel(),navHostController: NavHostController) {
+fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: NavHostController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val isChecked = remember { mutableStateOf(false) }
@@ -53,6 +51,11 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(),navHostController: NavH
     val loginUiState by viewModel.loginUiState.observeAsState(LoginUiState())
     val context = LocalContext.current
     val mSharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
+
+
+   //var Biometric
+  // var showBiometricDialog by remember { mutableStateOf(false) }
+   // val biometricResult by biometricPrompt.promptResult.collectAsState(initial = null)
 
     LaunchedEffect(key1 = loginUiState.isLoggedIn) {
         if (loginUiState.isLoggedIn) {
@@ -70,6 +73,65 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(),navHostController: NavH
             }
         }
     }
+
+
+
+
+   /* LaunchedEffect(key1 = loginUiState.isLoggedIn) {
+        if (loginUiState.isLoggedIn) {
+            navHostController.navigate("exchangeRate") {
+                // Effacer le back stack pour empêcher le retour
+                popUpTo("login") { inclusive = true }
+            }
+        }
+    }
+    // Vérifier l'état "Remember me" au lancement
+    // Effet de lancement pour vérifier l'authentification biométrique
+    LaunchedEffect(Unit) {
+        if (mSharedPreferences.getBoolean(IS_REMEMBERED, false)) {
+            val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
+            val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
+            if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
+                showBiometricDialog = true
+                // Déclencher l'authentification biométrique
+                biometricPrompt.showBiometricPrompt(
+                    title = "Authenticate to continue",
+                    description = "Use your biometric credential to login"
+                )
+            }
+        }
+    }
+
+    // Gérer le résultat de l'authentification biométrique
+    LaunchedEffect(biometricResult) {
+        when (biometricResult) {
+            is BiometricPromptManager.BiometricResult.AuthenticationSuccess -> {
+                // Récupérer les identifiants sauvegardés
+                val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
+                val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
+                if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
+                    // Appeler loginWithBiometric au lieu de login normal
+                    biometricViewModel.loginUser(savedEmail, savedPassword)
+                }
+            }
+            is BiometricPromptManager.BiometricResult.AuthenticationError -> {
+                showBiometricDialog = false
+                // Afficher l'erreur à l'utilisateur
+                Toast.makeText(
+                    context,
+                    "Authentication failed: ${(biometricResult as BiometricPromptManager.BiometricResult.AuthenticationError).error}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            is BiometricPromptManager.BiometricResult.AuthenticationFailed -> {
+                showBiometricDialog = false
+                Toast.makeText(context, "Authentication failed", Toast.LENGTH_SHORT).show()
+            }
+            else -> {
+                // Gérer les autres cas si nécessaire
+            }
+        }
+    }*/
 
     //background
     Box(

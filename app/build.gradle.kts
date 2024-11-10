@@ -2,16 +2,17 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("org.jetbrains.kotlin.kapt")
+
 }
 
 android {
     namespace = "com.example.b_rich"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.b_rich"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -63,6 +64,13 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
 
     implementation (libs.androidx.material.icons.extended)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
 
 
     testImplementation(libs.junit)
@@ -91,6 +99,10 @@ dependencies {
     implementation ("androidx.compose.material:material-icons-extended:1.5.0")
     //biometric
     implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.biometric:biometric:1.4.0-alpha02")
     //appcompatActivity
     implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.appcompat:appcompat-resources:1.7.0")
+
+
 }
