@@ -1,5 +1,6 @@
 package com.example.b_rich.ui.signin
 
+import android.content.SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.Image
@@ -18,22 +19,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.livedata.observeAsState
 import com.example.b_rich.R
 import com.example.b_rich.ui.components.EmailTextField
 import com.example.b_rich.ui.components.PasswordTextField
-import com.example.b_rich.ui.signin.LoginUiState
-import com.example.b_rich.ui.signin.SigninViewModel
+import com.example.b_rich.ui.signin.PreferencesManager
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 
 @Composable
-fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
+fun LoginScreen(viewModel: SigninViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val isChecked = remember { mutableStateOf(false) }
@@ -41,7 +38,22 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
     var emailError by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
 
+    // Observe the login UI state
     val loginUiState by viewModel.loginUiState.observeAsState(LoginUiState())
+
+    // Initialize PreferencesManager with the provided SharedPreferences
+    val sharedPreferences = LocalContext.current.getSharedPreferences("MyPrefs", android.content.Context.MODE_PRIVATE)
+    val preferencesManager = remember { PreferencesManager(sharedPreferences) }
+    val dataKey = "user_email" // Key to store email
+
+    // Retrieve data from SharedPreferences
+    email = preferencesManager.getData(dataKey, "")
+
+    // Function to update email in SharedPreferences
+    fun updateEmail(newEmail: String) {
+        preferencesManager.saveData(dataKey, newEmail)
+        email = newEmail
+    }
 
     //background
     Box(

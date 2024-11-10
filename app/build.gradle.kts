@@ -67,6 +67,8 @@ dependencies {
     //Hilt pour l'Injection de Dépendances
     //implementation (libs.hilt)
 
+    implementation (libs.androidx.datastore.preferences)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

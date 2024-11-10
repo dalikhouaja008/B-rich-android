@@ -17,7 +17,11 @@ import com.example.b_rich.data.repositories.UserRepository
 import com.example.b_rich.ui.signin.LoginScreen
 import com.example.b_rich.ui.signin.SigninViewModel
 import com.example.b_rich.ui.theme.BrichTheme
+import android.content.SharedPreferences
+import com.example.b_rich.injection.ViewModelFactory
+import androidx.lifecycle.viewmodel.compose.viewModel
 
+/*
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,5 +39,39 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+ */
+
+class MainActivity : ComponentActivity() {
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        // Initialize API service and repository
+        val apiService = RetrofitClient.getApiService()
+        val userRepository = UserRepository(apiService)
+
+        // Get SharedPreferences
+        val sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE)
+
+        /*
+        // Pass SharedPreferences to SigninViewModel
+        val signinViewModel = SigninViewModel(userRepository, sharedPreferences)
+         */
+
+        // Create ViewModelFactory with UserRepository and SharedPreferences
+        val viewModelFactory = ViewModelFactory.getInstance(userRepository, sharedPreferences)
 
 
+        // Set content for the activity
+        setContent {
+            BrichTheme {
+                // Use the ViewModelFactory to get the SigninViewModel
+                val signinViewModel: SigninViewModel = viewModel(factory = viewModelFactory)
+
+                    // Pass the SigninViewModel to the LoginScreen
+                    LoginScreen(signinViewModel)
+            }
+        }
+    }
+}
