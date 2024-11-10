@@ -1,15 +1,10 @@
 package com.example.b_rich.ui.signin
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,18 +15,22 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.livedata.observeAsState
 import com.example.b_rich.R
+import com.example.b_rich.ui.components.EmailTextField
+import com.example.b_rich.ui.components.PasswordTextField
+import com.example.b_rich.ui.signin.LoginUiState
+import com.example.b_rich.ui.signin.SigninViewModel
 
 @Composable
 fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
@@ -92,51 +91,29 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
             Spacer(modifier = Modifier.height(16.dp))
 
             //email
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                isError = emailError.isNotEmpty(),
-                label = { Text(text = "Email") },
-                leadingIcon = { Icon(imageVector = Icons.Outlined.Email, contentDescription = "Email Icon") },
-                placeholder = { Text(text = "Email") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(2.dp)
-                    .background(Color.White, shape = RoundedCornerShape(16.dp)),
-                shape = RoundedCornerShape(16.dp)
+            EmailTextField(
+                email = email,
+                onEmailChange = {
+                    email = it
+                    emailError = "" // Reset error on input change
+                },
+                emailError = emailError,
+                modifier = Modifier.padding(vertical = 8.dp)
             )
-            if (emailError.isNotEmpty()) {
-                Text(emailError, color = Color.Red)
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             //pwd
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                isError = passwordError.isNotEmpty(),
-                label = { Text(text = "Password") },
-                leadingIcon = { Icon(imageVector = Icons.Outlined.Lock, contentDescription = "Password Icon") },
-                placeholder = { Text(text = "Password") },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    val visibilityIcon = if (passwordVisible) Icons.Outlined.Visibility else Icons.Filled.VisibilityOff
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = visibilityIcon, contentDescription = "Toggle Password Visibility")
-                    }
+            PasswordTextField(
+                password = password,
+                onPasswordChange = {
+                    password = it
+                    passwordError = "" // Reset error on input change
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(2.dp)
-                    .background(Color.White, shape = RoundedCornerShape(16.dp)),
-                shape = RoundedCornerShape(16.dp)
+                passwordVisible = passwordVisible,
+                onTogglePasswordVisibility = { passwordVisible = !passwordVisible },
+                passwordError = passwordError,
+                modifier = Modifier.padding(vertical = 8.dp)
             )
-            if (passwordError.isNotEmpty()) {
-                Text(passwordError, color = Color.Red)
-            }
 
-            Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.padding(2.dp), verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = isChecked.value, onCheckedChange = { isChecked.value = it })
                 Text(text = "Remember me")
@@ -179,7 +156,7 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel()) {
                 Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
             }
             //navigation pour page principale et detruire signin page /////TO DO
-           if (loginUiState.isLoggedIn) {
+            if (loginUiState.isLoggedIn) {
                 Text(text = "Login successful!", color = Color.Green)
                 //loginUiState.token?.let { Text(text = it, color = Color.Green) }
             }

@@ -64,6 +64,8 @@ dependencies {
 
     implementation (libs.androidx.material.icons.extended)
 
+    //Hilt pour l'Injection de Dépendances
+    //implementation (libs.hilt)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -75,20 +77,25 @@ dependencies {
     //navigation
     val nav_version = "2.8.0"
     // Jetpack Compose integration
-    implementation("androidx.navigation:navigation-compose:$nav_version")
+    implementation(libs.androidx.navigation.compose)
 
     //Room injection
     val room_version = "2.6.1"
-    implementation("androidx.room:room-runtime:$room_version")
-    annotationProcessor("androidx.room:room-compiler:$room_version")
+    implementation(libs.androidx.room.runtime)
+    annotationProcessor(libs.androidx.room.compiler)
     //Kapt annotation processor
-    kapt("androidx.room:room-compiler:2.6.1")
+    kapt(libs.androidx.room.compiler)
     //Retrofit
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation (libs.retrofit)
+    implementation (libs.converter.gson)
 
     //live data
-    implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.5.1")
+    implementation (libs.androidx.lifecycle.livedata.ktx)
 
-    implementation ("androidx.compose.material:material-icons-extended:1.5.0")
+    implementation (libs.androidx.material.icons.extended.v150)
+
+
+    implementation (libs.androidx.material.icons.extended.vversion)
+    implementation (libs.material3)
+
 }
