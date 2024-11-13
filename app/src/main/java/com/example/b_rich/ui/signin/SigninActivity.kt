@@ -60,8 +60,7 @@ fun LoginScreen(viewModel: SigninViewModel) {
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    colors = listOf(Color(0xFF3D5AFE), Color(0xFFB39DDB))
-                )
+                    colors = listOf(Color(0xFF3D5AFE), Color(0xFFB39DDB))                )
             ),
         contentAlignment = Alignment.Center
     ) {

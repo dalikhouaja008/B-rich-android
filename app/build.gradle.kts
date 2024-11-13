@@ -88,6 +88,8 @@ dependencies {
     //EncryptedSharedPreferences
     implementation (libs.androidx.security.crypto)
 
+    implementation (libs.androidx.security.crypto.ktx.v110alpha05)
+
 
     //navigation
     val nav_version = "2.8.0"
