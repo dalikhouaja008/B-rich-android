@@ -2,16 +2,19 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("org.jetbrains.kotlin.kapt")
+    id("kotlin-kapt")
+
+
 }
 
 android {
     namespace = "com.example.b_rich"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.b_rich"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -61,6 +64,17 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.runtime.livedata)
+
+    implementation (libs.androidx.material.icons.extended)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -70,9 +84,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     //navigation
     val nav_version = "2.8.0"
-    // Jetpack Compose integration
     implementation("androidx.navigation:navigation-compose:$nav_version")
-
     //Room injection
     val room_version = "2.6.1"
     implementation("androidx.room:room-runtime:$room_version")
@@ -82,7 +94,17 @@ dependencies {
     //Retrofit
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-
     //live data
     implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.5.1")
+    //icones
+    implementation ("androidx.compose.material:material-icons-extended:1.5.0")
+    //biometric
+    implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.biometric:biometric:1.4.0-alpha02")
+    //hilt dagger
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
+}
+kapt {
+    correctErrorTypes = true
 }
