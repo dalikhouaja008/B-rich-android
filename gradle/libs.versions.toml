@@ -19,8 +19,10 @@ navigationCompose = "2.8.0"
 retrofit = "2.9.0"
 roomCompiler = "2.6.1"
 runtimeLivedata = "1.7.5"
+securityCrypto = "1.1.0-alpha06"
 ui = "1.7.5"
 uiToolingPreview = "1.7.5"
+securityCryptoKtx = "1.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,6 +36,7 @@ androidx-material-icons-extended-vversion = { module = "androidx.compose.materia
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomCompiler" }
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 hilt = { module = "com.google.dagger:hilt" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -54,6 +57,7 @@ material3 = { module = "androidx.compose.material3:material3", version.ref = "an
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 ui = { module = "androidx.compose.ui:ui", version.ref = "ui" }
 ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "uiToolingPreview" }
+androidx-security-crypto-ktx = { group = "androidx.security", name = "security-crypto-ktx", version.ref = "securityCryptoKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

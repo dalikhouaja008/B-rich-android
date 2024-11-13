@@ -68,6 +68,7 @@ dependencies {
     //implementation (libs.hilt)
 
     implementation (libs.androidx.datastore.preferences)
+    implementation(libs.androidx.security.crypto.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -83,6 +84,9 @@ dependencies {
     implementation (libs.androidx.material.icons.extended.v130)
     implementation (libs.ui.tooling.preview)
 
+
+    //EncryptedSharedPreferences
+    implementation (libs.androidx.security.crypto)
 
 
     //navigation

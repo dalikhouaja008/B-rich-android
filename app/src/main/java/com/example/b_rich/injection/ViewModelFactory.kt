@@ -10,7 +10,7 @@ import com.example.b_rich.ui.signup.SignupViewModel
 
 class ViewModelFactory(
     private val userRepository: UserRepository,
-    private val sharedPreferences: SharedPreferences // Add SharedPreferences parameter
+    private val sharedPreferences: SharedPreferences
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

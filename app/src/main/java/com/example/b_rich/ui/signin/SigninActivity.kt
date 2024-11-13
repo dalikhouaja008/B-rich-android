@@ -40,7 +40,9 @@ fun LoginScreen(viewModel: SigninViewModel) {
 
     // Initialize PreferencesManager with the provided SharedPreferences
     val sharedPreferences = LocalContext.current.getSharedPreferences("MyPrefs", android.content.Context.MODE_PRIVATE)
-    val preferencesManager = remember { PreferencesManager(sharedPreferences) }
+    //val preferencesManager = remember { PreferencesManager(sharedPreferences) }
+    val context=LocalContext.current
+    val preferencesManager = remember { PreferencesManager.create(context) }
     val dataKey = "user_email" // Key to store email
 
     // Retrieve data from SharedPreferences
