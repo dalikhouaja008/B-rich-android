@@ -1,7 +1,6 @@
 package com.example.b_rich.ui.signin
 
 import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.unit.dp
@@ -38,6 +37,7 @@ import com.example.b_rich.ui.theme.EMAIL
 import com.example.b_rich.ui.theme.IS_REMEMBERED
 import com.example.b_rich.ui.theme.PASSWORD
 import com.example.b_rich.ui.theme.PREF_FILE
+import com.google.gson.Gson
 
 @Composable
 fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: NavHostController) {
@@ -62,7 +62,8 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
     //login standard
   LaunchedEffect(key1 = loginUiState.isLoggedIn) {
         if (loginUiState.isLoggedIn) {
-            navHostController.navigate("exchangeRate") {
+            val userJson = Gson().toJson(loginUiState.user)
+            navHostController.navigate("exchangeRate/$userJson") {
                 // Effacer le back stack pour empêcher le retour
                 popUpTo("login") { inclusive = true }
             }
@@ -223,11 +224,8 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
                     //valider inputs
                     val isEmailValid = viewModel.validateEmail(email) { emailError = it }
                     val isPasswordValid = viewModel.validatePassword(password) { passwordError = it }
-
                     //login
                    if (isEmailValid && isPasswordValid) {
-
-
                        mSharedPreferences.edit().apply {
                            if (isChecked.value) {
                                putString(EMAIL, email)
@@ -239,7 +237,6 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
                                putBoolean(IS_REMEMBERED, false)
                            }
                        }.apply()
-
                        viewModel.loginUser(email, password)
                     }
 
@@ -293,19 +290,4 @@ fun PreviewSignInScreen() {
     SignInScreen()
 }*/
 
-/* LaunchedEffect(key1 = loginUiState.isLoggedIn) {
-     if (loginUiState.isLoggedIn) {
-         navHostController.navigate("exchangeRate") {
-             // Effacer le back stack pour empêcher le retour
-             popUpTo("login") { inclusive = true }
-         }
-     }
- }
- // Vérifier l'état "Remember me" au lancement
- LaunchedEffect(Unit) {
-     if (mSharedPreferences.getBoolean(IS_REMEMBERED, false)) {
-         navHostController.navigate("exchangeRate") {
-             popUpTo("login") { inclusive = true }
-         }
-     }
- }*/
+

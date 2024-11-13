@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("org.jetbrains.kotlin.kapt")
+    id("kotlin-kapt")
+
 
 }
 
@@ -82,7 +84,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     //navigation
     val nav_version = "2.8.0"
-    // Jetpack Compose integration
     implementation("androidx.navigation:navigation-compose:$nav_version")
     //Room injection
     val room_version = "2.6.1"
@@ -100,9 +101,10 @@ dependencies {
     //biometric
     implementation("androidx.biometric:biometric:1.1.0")
     implementation("androidx.biometric:biometric:1.4.0-alpha02")
-    //appcompatActivity
-    implementation("androidx.appcompat:appcompat:1.7.0")
-    implementation("androidx.appcompat:appcompat-resources:1.7.0")
-
-
+    //hilt dagger
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
+}
+kapt {
+    correctErrorTypes = true
 }

@@ -19,13 +19,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.example.b_rich.R
+import com.example.b_rich.data.entities.user
+import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.example.b_rich.ui.theme.PREF_FILE
-
+import com.google.gson.Gson
 
 
 @Composable
-fun ExchangeRate() {
+fun ExchangeRate(user : user,navHostController: NavHostController,viewModel: ResetPasswordViewModel = viewModel()) {
 
     val context = LocalContext.current
     val mSharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
@@ -90,16 +94,29 @@ fun ExchangeRate() {
 
             Spacer(modifier = Modifier.height(8.dp))
 
+            ClickableText(
+                text = AnnotatedString("Chnage Password"),
+                onClick = {
+                    viewModel.requestReset(user.email)
+                    val userJson = Gson().toJson(user)
+                    navHostController.navigate("codeVerification/$userJson")
+                },
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = Color(0xFF3D5AFE),
+                    fontWeight = FontWeight.Bold
+                )
+            )
+
 
         }
     }
 }
 
 
-@Preview(showBackground = true)
+/*@Preview(showBackground = true)
 @Composable
 fun PreviewSignInScreen() {
     ExchangeRate()
-}
+}*/
 
 

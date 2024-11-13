@@ -22,15 +22,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.b_rich.data.entities.user
 import com.example.b_rich.data.network.RetrofitClient
 import com.example.b_rich.data.repositories.UserRepository
 import com.example.b_rich.ui.biometricDialog.BiometricAuthenticator
+import com.example.b_rich.ui.resetPassword.CodeEntryScreen
+import com.example.b_rich.ui.resetPassword.PasswordEntryScreen
+import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.example.b_rich.ui.signin.LoginScreen
 import com.example.b_rich.ui.signin.SigninViewModel
 import com.example.b_rich.ui.theme.BrichTheme
+import com.google.gson.Gson
 
 class MainActivity : FragmentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -42,6 +49,7 @@ class MainActivity : FragmentActivity() {
         val apiService = RetrofitClient.getApiService()
         val userRepository = UserRepository(apiService)
         val signinViewModel = SigninViewModel(userRepository)
+        val resetPasswordViewModel = ResetPasswordViewModel(userRepository)
 
         setContent {
             BrichTheme {
@@ -54,8 +62,34 @@ class MainActivity : FragmentActivity() {
 
                     NavHost(navController, startDestination = "loginPage") {
                         composable("loginPage") { LoginScreen(signinViewModel, navController) }
-                        composable("exchangeRate") { ExchangeRate() }
+                        composable("exchangeRate/{userJson}") {
+                                backStackEntry ->
+                            val userJson = backStackEntry.arguments?.getString("userJson")
+                            val user = Gson().fromJson(userJson, user::class.java)
+                            ExchangeRate(user,navController,resetPasswordViewModel) }
+                        composable("codeVerification/{userJson}") {
+                                backStackEntry ->
+                            val userJson = backStackEntry.arguments?.getString("userJson")
+                            val user = Gson().fromJson(userJson, user::class.java)
+                            CodeEntryScreen(user,resetPasswordViewModel,navController)
+                        }
+                        composable(
+                            "changepassword/{code}/{email}",
+                            arguments = listOf(
+                                navArgument("code") { type = NavType.StringType },
+                                navArgument("email") { type = NavType.StringType }
+                            )
+                        ) { backStackEntry ->
+                            val code = backStackEntry.arguments?.getString("code")
+                            val email = backStackEntry.arguments?.getString("email")
+                            if (code != null && email != null) {
+                                PasswordEntryScreen(code, email, resetPasswordViewModel, navController)
+                            }
+                        }
+
                     }
+
+
                 }
             }
         }
