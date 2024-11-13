@@ -15,6 +15,7 @@ data class LoginUiState(
     val isLoading: Boolean = false,
     val isLoggedIn: Boolean = false,
     val token: String? = null,
+    val refreshToken :String? =null,
     val errorMessage: String? = null,
     val hasNavigated: Boolean = false
 )

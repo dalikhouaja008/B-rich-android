@@ -1,11 +1,9 @@
 package com.example.b_rich.ui.signin
 
-import android.content.SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.text.ClickableText
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,12 +18,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.livedata.observeAsState
 import com.example.b_rich.R
 import com.example.b_rich.ui.components.EmailTextField
 import com.example.b_rich.ui.components.PasswordTextField
-import com.example.b_rich.ui.signin.PreferencesManager
+import com.example.b_rich.data.local.PreferencesManager
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 
@@ -106,7 +103,7 @@ fun LoginScreen(viewModel: SigninViewModel) {
             EmailTextField(
                 email = email,
                 onEmailChange = {
-                    email = it
+                    updateEmail(it) // Update email in SharedPreferences
                     emailError = "" // Reset error on input change
                 },
                 emailError = emailError,
@@ -197,6 +194,6 @@ fun LoginScreen(viewModel: SigninViewModel) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewSignInScreen() {
-    SignInScreen()
+    LoginScreen()
 }
 */

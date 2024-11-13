@@ -26,23 +26,30 @@ fun EmailTextField(
     emailError: String,
     modifier: Modifier = Modifier
 ) {
-    OutlinedTextField(
-        value = email,
-        onValueChange = {
-            onEmailChange(it)
-        },
-        isError = emailError.isNotEmpty(),
-        label = { Text(text = "Email") },
-        leadingIcon = { Icon(imageVector = Icons.Outlined.Email, contentDescription = "Email Icon") },
-        placeholder = { Text(text = "example@gmail.com") },
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(2.dp)
-            .background(Color.White, shape = RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp)
-    )
-    if (emailError.isNotEmpty()) {
-        Text(emailError, color = Color.Red)
+    Column(modifier = modifier) { // Wrap in a Column to manage spacing
+        OutlinedTextField(
+            value = email,
+            onValueChange = {
+                onEmailChange(it) // Call the provided function to handle email change
+            },
+            isError = emailError.isNotEmpty(),
+            label = { Text(text = "Email") },
+            leadingIcon = { Icon(imageVector = Icons.Outlined.Email, contentDescription = "Email Icon") },
+            placeholder = { Text(text = "Email") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(2.dp)
+                .background(Color.White, shape = RoundedCornerShape(16.dp)),
+            shape = RoundedCornerShape(16.dp)
+        )
+
+        // Display error message if present
+        if (emailError.isNotEmpty()) {
+            Text(emailError, color = Color.Red, modifier = Modifier.padding(top = 4.dp))
+        }
+
+        // Add a spacer for additional spacing if needed
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 

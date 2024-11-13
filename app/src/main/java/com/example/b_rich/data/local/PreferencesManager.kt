@@ -1,6 +1,5 @@
-package com.example.b_rich.ui.signin
+package com.example.b_rich.data.local
 
-import android.content.Context
 import android.content.SharedPreferences
 
 

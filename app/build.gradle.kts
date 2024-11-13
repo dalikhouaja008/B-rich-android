@@ -76,6 +76,15 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    //visibility + visibilityoff
+    implementation (libs.ui)
+    implementation (libs.androidx.material)
+    implementation (libs.androidx.material.icons.extended.v130)
+    implementation (libs.ui.tooling.preview)
+
+
+
     //navigation
     val nav_version = "2.8.0"
     // Jetpack Compose integration
