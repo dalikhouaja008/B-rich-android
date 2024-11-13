@@ -2,16 +2,19 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("org.jetbrains.kotlin.kapt")
+    id("kotlin-kapt")
+
+
 }
 
 android {
     namespace = "com.example.b_rich"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.b_rich"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -63,6 +66,13 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
 
     implementation (libs.androidx.material.icons.extended)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.androidx.foundation.layout.android)
 
     //Hilt pour l'Injection de Dépendances
     //implementation (libs.hilt)
@@ -115,4 +125,16 @@ dependencies {
     implementation (libs.androidx.material.icons.extended.vversion)
     implementation (libs.material3)
 
+    implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.5.1")
+    //icones
+    implementation ("androidx.compose.material:material-icons-extended:1.5.0")
+    //biometric
+    implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.biometric:biometric:1.4.0-alpha02")
+    //hilt dagger
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
+}
+kapt {
+    correctErrorTypes = true
 }

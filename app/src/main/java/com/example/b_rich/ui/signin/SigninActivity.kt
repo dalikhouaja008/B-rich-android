@@ -1,7 +1,11 @@
 package com.example.b_rich.ui.signin
 
 import androidx.compose.foundation.background
+import android.content.Context
 import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.*
@@ -17,6 +21,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.platform.LocalContext
+import androidx.fragment.app.FragmentActivity
+import androidx.navigation.NavHostController
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.livedata.observeAsState
 import com.example.b_rich.R
@@ -25,9 +40,15 @@ import com.example.b_rich.ui.components.PasswordTextField
 import com.example.b_rich.data.local.PreferencesManager
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import com.example.b_rich.ui.biometricDialog.BiometricAuthenticator
+import com.example.b_rich.ui.theme.EMAIL
+import com.example.b_rich.ui.theme.IS_REMEMBERED
+import com.example.b_rich.ui.theme.PASSWORD
+import com.example.b_rich.ui.theme.PREF_FILE
+import com.google.gson.Gson
 
 @Composable
-fun LoginScreen(viewModel: SigninViewModel) {
+fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: NavHostController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val isChecked = remember { mutableStateOf(false) }
@@ -37,7 +58,67 @@ fun LoginScreen(viewModel: SigninViewModel) {
 
     // Observe the login UI state
     val loginUiState by viewModel.loginUiState.observeAsState(LoginUiState())
+    val context = LocalContext.current
+    val mSharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
+    //biometric var
+    val biometricAuthenticator= BiometricAuthenticator(context)
+    val activity = LocalContext.current as FragmentActivity
+    var message by  remember{
+        mutableStateOf("")
+    }
+    var showBiometricDialog by remember { mutableStateOf(false) }
 
+
+    //login standard
+  LaunchedEffect(key1 = loginUiState.isLoggedIn) {
+        if (loginUiState.isLoggedIn) {
+            val userJson = Gson().toJson(loginUiState.user)
+            navHostController.navigate("exchangeRate/$userJson") {
+                // Effacer le back stack pour empêcher le retour
+                popUpTo("login") { inclusive = true }
+            }
+        }
+    }
+    // Vérifier l'état "Remember me" au lancement
+    // Effet de lancement pour vérifier l'authentification biométrique
+   LaunchedEffect(Unit) {
+        if (mSharedPreferences.getBoolean(IS_REMEMBERED, false)) {
+            val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
+            val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
+            if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
+                showBiometricDialog = true
+                // Déclencher l'authentification biométrique
+                biometricAuthenticator.promptBiometricAuth(
+                    title ="login",
+                    subTitle ="Use your finger print or face id",
+                    negativeButtonText ="Cancel",
+                    fragmentActivity = activity,
+                    onSuccess = {
+                        message="Success"
+                    },
+                    onFailed = {
+                        message="Wrong fingerprint or face id"
+                    },
+                    onError = { _, error->
+                        message= error.toString()
+
+                    }
+                )
+            }
+        }
+    }
+
+    // Gérer le résultat de l'authentification biométrique
+    LaunchedEffect(message) {
+        if (message == "Success") {
+            val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
+            val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
+            if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
+                // Appeler loginWithBiometric au lieu de login normal
+                viewModel.loginUserWithBiometricAuth(savedEmail, savedPassword)
+            }
+        }
+    }
     // Initialize PreferencesManager with the provided SharedPreferences
     val sharedPreferences = LocalContext.current.getSharedPreferences("MyPrefs", android.content.Context.MODE_PRIVATE)
     //val preferencesManager = remember { PreferencesManager(sharedPreferences) }
@@ -60,7 +141,8 @@ fun LoginScreen(viewModel: SigninViewModel) {
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    colors = listOf(Color(0xFF3D5AFE), Color(0xFFB39DDB))                )
+                    colors = listOf(Color(0xFF3D5AFE), Color(0xFFB39DDB))
+                )
             ),
         contentAlignment = Alignment.Center
     ) {
@@ -110,6 +192,11 @@ fun LoginScreen(viewModel: SigninViewModel) {
                 emailError = emailError,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
+            if (emailError.isNotEmpty()) {
+                Text(emailError, color = Color.Red)
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             //pwd
             PasswordTextField(
@@ -123,9 +210,17 @@ fun LoginScreen(viewModel: SigninViewModel) {
                 passwordError = passwordError,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
+            if (passwordError.isNotEmpty()) {
+                Text(passwordError, color = Color.Red)
+            }
 
+            Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.padding(2.dp), verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(checked = isChecked.value, onCheckedChange = { isChecked.value = it })
+                Checkbox(
+                    checked = isChecked.value,
+                    onCheckedChange = {
+                        isChecked.value = it
+                    })
                 Text(text = "Remember me")
             }
             //forgetpwd
@@ -144,8 +239,19 @@ fun LoginScreen(viewModel: SigninViewModel) {
                     val isPasswordValid = viewModel.validatePassword(password) { passwordError = it }
 
                     //login
-                    if (isEmailValid && isPasswordValid) {
-                        viewModel.loginUser(email, password)
+                   if (isEmailValid && isPasswordValid) {
+                       mSharedPreferences.edit().apply {
+                           if (isChecked.value) {
+                               putString(EMAIL, email)
+                               putString(PASSWORD, password)
+                               putBoolean(IS_REMEMBERED, true)
+                           } else {
+                               remove(EMAIL)
+                               remove(PASSWORD)
+                               putBoolean(IS_REMEMBERED, false)
+                           }
+                       }.apply()
+                       viewModel.loginUser(email, password)
                     }
 
                 },
@@ -166,9 +272,9 @@ fun LoginScreen(viewModel: SigninViewModel) {
                 Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
             }
             //navigation pour page principale et detruire signin page /////TO DO
-            if (loginUiState.isLoggedIn) {
-                Text(text = "Login successful!", color = Color.Green)
-                //loginUiState.token?.let { Text(text = it, color = Color.Green) }
+           if (loginUiState.isLoggedIn) {
+             Text(text = "Login successful!", color = Color.Green)
+
             }
             //signup txt
             Row(
@@ -195,6 +301,6 @@ fun LoginScreen(viewModel: SigninViewModel) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewSignInScreen() {
-    LoginScreen()
+    SignInScreen()
 }
 */
