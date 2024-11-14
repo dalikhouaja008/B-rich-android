@@ -2,7 +2,9 @@ package com.example.b_rich
 
 import ExchangeRate
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
+import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,8 +39,10 @@ import com.example.b_rich.ui.resetPassword.PasswordEntryScreen
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.example.b_rich.ui.signin.LoginScreen
 import com.example.b_rich.ui.signin.SigninViewModel
+import com.example.b_rich.ui.signup.SignUpScreen
 import com.example.b_rich.ui.theme.BrichTheme
 import com.google.gson.Gson
+import java.net.URLDecoder
 
 class MainActivity : FragmentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -54,25 +59,34 @@ class MainActivity : FragmentActivity() {
         setContent {
             BrichTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
-                    val activity = LocalContext.current as FragmentActivity
-                    var message by  remember{
-                        mutableStateOf("")
-                    }
                     val navController = rememberNavController()
-
                     NavHost(navController, startDestination = "loginPage") {
-                        composable("loginPage") { LoginScreen(signinViewModel, navController) }
-                        composable("exchangeRate/{userJson}") {
-                                backStackEntry ->
-                            val userJson = backStackEntry.arguments?.getString("userJson")
-                            val user = Gson().fromJson(userJson, user::class.java)
-                            ExchangeRate(user,navController,resetPasswordViewModel) }
-                        composable("codeVerification/{userJson}") {
-                                backStackEntry ->
-                            val userJson = backStackEntry.arguments?.getString("userJson")
-                            val user = Gson().fromJson(userJson, user::class.java)
-                            CodeEntryScreen(user,resetPasswordViewModel,navController)
+                        composable("loginPage") {
+                            LoginScreen(signinViewModel, navController)
                         }
+
+                        composable(
+                            route = "exchangeRate/{userJson}",
+                            arguments = listOf(
+                                navArgument("userJson") { type = NavType.StringType }
+                            )
+                        ) { backStackEntry ->
+                            val userJson = backStackEntry.arguments?.getString("userJson")
+                            val user = userJson?.let { Gson().fromJson(it, user::class.java) }
+                            user?.let { ExchangeRate(it, navController, resetPasswordViewModel) }
+                        }
+
+                        composable(
+                            route = "codeVerification/{userJson}",
+                            arguments = listOf(
+                                navArgument("userJson") { type = NavType.StringType }
+                            )
+                        ) { backStackEntry ->
+                            val userJson = backStackEntry.arguments?.getString("userJson")
+                            val user = userJson?.let { Gson().fromJson(it, user::class.java) }
+                            user?.let { CodeEntryScreen(it, resetPasswordViewModel, navController) }
+                        }
+
                         composable(
                             "changepassword/{code}/{email}",
                             arguments = listOf(
@@ -86,8 +100,10 @@ class MainActivity : FragmentActivity() {
                                 PasswordEntryScreen(code, email, resetPasswordViewModel, navController)
                             }
                         }
-
                     }
+
+                    // When navigating from LoginScreen, use this:
+
 
 
                 }
@@ -96,6 +112,16 @@ class MainActivity : FragmentActivity() {
     }
 
 
+}
+
+fun navigateToExchangeRate(user: user, navController: NavController) {
+    val userJson = Uri.encode(Gson().toJson(user))
+    navController.navigate("exchangeRate/$userJson")
+}
+
+fun navigateToCodeVerification(user: user, navController: NavController) {
+    val userJson = Uri.encode(Gson().toJson(user))
+    navController.navigate("codeVerification/$userJson")
 }
 /*Column(
 modifier = Modifier.fillMaxSize(),

@@ -1,4 +1,5 @@
 package com.example.b_rich.ui.resetPassword
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -19,11 +20,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.navigation.NavHostController
 import com.example.b_rich.R
+import com.example.b_rich.data.entities.user
+import com.example.b_rich.navigateToExchangeRate
+import com.example.b_rich.ui.theme.EMAIL
+import com.example.b_rich.ui.theme.PASSWORD
+import com.example.b_rich.ui.theme.PREF_FILE
+import com.google.gson.Gson
 
 @Composable
 fun PasswordEntryScreen(
@@ -38,16 +45,20 @@ fun PasswordEntryScreen(
     var confirmPasswordError by remember { mutableStateOf("") }
     val resetPasswordUiState by viewModel.resetPasswordUiState.observeAsState(ResetPasswordUiState())
     var passwordVisible by remember { mutableStateOf(false) }
-
+    val context = LocalContext.current
+    val sharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
     // Effet pour gérer la navigation
     LaunchedEffect(resetPasswordUiState.isPasswordReset) {
+        val savedEmail = sharedPreferences.getString(EMAIL, null)
+        if (savedEmail == resetPasswordUiState.user?.email) {
+            // Mettre à jour le mot de passe dans SharedPreferences
+            sharedPreferences.edit().apply {
+                putString(PASSWORD, newPassword)
+                apply()
+            }
+        }
         if (resetPasswordUiState.isPasswordReset) {
-
-            // Retourner à l'écran exchangeRate en nettoyant la pile de navigation
-            navHostController.popBackStack(
-                route = "exchangeRate",
-                inclusive = false // false pour garder la destination exchangeRate
-            )
+            resetPasswordUiState.user?.let { navigateToExchangeRate(it, navHostController) }
         }
     }
 
