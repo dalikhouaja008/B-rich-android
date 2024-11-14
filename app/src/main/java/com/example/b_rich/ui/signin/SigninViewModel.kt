@@ -60,7 +60,7 @@ class SigninViewModel(
                         // Save tokens to SharedPreferences
                         saveTokenToPreferences(ACCESS_TOKEN_KEY, accessToken)
                         saveTokenToPreferences(REFRESH_TOKEN_KEY, refreshToken)
-                        saveTokenToPreferences(USER_ID_KEY, userId)
+                      //  saveTokenToPreferences(USER_ID_KEY, user.Id)
 
                         // Update state with success
                         _loginUiState.value = LoginUiState(isLoggedIn = true, token = accessToken, refreshToken = refreshToken, user = user)

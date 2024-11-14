@@ -79,6 +79,7 @@ dependencies {
 
     implementation (libs.androidx.datastore.preferences)
     implementation(libs.androidx.security.crypto.ktx)
+    implementation(libs.androidx.fragment.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -125,9 +126,9 @@ dependencies {
     implementation (libs.androidx.material.icons.extended.vversion)
     implementation (libs.material3)
 
-    implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.5.1")
+    implementation (libs.androidx.lifecycle.livedata.ktx.v251)
     //icones
-    implementation ("androidx.compose.material:material-icons-extended:1.5.0")
+    implementation ("androidx.compose.material:material-icons-extended:1.7.5")
     //biometric
     implementation("androidx.biometric:biometric:1.1.0")
     implementation("androidx.biometric:biometric:1.4.0-alpha02")

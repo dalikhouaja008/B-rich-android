@@ -1,26 +1,18 @@
 package com.example.b_rich
 
+import ExchangeRate
 import android.annotation.SuppressLint
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -30,16 +22,13 @@ import androidx.navigation.navArgument
 import com.example.b_rich.data.entities.user
 import com.example.b_rich.data.network.RetrofitClient
 import com.example.b_rich.data.repositories.UserRepository
-import com.example.b_rich.ui.biometricDialog.BiometricAuthenticator
 import com.example.b_rich.ui.resetPassword.CodeEntryScreen
 import com.example.b_rich.ui.resetPassword.PasswordEntryScreen
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.example.b_rich.ui.signin.LoginScreen
 import com.example.b_rich.ui.signin.SigninViewModel
 import com.example.b_rich.ui.theme.BrichTheme
-import android.content.SharedPreferences
-import com.example.b_rich.injection.ViewModelFactory
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.b_rich.ui.theme.PREF_FILE
 import com.google.gson.Gson
 
 
@@ -53,7 +42,8 @@ class MainActivity : FragmentActivity() {
         // Initialize your API service and repository here
         val apiService = RetrofitClient.getApiService()
         val userRepository = UserRepository(apiService)
-        val signinViewModel = SigninViewModel(userRepository)
+        val sharedPreferences = getSharedPreferences(PREF_FILE, MODE_PRIVATE)
+        val signinViewModel = SigninViewModel(userRepository,sharedPreferences)
         val resetPasswordViewModel = ResetPasswordViewModel(userRepository)
 
         setContent {

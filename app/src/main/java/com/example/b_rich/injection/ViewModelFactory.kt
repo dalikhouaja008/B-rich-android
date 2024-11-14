@@ -19,7 +19,7 @@ class ViewModelFactory(
                 SignupViewModel(userRepository) as T
             }
             modelClass.isAssignableFrom(SigninViewModel::class.java) -> {
-                SigninViewModel(userRepository, sharedPreferences) as T // Pass SharedPreferences
+                SigninViewModel(userRepository, sharedPreferences) as T
             }
             modelClass.isAssignableFrom(ForgetpasswordViewModel::class.java) -> {
                 ForgetpasswordViewModel(userRepository) as T
