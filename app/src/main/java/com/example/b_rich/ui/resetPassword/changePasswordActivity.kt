@@ -16,12 +16,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.navigation.NavHostController
 import com.example.b_rich.R
@@ -111,6 +113,9 @@ fun PasswordEntryScreen(
                     isError = passwordError.isNotEmpty(),
                     label = { Text("New Password") },
                     placeholder = { Text("Enter new password") },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                    ),
                     leadingIcon = { Icon(Icons.Outlined.Lock, "Password Icon") },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
@@ -145,6 +150,9 @@ fun PasswordEntryScreen(
                     },
                     isError = confirmPasswordError.isNotEmpty(),
                     label = { Text("Confirm Password") },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                    ),
                     placeholder = { Text("Re-enter new password") },
                     leadingIcon = { Icon(Icons.Outlined.Lock, "Password Icon") },
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),

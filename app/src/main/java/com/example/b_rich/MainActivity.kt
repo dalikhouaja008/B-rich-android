@@ -40,6 +40,7 @@ import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.example.b_rich.ui.signin.LoginScreen
 import com.example.b_rich.ui.signin.SigninViewModel
 import com.example.b_rich.ui.signup.SignUpScreen
+import com.example.b_rich.ui.signup.SignupViewModel
 import com.example.b_rich.ui.theme.BrichTheme
 import com.google.gson.Gson
 import java.net.URLDecoder
@@ -55,12 +56,16 @@ class MainActivity : FragmentActivity() {
         val userRepository = UserRepository(apiService)
         val signinViewModel = SigninViewModel(userRepository)
         val resetPasswordViewModel = ResetPasswordViewModel(userRepository)
+        val signupViewModel= SignupViewModel(userRepository)
 
         setContent {
             BrichTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
                     NavHost(navController, startDestination = "loginPage") {
+                        composable("signup"){
+                            SignUpScreen(signupViewModel,navController)
+                        }
                         composable("loginPage") {
                             LoginScreen(signinViewModel, navController)
                         }
