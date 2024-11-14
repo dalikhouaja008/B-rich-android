@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.androidx.foundation.layout.android)
     implementation(libs.androidx.foundation.layout.android)
     implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.play.services.basement)
 
 
     testImplementation(libs.junit)
@@ -104,6 +105,10 @@ dependencies {
     //hilt dagger
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
+
+
+    //google authentication
+    implementation("com.google.android.gms:play-services-auth:20.4.1")
 }
 kapt {
     correctErrorTypes = true

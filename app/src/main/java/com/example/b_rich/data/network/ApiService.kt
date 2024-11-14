@@ -21,7 +21,8 @@ data class LoginResponse(
 
 data class ResponseReset(
     val success : Boolean,
-    val message : String
+    val message : String,
+    val user: user
 )
 data class RequestResetBody(
     val email: String

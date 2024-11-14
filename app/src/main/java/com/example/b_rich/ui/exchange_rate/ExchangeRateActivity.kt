@@ -23,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.b_rich.R
 import com.example.b_rich.data.entities.user
+import com.example.b_rich.navigateToCodeVerification
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.example.b_rich.ui.theme.PREF_FILE
 import com.google.gson.Gson
@@ -98,8 +99,7 @@ fun ExchangeRate(user : user,navHostController: NavHostController,viewModel: Res
                 text = AnnotatedString("Chnage Password"),
                 onClick = {
                     viewModel.requestReset(user.email)
-                    val userJson = Gson().toJson(user)
-                    navHostController.navigate("codeVerification/$userJson")
+                    navigateToCodeVerification(user, navHostController)
                 },
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = Color(0xFF3D5AFE),

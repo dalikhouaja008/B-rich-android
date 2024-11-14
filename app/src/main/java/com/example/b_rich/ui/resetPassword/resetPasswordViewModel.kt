@@ -7,21 +7,28 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.b_rich.data.network.ResponseReset
+import com.example.b_rich.data.entities.user
 import com.example.b_rich.data.repositories.UserRepository
+
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 
 data class ResetPasswordUiState(
     val isLoading: Boolean = false,
     val isCodeVerified: Boolean = false,
-    val isCodeSent :Boolean =false,
-    val isPasswordReset: Boolean = false,
+    val isCodeSent:Boolean =false,
+    var isPasswordReset: Boolean = false,
     val errorMessage: String? = null,
-    val hasNavigated: Boolean = false
+    val hasNavigated: Boolean = false,
+    val user: user? =null
 )
 
-class ResetPasswordViewModel(private val userRepository: UserRepository) : ViewModel() {
+class ResetPasswordViewModel @Inject constructor(
+    private val userRepository: UserRepository,
+) : ViewModel() {
+
+
     private var _resetPasswordUiState: MutableLiveData<ResetPasswordUiState> = MutableLiveData(ResetPasswordUiState())
     val resetPasswordUiState: LiveData<ResetPasswordUiState> get() = _resetPasswordUiState
 
@@ -83,7 +90,7 @@ class ResetPasswordViewModel(private val userRepository: UserRepository) : ViewM
                 val response = userRepository.resetPassword(email, code, newPassword)
 
                 if (response.isSuccessful) {
-                    _resetPasswordUiState.value = ResetPasswordUiState(isPasswordReset = true)
+                    _resetPasswordUiState.value = ResetPasswordUiState(isPasswordReset = true, user = response.body()?.user)
                 } else {
                     val errorBody = response.errorBody()?.string()
                     Log.e("ResetPassword", "Error: $errorBody")

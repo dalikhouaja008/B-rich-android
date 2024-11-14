@@ -1,6 +1,7 @@
 package com.example.b_rich.ui.signin
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.unit.dp
@@ -32,12 +33,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavHostController
 import com.example.b_rich.R
+import com.example.b_rich.navigateToExchangeRate
 import com.example.b_rich.ui.biometricDialog.BiometricAuthenticator
 import com.example.b_rich.ui.theme.EMAIL
 import com.example.b_rich.ui.theme.IS_REMEMBERED
 import com.example.b_rich.ui.theme.PASSWORD
 import com.example.b_rich.ui.theme.PREF_FILE
 import com.google.gson.Gson
+import java.net.URLEncoder
 
 @Composable
 fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: NavHostController) {
@@ -62,11 +65,7 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
     //login standard
   LaunchedEffect(key1 = loginUiState.isLoggedIn) {
         if (loginUiState.isLoggedIn) {
-            val userJson = Gson().toJson(loginUiState.user)
-            navHostController.navigate("exchangeRate/$userJson") {
-                // Effacer le back stack pour empêcher le retour
-                popUpTo("login") { inclusive = true }
-            }
+            loginUiState.user?.let { navigateToExchangeRate(it, navHostController) }
         }
     }
     // Vérifier l'état "Remember me" au lancement
@@ -272,7 +271,7 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
                 Spacer(modifier = Modifier.width(4.dp))
                 ClickableText(
                     text = AnnotatedString("Sign Up"),
-                    onClick = { },
+                    onClick = {navHostController.navigate("signupPage") },
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = Color(0xFF3D5AFE),
                         fontWeight = FontWeight.Bold
