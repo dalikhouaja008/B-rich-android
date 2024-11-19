@@ -74,6 +74,7 @@ dependencies {
     implementation(libs.androidx.foundation.layout.android)
     implementation(libs.androidx.foundation.layout.android)
     implementation(libs.play.services.basement)
+    implementation(libs.googleid)
 
 
     testImplementation(libs.junit)
@@ -108,7 +109,10 @@ dependencies {
 
 
     //google authentication
-    implementation("com.google.android.gms:play-services-auth:20.4.1")
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation("com.google.android.libraries.identity.googleid:googleid:<latest version>")
 }
 kapt {
     correctErrorTypes = true

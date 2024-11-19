@@ -29,7 +29,9 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavHostController
 import com.example.b_rich.R
@@ -161,6 +163,9 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
                 onValueChange = { email = it },
                 isError = emailError.isNotEmpty(),
                 label = { Text(text = "Email") },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                ),
                 leadingIcon = { Icon(imageVector = Icons.Outlined.Email, contentDescription = "Email Icon") },
                 placeholder = { Text(text = "Email") },
                 modifier = Modifier
@@ -183,6 +188,9 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
                 label = { Text(text = "Password") },
                 leadingIcon = { Icon(imageVector = Icons.Outlined.Lock, contentDescription = "Password Icon") },
                 placeholder = { Text(text = "Password") },
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password,
+                ),
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     val visibilityIcon = if (passwordVisible) Icons.Outlined.Visibility else Icons.Filled.VisibilityOff
@@ -271,7 +279,7 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
                 Spacer(modifier = Modifier.width(4.dp))
                 ClickableText(
                     text = AnnotatedString("Sign Up"),
-                    onClick = {navHostController.navigate("signupPage") },
+                    onClick = {navHostController.navigate("signup") },
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = Color(0xFF3D5AFE),
                         fontWeight = FontWeight.Bold

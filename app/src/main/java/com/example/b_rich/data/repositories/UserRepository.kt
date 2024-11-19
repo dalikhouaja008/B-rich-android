@@ -21,7 +21,6 @@ public class UserRepository @Inject constructor(
         return try {
             apiService.createUser(user)
         } catch (e: Exception) {
-            // Log the error for debugging
             e.printStackTrace()
             Response.error(500, ResponseBody.create(null, "Error creating user"))
         }
