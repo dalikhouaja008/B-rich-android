@@ -2,6 +2,7 @@ package com.example.b_rich
 
 import ExchangeRate
 import android.annotation.SuppressLint
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -56,7 +57,8 @@ class MainActivity : FragmentActivity() {
         // Initialize your API service and repository here
         val apiService = RetrofitClient.getApiService()
         val userRepository = UserRepository(apiService)
-        val signinViewModel = SigninViewModel(userRepository)
+        val sharedPreferences = getSharedPreferences(PREF_FILE, MODE_PRIVATE)
+        val signinViewModel = SigninViewModel(userRepository,sharedPreferences)
         val resetPasswordViewModel = ResetPasswordViewModel(userRepository)
 
         setContent {
@@ -118,6 +120,17 @@ class MainActivity : FragmentActivity() {
     }
 
 
+}
+
+
+fun navigateToExchangeRate(user: user, navController: NavController) {
+    val userJson = Uri.encode(Gson().toJson(user))
+    navController.navigate("exchangeRate/$userJson")
+}
+
+fun navigateToCodeVerification(user: user, navController: NavController) {
+    val userJson = Uri.encode(Gson().toJson(user))
+    navController.navigate("codeVerification/$userJson")
 }
 /*Column(
 modifier = Modifier.fillMaxSize(),
