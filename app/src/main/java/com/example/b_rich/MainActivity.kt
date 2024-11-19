@@ -42,6 +42,7 @@ import com.example.b_rich.ui.signin.SigninViewModel
 import com.example.b_rich.ui.signup.SignUpScreen
 import com.example.b_rich.ui.signup.SignupViewModel
 import com.example.b_rich.ui.theme.BrichTheme
+import com.example.b_rich.ui.welcome.WelcomeScreen
 import com.google.gson.Gson
 import java.net.URLDecoder
 
@@ -62,7 +63,10 @@ class MainActivity : FragmentActivity() {
             BrichTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
-                    NavHost(navController, startDestination = "loginPage") {
+                    NavHost(navController, startDestination = "welcomepage") {
+                        composable("welcomepage"){
+                            WelcomeScreen(signinViewModel,navController)
+                        }
                         composable("signup"){
                             SignUpScreen(signupViewModel,navController)
                         }
@@ -91,7 +95,6 @@ class MainActivity : FragmentActivity() {
                             val user = userJson?.let { Gson().fromJson(it, user::class.java) }
                             user?.let { CodeEntryScreen(it, resetPasswordViewModel, navController) }
                         }
-
                         composable(
                             "changepassword/{code}/{email}",
                             arguments = listOf(

@@ -1,6 +1,7 @@
 package com.example.b_rich.ui.signup
 
 
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -39,6 +40,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.b_rich.R
@@ -48,12 +52,14 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import kotlinx.coroutines.launch
 
 @Composable
 fun SignUpScreen(
     viewModel: SignupViewModel = viewModel(),
     navHostController: NavHostController
 ) {
+    val coroutineScope = rememberCoroutineScope()
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var num by remember { mutableStateOf("") }
@@ -105,7 +111,7 @@ fun SignUpScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(16.dp)
+                    .padding(10.dp)
                     .fillMaxWidth()
                     .verticalScroll(scrollState) // Make the Column scrollable
                     .background(Color.White, shape = MaterialTheme.shapes.medium)
@@ -299,7 +305,7 @@ fun SignUpScreen(
                     horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    GoogleLoginButton(
+                   /* GoogleLoginButton(
                         onClick = {
                             val googleIdOption: GetGoogleIdOption = GetGoogleIdOption.Builder()
                                 .setFilterByAuthorizedAccounts(false) // Query all google accounts on the device
@@ -315,15 +321,27 @@ fun SignUpScreen(
                             coroutineScope.launch {
                                 try {
                                     val result = credentialManager.getCredential(context, request)
-                                    handleSignIn(result)
+                                    viewModel.handleSignIn(result)
                                 } catch (e: GetCredentialException) {
                                     Log.e("MainActivity", "GetCredentialException", e)
                                 }
                             }
                         }
-                    )
+                    )*/
                 }
             }
         }
     }
 
+@Composable
+fun GoogleLoginButton(onClick: () -> Unit) {
+    Button(onClick = onClick) {
+        Text("Sign in with Google")
+        // Optionally, add an image/icon for visual representation
+        Image(
+            painter = painterResource(id = R.drawable.ic_google), // Replace with your drawable resource for the Google icon.
+            contentDescription = "Google Sign-In",
+            modifier = Modifier.size(24.dp)
+        )
+    }
+}
