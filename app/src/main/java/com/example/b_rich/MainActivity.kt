@@ -64,10 +64,6 @@ class MainActivity : FragmentActivity() {
         setContent {
             BrichTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
-                    val activity = LocalContext.current as FragmentActivity
-                    var message by  remember{
-                        mutableStateOf("")
-                    }
                     val navController = rememberNavController()
 
                     NavHost(navController, startDestination = "loginPage") {

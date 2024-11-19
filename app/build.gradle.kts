@@ -78,6 +78,12 @@ dependencies {
     //Hilt pour l'Injection de Dépendances
     //implementation (libs.hilt)
 
+
+    /////////
+    implementation (libs.material3)
+    implementation (libs.ui.tooling)
+    
+
     implementation (libs.androidx.datastore.preferences)
     implementation(libs.androidx.security.crypto.ktx)
     implementation(libs.androidx.fragment.ktx)
