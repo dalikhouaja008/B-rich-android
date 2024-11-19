@@ -2,11 +2,13 @@ package com.example.b_rich.ui.signin
 
 import androidx.compose.foundation.background
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -40,12 +42,14 @@ import com.example.b_rich.ui.components.PasswordTextField
 import com.example.b_rich.data.local.PreferencesManager
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import com.example.b_rich.navigateToExchangeRate
 import com.example.b_rich.ui.biometricDialog.BiometricAuthenticator
 import com.example.b_rich.ui.theme.EMAIL
 import com.example.b_rich.ui.theme.IS_REMEMBERED
 import com.example.b_rich.ui.theme.PASSWORD
 import com.example.b_rich.ui.theme.PREF_FILE
 import com.google.gson.Gson
+import java.net.URLEncoder
 
 @Composable
 fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: NavHostController) {
@@ -58,8 +62,7 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
     // Observe the login UI state
     val loginUiState by viewModel.loginUiState.observeAsState(LoginUiState())
     val context = LocalContext.current
-    val preferencesManager = remember { PreferencesManager.create(context) }
-    //val mSharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
+    val mSharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
     //biometric var
     val biometricAuthenticator= BiometricAuthenticator(context)
     val activity = LocalContext.current as FragmentActivity
@@ -72,20 +75,15 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
     //login standard
   LaunchedEffect(key1 = loginUiState.isLoggedIn) {
         if (loginUiState.isLoggedIn) {
-            val userJson = Gson().toJson(loginUiState.user)
-            navHostController.navigate("exchangeRate/$userJson") {
-                // Effacer le back stack pour empêcher le retour
-                popUpTo("login") { inclusive = true }
-            }
+            loginUiState.user?.let { navigateToExchangeRate(it, navHostController) }
         }
     }
     // Vérifier l'état "Remember me" au lancement
     // Effet de lancement pour vérifier l'authentification biométrique
    LaunchedEffect(Unit) {
-        if (preferencesManager.getDataBool(IS_REMEMBERED,false)) {
-
-            val savedEmail = preferencesManager.getData(EMAIL,"")
-            val savedPassword = preferencesManager.getData(PASSWORD,"")
+        if (mSharedPreferences.getBoolean(IS_REMEMBERED, false)) {
+            val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
+            val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
             if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
                 showBiometricDialog = true
                 // Déclencher l'authentification biométrique
@@ -112,8 +110,8 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
     // Gérer le résultat de l'authentification biométrique
     LaunchedEffect(message) {
         if (message == "Success") {
-            val savedEmail =preferencesManager.getData(EMAIL,"")
-            val savedPassword = preferencesManager.getData(PASSWORD,"")?: ""
+            val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
+            val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
             if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
                 // Appeler loginWithBiometric au lieu de login normal
                 viewModel.loginUserWithBiometricAuth(savedEmail, savedPassword)
@@ -219,29 +217,31 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
             //sign in boutton
             Button(
                 onClick = {
-                    // Validate inputs
+                    //valider inputs
                     val isEmailValid = viewModel.validateEmail(email) { emailError = it }
                     val isPasswordValid = viewModel.validatePassword(password) { passwordError = it }
-
-                    // Login
-                    if (isEmailValid && isPasswordValid) {
-                        if (isChecked.value) {
-                            preferencesManager.saveData(EMAIL, email)
-                            preferencesManager.saveData( PASSWORD, password)
-                            preferencesManager.saveDataBool(IS_REMEMBERED, true)
-                        } else {
-                            preferencesManager.saveData(EMAIL, "") // Clear email
-                            preferencesManager.saveData(PASSWORD, "") // Clear password
-                            preferencesManager.saveDataBool(IS_REMEMBERED, false)
-                        }
-                        viewModel.loginUser(email, password)
+                    //login
+                   if (isEmailValid && isPasswordValid) {
+                       mSharedPreferences.edit().apply {
+                           if (isChecked.value) {
+                               putString(EMAIL, email)
+                               putString(PASSWORD, password)
+                               putBoolean(IS_REMEMBERED, true)
+                           } else {
+                               remove(EMAIL)
+                               remove(PASSWORD)
+                               putBoolean(IS_REMEMBERED, false)
+                           }
+                       }.apply()
+                       viewModel.loginUser(email, password)
                     }
+
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
-            ){
+            ) {
                 if (loginUiState.isLoading) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
                 } else {
@@ -268,7 +268,7 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
                 Spacer(modifier = Modifier.width(4.dp))
                 ClickableText(
                     text = AnnotatedString("Sign Up"),
-                    onClick = { },
+                    onClick = {navHostController.navigate("signupPage") },
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = Color(0xFF3D5AFE),
                         fontWeight = FontWeight.Bold

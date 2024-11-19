@@ -11,8 +11,11 @@ import com.example.b_rich.data.network.VerifyCodeBody
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
+import javax.inject.Inject
 
-public class UserRepository(private val apiService: ApiService) {
+public class UserRepository @Inject constructor(
+    private val apiService: ApiService
+)  {
 
     suspend fun createUser(user: user): Response<user> {
         return try {
