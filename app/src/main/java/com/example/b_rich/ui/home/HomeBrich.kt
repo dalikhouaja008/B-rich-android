@@ -1,24 +1,28 @@
 package com.example.b_rich.ui.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.b_rich.data.Wallet.Wallet
-import com.example.b_rich.data.Transaction.Transaction
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.ui.draw.shadow
+import com.example.b_rich.data.Wallet.Wallet
+import com.example.b_rich.data.Transaction.Transaction
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun HomeBricScreen(
@@ -32,9 +36,37 @@ fun HomeBricScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Total Balance Section
         TotalBalanceCard(totalBalance)
+
+        // Wallets Section
+        Text(
+            text = "My Wallets",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
         WalletsCarousel(wallets)
+
+        // Quick Actions Section
+        Text(
+            text = "Quick Actions",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
         QuickActionsRow()
+
+        // Recent Transactions Section
+        Text(
+            text = "Recent Transactions",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
         TransactionsList(recentTransactions)
     }
 }
@@ -42,25 +74,30 @@ fun HomeBricScreen(
 @Composable
 fun TotalBalanceCard(totalBalance: Double) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(150.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+            containerColor = MaterialTheme.colorScheme.primary
+        ),
+        elevation = CardDefaults.cardElevation(8.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.Center
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = "Total Balance",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onPrimary
             )
             Text(
-                text = "${"$"}${"%.2f".format(totalBalance)}",
-                style = MaterialTheme.typography.headlineLarge,
+                text = "$${"%.2f".format(totalBalance)}",
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.onPrimary
             )
         }
     }
@@ -71,7 +108,7 @@ fun WalletsCarousel(wallets: List<Wallet>) {
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp),
+            .height(150.dp),
         contentPadding = PaddingValues(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -84,22 +121,27 @@ fun WalletsCarousel(wallets: List<Wallet>) {
 @Composable
 fun WalletCard(wallet: Wallet) {
     Card(
-        modifier = Modifier.width(180.dp),
-        elevation = CardDefaults.cardElevation(4.dp)
+        modifier = Modifier
+            .width(180.dp)
+            .height(120.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(8.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = wallet.currency,
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = "${wallet.symbol}${"%.2f".format(wallet.balance)}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -116,8 +158,7 @@ fun QuickActionsRow(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         actions.forEach { action ->
             QuickActionButton(action.icon, action.label)
@@ -128,23 +169,28 @@ fun QuickActionsRow(
 @Composable
 fun QuickActionButton(icon: ImageVector, label: String) {
     Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
         modifier = Modifier
             .size(80.dp)
-            .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .padding(8.dp)
+            .shadow(8.dp, shape = MaterialTheme.shapes.medium)
+            .background(
+                MaterialTheme.colorScheme.primaryContainer,
+                shape = MaterialTheme.shapes.medium
+            )
     ) {
         Icon(
             imageVector = icon,
             contentDescription = label,
-            modifier = Modifier.size(32.dp),
-            tint = MaterialTheme.colorScheme.primary
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.size(36.dp)
         )
         Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onPrimaryContainer
         )
     }
 }
@@ -165,32 +211,32 @@ fun TransactionsList(transactions: List<Transaction>) {
 fun TransactionRow(transaction: Transaction) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(4.dp)
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.Center
-            ) {
+            Column {
                 Text(
-                    text = transaction.title,
-                    style = MaterialTheme.typography.titleMedium,
+                    text = transaction.description,
+                    style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "Amount: ${"%.2f".format(transaction.amount)}",
-                    style = MaterialTheme.typography.bodySmall,
+                    text = "${if (transaction.amount < 0) "-" else ""}$${"%.2f".format(transaction.amount)}",
+                    style = MaterialTheme.typography.bodyMedium,
                     color = if (transaction.amount < 0)
                         MaterialTheme.colorScheme.error
                     else
                         MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = transaction.date,
+                    text = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(transaction.date),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -208,14 +254,14 @@ data class QuickAction(
 @Composable
 fun PreviewHomeBricScreen() {
     val sampleWallets = listOf(
-        Wallet("USD", "$", 500.00),
-        Wallet("EUR", "€", 300.00),
-        Wallet("BTC", "₿", 0.1)
+        Wallet(currency = "USD", symbol = "$", balance = 500.00, transactions = emptyList()),
+        Wallet(currency = "EUR", symbol = "€", balance = 300.00, transactions = emptyList()),
+        Wallet(currency = "BTC", symbol = "₿", balance = 0.1, transactions = emptyList())
     )
     val sampleTransactions = listOf(
-        Transaction("Grocery", -50.00, "2023-10-01"),
-        Transaction("Salary", 2000.00, "2023-09-30"),
-        Transaction("Coffee", -5.00, "2023-10-02")
+        Transaction(id = 1, status = "Completed", description = "Grocery", amount = -50.00, date = Date()),
+        Transaction(id = 2, status = "Completed", description = "Salary", amount = 2000.00, date = Date()),
+        Transaction(id = 3, status = "Pending", description = "Coffee", amount = -5.00, date = Date())
     )
     HomeBricScreen(
         totalBalance = 1234.56,
