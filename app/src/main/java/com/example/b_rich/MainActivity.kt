@@ -64,6 +64,7 @@ class MainActivity : FragmentActivity() {
                         composable("loginPage") {
                             LoginScreen(signinViewModel, navController)
                         }
+                        composable("signupPage") { SignUpScreen(navHostController = navController) }
 
                         composable(
                             route = "exchangeRate/{userJson}",

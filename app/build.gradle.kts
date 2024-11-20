@@ -74,6 +74,9 @@ dependencies {
     implementation(libs.androidx.foundation.layout.android)
     implementation(libs.androidx.foundation.layout.android)
     implementation(libs.play.services.basement)
+    implementation(libs.androidx.foundation.android)
+    implementation(libs.androidx.foundation.android)
+    implementation(libs.androidx.foundation.android)
 
 
     testImplementation(libs.junit)
@@ -105,6 +108,8 @@ dependencies {
     //hilt dagger
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
+
+    implementation ("androidx.compose.ui:ui:1.7.5")
 
 
     //google authentication

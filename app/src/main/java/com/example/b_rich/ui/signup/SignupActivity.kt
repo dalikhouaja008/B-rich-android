@@ -122,8 +122,8 @@ fun SignUpScreen(navHostController: NavHostController) {
             Text(text = "You already have an account!", color = Color.Gray)
             Spacer(modifier = Modifier.width(4.dp))
             ClickableText(
-                text = AnnotatedString("Sign Up"),
-                onClick = {navHostController.navigate("signupPage") },
+                text = AnnotatedString("Sign in"),
+                onClick = {navHostController.navigate("loginPage") },
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = Color(0xFF3D5AFE),
                     fontWeight = FontWeight.Bold
