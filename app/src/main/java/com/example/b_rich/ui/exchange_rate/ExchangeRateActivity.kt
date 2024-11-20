@@ -18,22 +18,19 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.b_rich.R
 import com.example.b_rich.data.entities.user
 import com.example.b_rich.navigateToCodeVerification
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
-import com.example.b_rich.ui.sideBar.NavigationDrawer
 import com.example.b_rich.ui.theme.PREF_FILE
-import com.google.gson.Gson
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import com.example.b_rich.ui.components.ExchangeRateComponents.ExchangeRateList
+import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
 import com.example.b_rich.ui.sideBar.NavigationItems
 import kotlinx.coroutines.launch
 
@@ -43,12 +40,19 @@ import kotlinx.coroutines.launch
 fun ExchangeRate(
     user: user,
     navHostController: NavHostController,
-    viewModel: ResetPasswordViewModel = viewModel()
+    viewModel: ResetPasswordViewModel = viewModel(),
+    exchangeRateViewModel: ExchangeRateViewModel=viewModel()
 ) {
     val context = LocalContext.current
     val mSharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val uiState by exchangeRateViewModel.uiState.collectAsState()
+
+    // Use an empty list if ExchangeRatesList is null
+    LaunchedEffect(key1 = true) {
+        exchangeRateViewModel.fetchExchangeRates()
+    }
     // List of Navigation Items
     val items= listOf(
         NavigationItems(
@@ -160,6 +164,22 @@ fun ExchangeRate(
                         .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
+
+                    when {
+                        uiState.isLoading -> {
+                            // Show loading indicator
+                            CircularProgressIndicator()
+                        }
+                        uiState.errorMessage != null -> {
+                            // Show error message
+                            Text("Error: ${uiState.errorMessage}")
+                        }
+                        else -> {
+                            // Your existing list rendering
+                            val rates = uiState.ExchangeRatesList ?: emptyList()
+                            ExchangeRateList(rates)
+                        }
+                    }
                     Text(
                         text = "Welcome Back",
                         style = MaterialTheme.typography.headlineMedium,
@@ -240,3 +260,15 @@ modifier = Modifier.padding(paddingValues)
         SettingsScreen()
     }
 }*/
+
+/*   listOf(
+               ExchangeRate(
+                    "Dollar des États-Unis",
+                    "USD",
+                    "1",
+                    "3.116",
+                    "3.192",
+                    "2024-11-20"
+                ),
+                ExchangeRate("Euro", "EUR", "1", "3.299", "3.381", "2024-11-20")
+            )*/
