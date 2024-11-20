@@ -6,8 +6,15 @@ import com.example.b_rich.data.repositories.ExchangeRateRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+data class CurrencyUiState(
+    val availableCurrencies: List<String> = listOf("TND","USD", "EUR", "GBP", "JPY","SAR"),
+    var fromCurrencyExpanded: Boolean = false,
+    val toCurrencyExpanded: Boolean = false,
+    val convertedAmount: Double = 0.0
+)
 
 data class ExchangeRateUiState(
     val isLoading:Boolean=false,
@@ -18,6 +25,9 @@ data class ExchangeRateUiState(
 class ExchangeRateViewModel (private val exchangeRateRepository: ExchangeRateRepository): ViewModel(){
     private val _uiState = MutableStateFlow(ExchangeRateUiState())
     val uiState: StateFlow<ExchangeRateUiState> = _uiState
+
+    private val _uiStateCurrency = MutableStateFlow(CurrencyUiState())
+    val uiStateCurrency: StateFlow<CurrencyUiState> = _uiStateCurrency
 
     fun fetchExchangeRates() {
         // Mettre à jour l'état pour indiquer que le chargement a commencé
@@ -45,6 +55,28 @@ class ExchangeRateViewModel (private val exchangeRateRepository: ExchangeRateRep
                 // Gérer les exceptions (par exemple, problèmes de réseau)
                 _uiState.value = ExchangeRateUiState(errorMessage = e.message)
             }
+        }
+    }
+
+ /*   fun convertCurrency(amount: Double, fromCurrency: String, toCurrency: String) {
+        viewModelScope.launch {
+            try {
+                //val result = exchangeRateRepository.convertCurrency(amount, fromCurrency, toCurrency)
+                _uiStateCurrency.update {
+                    it.copy(convertedAmount = result)
+                }
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
+    }*/
+
+    fun toggleFromCurrencyDropdown() {
+        _uiStateCurrency.update { currentState ->
+            currentState.copy(
+                fromCurrencyExpanded = !currentState.fromCurrencyExpanded,
+                toCurrencyExpanded = false
+            )
         }
     }
 }

@@ -64,5 +64,7 @@ interface ApiService {
     @GET("exchange-rate")
     suspend fun getExchangeRate():Response<List<ExchangeRate>>
 
+    //suspend fun
+
 
 }

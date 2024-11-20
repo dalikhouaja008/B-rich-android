@@ -17,4 +17,8 @@ class ExchangeRateRepository @Inject constructor(
             Response.error(500, ResponseBody.create(null, "Error creating user"))
         }
     }
+
+   /* suspend fun convertCurrency(amount: Double, fromCurrency: String, toCurrency: String): Double {
+
+    }*/
 }
