@@ -5,6 +5,7 @@ androidxMaterialIconsExtendedVersion = "1.3.0"
 androidxSecurityCryptoKtx = "1.1.0-alpha05"
 converterGson = "2.9.0"
 datastorePreferences = "1.1.1"
+credentials = "<latest version>"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
 junit = "4.13.2"
@@ -23,6 +24,8 @@ roomCompiler = "2.6.1"
 runtimeLivedata = "1.7.5"
 foundationLayoutAndroid = "1.6.6"
 playServicesBasement = "18.4.0"
+googleid = "1.1.1"
+storage = "1.5.0"
 securityCrypto = "1.1.0-alpha06"
 securityCryptoKtxVersion = "1.1.0-alpha03"
 ui = "1.7.5"
@@ -33,6 +36,8 @@ fragmentKtx = "1.8.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
+androidx-credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentials" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 androidx-lifecycle-livedata-ktx-v251 = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtxVersion" }
@@ -72,6 +77,8 @@ androidx-security-crypto-ktx = { group = "androidx.security", name = "security-c
 androidx-foundation-layout-android = { group = "androidx.compose.foundation", name = "foundation-layout-android", version.ref = "foundationLayoutAndroid" }
 play-services-basement = { group = "com.google.android.gms", name = "play-services-basement", version.ref = "playServicesBasement" }
 androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragmentKtx" }
+googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
+androidx-storage = { group = "androidx.test.services", name = "storage", version.ref = "storage" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

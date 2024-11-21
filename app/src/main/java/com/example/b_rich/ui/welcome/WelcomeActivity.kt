@@ -1,31 +1,88 @@
 package com.example.b_rich.ui.welcome
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.b_rich.R
+import com.example.b_rich.ui.theme.EMAIL
+import com.example.b_rich.ui.theme.IS_REMEMBERED
+import com.example.b_rich.ui.theme.PASSWORD
+import com.example.b_rich.ui.theme.PREF_FILE
+import androidx.compose.ui.platform.LocalContext
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.b_rich.navigateToExchangeRate
+import com.example.b_rich.ui.biometricDialog.BiometricAuthenticator
+import com.example.b_rich.ui.signin.LoginUiState
+import com.example.b_rich.ui.signin.SigninViewModel
 
 @Composable
-fun WelcomeScreen(navHostController: NavHostController) {
+fun WelcomeScreen(viewModel: SigninViewModel = viewModel(), navHostController: NavHostController) {
+    val context = LocalContext.current
+    val loginUiState by viewModel.loginUiState.observeAsState(LoginUiState())
+    val biometricAuthenticator= BiometricAuthenticator(context)
+    val activity = LocalContext.current as FragmentActivity
+    var message by  remember{
+        mutableStateOf("")
+    }
+   /* var showBiometricDialog by remember { mutableStateOf(false) }
+    val mSharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
+    LaunchedEffect(Unit) {
+        if (mSharedPreferences.getBoolean(IS_REMEMBERED, false)) {
+            val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
+            val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
+            if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
+                showBiometricDialog = true
+                // Déclencher l'authentification biométrique
+                biometricAuthenticator.promptBiometricAuth(
+                    title ="login",
+                    subTitle ="Use your finger print or face id",
+                    negativeButtonText ="Cancel",
+                    fragmentActivity = activity,
+                    onSuccess = {
+                        message="Success"
+                    },
+                    onFailed = {
+                        message="Wrong fingerprint or face id"
+                    },
+                    onError = { _, error->
+                        message= error.toString()
+
+                    }
+                )
+            }
+        }
+    }
+    // Gérer le résultat de l'authentification biométrique
+    LaunchedEffect(message) {
+        if (message == "Success") {
+            val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
+            val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
+            if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
+                // Appeler loginWithBiometric au lieu de login normal
+                viewModel.loginUserWithBiometricAuth(savedEmail, savedPassword)
+                loginUiState.user?.let { navigateToExchangeRate(it, navHostController) }
+            }
+        }
+    }*/
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -107,7 +164,7 @@ fun WelcomeScreen(navHostController: NavHostController) {
                 )
                 ClickableText(
                     text = AnnotatedString("Sign Up"),
-                    onClick = { navHostController.navigate("signupPage") },
+                    onClick = { navHostController.navigate("signup") },
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = Color(0xFF3D5AFE),
                         fontWeight = FontWeight.Bold,

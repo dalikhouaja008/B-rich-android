@@ -5,12 +5,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Scaffold
@@ -33,15 +29,18 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.b_rich.data.entities.user
 import com.example.b_rich.data.network.RetrofitClient
+import com.example.b_rich.data.repositories.ExchangeRateRepository
 import com.example.b_rich.data.repositories.UserRepository
-import com.example.b_rich.ui.biometricDialog.BiometricAuthenticator
+import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
 import com.example.b_rich.ui.resetPassword.CodeEntryScreen
 import com.example.b_rich.ui.resetPassword.PasswordEntryScreen
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.example.b_rich.ui.signin.LoginScreen
 import com.example.b_rich.ui.signin.SigninViewModel
 import com.example.b_rich.ui.signup.SignUpScreen
+import com.example.b_rich.ui.signup.SignupViewModel
 import com.example.b_rich.ui.theme.BrichTheme
+import com.example.b_rich.ui.welcome.WelcomeScreen
 import com.example.b_rich.ui.theme.PREF_FILE
 import com.google.gson.Gson
 import java.net.URLDecoder
@@ -59,14 +58,24 @@ class MainActivity : FragmentActivity() {
         val userRepository = UserRepository(apiService)
         val sharedPreferences = getSharedPreferences(PREF_FILE, MODE_PRIVATE)
         val signinViewModel = SigninViewModel(userRepository,sharedPreferences)
+        val exchangeRateRepository =ExchangeRateRepository(apiService)
+        //val signinViewModel = SigninViewModel(userRepository)
         val resetPasswordViewModel = ResetPasswordViewModel(userRepository)
+        val signupViewModel= SignupViewModel(userRepository)
+        val exchangeRateViewModel=ExchangeRateViewModel(exchangeRateRepository)
+
 
         setContent {
             BrichTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
-
-                    NavHost(navController, startDestination = "loginPage") {
+                    NavHost(navController, startDestination = "welcomepage") {
+                        composable("welcomepage"){
+                            WelcomeScreen(signinViewModel,navController)
+                        }
+                        composable("signup"){
+                            SignUpScreen(signupViewModel,navController)
+                        }
                         composable("loginPage") {
                             LoginScreen(signinViewModel, navController)
                         }
@@ -79,7 +88,7 @@ class MainActivity : FragmentActivity() {
                         ) { backStackEntry ->
                             val userJson = backStackEntry.arguments?.getString("userJson")
                             val user = userJson?.let { Gson().fromJson(it, user::class.java) }
-                            user?.let { ExchangeRate(it, navController, resetPasswordViewModel) }
+                            user?.let { ExchangeRate(it, navController, resetPasswordViewModel,exchangeRateViewModel) }
                         }
 
                         composable(
@@ -106,6 +115,9 @@ class MainActivity : FragmentActivity() {
                                 PasswordEntryScreen(code, email, resetPasswordViewModel, navController)
                             }
                         }
+                    }
+
+                    // When navigating from LoginScreen, use this:
 
                     }
 

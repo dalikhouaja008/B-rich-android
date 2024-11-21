@@ -31,7 +31,9 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavHostController
 import androidx.compose.ui.platform.LocalContext
@@ -59,7 +61,6 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
     var passwordVisible by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
-    // Observe the login UI state
     val loginUiState by viewModel.loginUiState.observeAsState(LoginUiState())
     val context = LocalContext.current
     val mSharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
@@ -268,7 +269,7 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
                 Spacer(modifier = Modifier.width(4.dp))
                 ClickableText(
                     text = AnnotatedString("Sign Up"),
-                    onClick = {navHostController.navigate("signupPage") },
+                    onClick = {navHostController.navigate("signup") },
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = Color(0xFF3D5AFE),
                         fontWeight = FontWeight.Bold
