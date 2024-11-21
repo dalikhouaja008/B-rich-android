@@ -24,7 +24,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun HomeBricScreen(
+fun HomeBrichScreen(
     totalBalance: Double,
     wallets: List<Wallet>,
     recentTransactions: List<Transaction>
@@ -35,10 +35,8 @@ fun HomeBricScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Total Balance Section
         TotalBalanceCard(totalBalance)
 
-        // Wallets Section
         Text(
             text = "My Wallets",
             style = MaterialTheme.typography.titleMedium,
@@ -48,7 +46,6 @@ fun HomeBricScreen(
         )
         WalletsCarousel(wallets)
 
-        // Quick Actions Section
         Text(
             text = "Quick Actions",
             style = MaterialTheme.typography.titleMedium,
@@ -58,7 +55,6 @@ fun HomeBricScreen(
         )
         QuickActionsRow()
 
-        // Recent Transactions Section
         Text(
             text = "Recent Transactions",
             style = MaterialTheme.typography.titleMedium,
@@ -250,7 +246,7 @@ data class QuickAction(
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewHomeBricScreen() {
+fun PreviewHomeBrichScreen() {
     val sampleWallets = listOf(
         Wallet(
             currency = "Tunisian Dinar",
@@ -275,8 +271,8 @@ fun PreviewHomeBricScreen() {
         Transaction(id = 1, status = "Completed", description = "Deposit", amount = 200.00, date = Date()),
         Transaction(id = 2, status = "Completed", description = "Shopping", amount = -50.00, date = Date())
     )
-    HomeBricScreen(
-        totalBalance = 4550.00,
+    HomeBrichScreen(
+        totalBalance = 91000.00,
         wallets = sampleWallets,
         recentTransactions = sampleTransactions
     )
