@@ -1,57 +1,21 @@
-package com.example.b_rich.ui.AddAcount
+package com.example.b_rich.ui.AddAccount
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+
 
 class AddAccountViewModel : ViewModel() {
+    val accountName = mutableStateOf("")
+    val accountNumber = mutableStateOf("")
+    val accountType = mutableStateOf("")
 
-    // LiveData for loading state
-    private val _isAdding = MutableLiveData(false)
-    val isAdding: LiveData<Boolean> get() = _isAdding
+    val totalSteps = 3
+    val currentStep = mutableStateOf(1)
 
-    // LiveData for error message
-    private val _errorMessage = MutableLiveData<String?>()
-    val errorMessage: LiveData<String?> get() = _errorMessage
+    fun getAccountTypes() = listOf("Savings", "Checking", "Credit", "Investment")
 
-    // Function to add a bank account
-    fun addBankAccount(accountName: String, accountNumber: String, bankName: String) {
-        if (validateInputs(accountName, accountNumber, bankName)) {
-            _isAdding.value = true
-            _errorMessage.value = null
-
-            // Simulate a network or database operation
-            viewModelScope.launch {
-                delay(2000) // Simulated delay
-                _isAdding.value = false
-                _errorMessage.value = "Account added successfully!"
-            }
-        }
-    }
-
-    // Validate input fields
-    private fun validateInputs(accountName: String, accountNumber: String, bankName: String): Boolean {
-        return when {
-            accountName.isBlank() -> {
-                _errorMessage.value = "Account name cannot be empty."
-                false
-            }
-            accountNumber.isBlank() -> {
-                _errorMessage.value = "Account number cannot be empty."
-                false
-            }
-            bankName.isBlank() -> {
-                _errorMessage.value = "Bank name cannot be empty."
-                false
-            }
-            accountNumber.length < 10 -> {
-                _errorMessage.value = "Account number must be at least 10 digits."
-                false
-            }
-            else -> true
-        }
+    fun saveAccount() {
+        // Simulate saving the account (e.g., API call or database save)
+        println("Account Saved: Name=${accountName.value}, Number=${accountNumber.value}, Type=${accountType.value}")
     }
 }

@@ -110,6 +110,7 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
 
     implementation ("androidx.compose.ui:ui:1.7.5")
+    implementation ("com.google.mlkit:text-recognition:16.0.0")
 
 
     //google authentication
