@@ -7,7 +7,9 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavController
@@ -20,7 +22,10 @@ import com.example.b_rich.data.entities.user
 import com.example.b_rich.data.network.RetrofitClient
 import com.example.b_rich.data.repositories.ExchangeRateRepository
 import com.example.b_rich.data.repositories.UserRepository
+import com.example.b_rich.ui.AddAccount.AddAccountScreen
+import com.example.b_rich.ui.AddAccount.AddAccountViewModel
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
+import com.example.b_rich.ui.profil.UserProfileScreen
 import com.example.b_rich.ui.resetPassword.CodeEntryScreen
 import com.example.b_rich.ui.resetPassword.PasswordEntryScreen
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
@@ -29,8 +34,11 @@ import com.example.b_rich.ui.signin.SigninViewModel
 import com.example.b_rich.ui.signup.SignUpScreen
 import com.example.b_rich.ui.signup.SignupViewModel
 import com.example.b_rich.ui.theme.BrichTheme
+import com.example.b_rich.ui.wallets.HomeBrichScreen
+import com.example.b_rich.ui.wallets.HomeViewModel
 import com.example.b_rich.ui.welcome.WelcomeScreen
 import com.google.gson.Gson
+import kotlinx.coroutines.flow.toList
 
 class MainActivity : FragmentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -46,6 +54,8 @@ class MainActivity : FragmentActivity() {
         val resetPasswordViewModel = ResetPasswordViewModel(userRepository)
         val signupViewModel= SignupViewModel(userRepository)
         val exchangeRateViewModel=ExchangeRateViewModel(exchangeRateRepository)
+        val addAccountViewModel= AddAccountViewModel()
+        val HomeViewModel=HomeViewModel()
 
 
         setContent {
@@ -55,6 +65,21 @@ class MainActivity : FragmentActivity() {
                     NavHost(navController, startDestination = "welcomepage") {
                         composable("welcomepage"){
                             WelcomeScreen(signinViewModel,navController)
+                        }
+                       /*composable("wallets"){
+                           HomeBrichScreen(
+                               recentTransactions = HomeViewModel.recentTransactions,
+                               totalBalance = HomeViewModel.totalBalance,
+                               wallets = HomeViewModel.wallets
+                               )
+                        }*/
+                        composable("Comptes_bancaires") {
+                            val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+                            AddAccountScreen(
+                                navHostController = navController,
+                                drawerState = drawerState,
+                                viewModel = addAccountViewModel
+                            )
                         }
                         composable("signup"){
                             SignUpScreen(signupViewModel,navController)
