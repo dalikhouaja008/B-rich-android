@@ -5,6 +5,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -13,12 +18,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.QrCode
-import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.ui.draw.shadow
 import com.example.b_rich.data.Wallet.Wallet
 import com.example.b_rich.data.Transaction.Transaction
 import java.text.SimpleDateFormat
@@ -174,7 +173,6 @@ fun QuickActionButton(icon: ImageVector, label: String) {
         modifier = Modifier
             .size(80.dp)
             .padding(8.dp)
-            .shadow(8.dp, shape = MaterialTheme.shapes.medium)
             .background(
                 MaterialTheme.colorScheme.primaryContainer,
                 shape = MaterialTheme.shapes.medium
@@ -254,17 +252,31 @@ data class QuickAction(
 @Composable
 fun PreviewHomeBricScreen() {
     val sampleWallets = listOf(
-        Wallet(currency = "USD", symbol = "$", balance = 500.00, transactions = emptyList()),
-        Wallet(currency = "EUR", symbol = "€", balance = 300.00, transactions = emptyList()),
-        Wallet(currency = "BTC", symbol = "₿", balance = 0.1, transactions = emptyList())
+        Wallet(
+            currency = "Tunisian Dinar",
+            symbol = "TND",
+            balance = 2500.00,
+            transactions = emptyList()
+        ),
+        Wallet(
+            currency = "Euro",
+            symbol = "€",
+            balance = 800.00,
+            transactions = emptyList()
+        ),
+        Wallet(
+            currency = "US Dollar",
+            symbol = "$",
+            balance = 1500.00,
+            transactions = emptyList()
+        )
     )
     val sampleTransactions = listOf(
-        Transaction(id = 1, status = "Completed", description = "Grocery", amount = -50.00, date = Date()),
-        Transaction(id = 2, status = "Completed", description = "Salary", amount = 2000.00, date = Date()),
-        Transaction(id = 3, status = "Pending", description = "Coffee", amount = -5.00, date = Date())
+        Transaction(id = 1, status = "Completed", description = "Deposit", amount = 200.00, date = Date()),
+        Transaction(id = 2, status = "Completed", description = "Shopping", amount = -50.00, date = Date())
     )
     HomeBricScreen(
-        totalBalance = 1234.56,
+        totalBalance = 4550.00,
         wallets = sampleWallets,
         recentTransactions = sampleTransactions
     )
