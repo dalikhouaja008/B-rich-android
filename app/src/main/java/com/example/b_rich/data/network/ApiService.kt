@@ -1,8 +1,10 @@
 package com.example.b_rich.data.network
 
+import com.example.b_rich.data.entities.ExchangeRate
 import com.example.b_rich.data.entities.user
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
 
 
@@ -58,6 +60,11 @@ interface ApiService {
 
     @POST("auth/reset")
     suspend fun resetPassword(@Body body: ResetPasswordBody): Response<ResponseReset>
+
+    @GET("exchange-rate")
+    suspend fun getExchangeRate():Response<List<ExchangeRate>>
+
+    //suspend fun
 
 
 }

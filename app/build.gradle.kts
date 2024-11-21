@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.androidx.foundation.layout.android)
     implementation(libs.play.services.basement)
     implementation(libs.googleid)
+    implementation(libs.androidx.storage)
 
 
     testImplementation(libs.junit)

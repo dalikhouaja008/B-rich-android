@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,22 +19,21 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.b_rich.R
 import com.example.b_rich.data.entities.user
 import com.example.b_rich.navigateToCodeVerification
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
-import com.example.b_rich.ui.sideBar.NavigationDrawer
 import com.example.b_rich.ui.theme.PREF_FILE
-import com.google.gson.Gson
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import com.example.b_rich.ui.components.ExchangeRateComponents.ExchangeRateList
+import com.example.b_rich.ui.components.ExchangeRateComponents.ExpandedDropdownUi
+import com.example.b_rich.ui.components.TextfieldsComponenets.InputTextFieldUi
+import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
 import com.example.b_rich.ui.sideBar.NavigationItems
 import kotlinx.coroutines.launch
 
@@ -43,9 +43,12 @@ import kotlinx.coroutines.launch
 fun ExchangeRate(
     user: user,
     navHostController: NavHostController,
-    viewModel: ResetPasswordViewModel = viewModel()
+    viewModel: ResetPasswordViewModel = viewModel(),
+    exchangeRateViewModel: ExchangeRateViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val uiState by exchangeRateViewModel.uiState.collectAsState()
+    val uiStateCurrency by exchangeRateViewModel.uiStateCurrency.collectAsState()
     val mSharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -80,7 +83,9 @@ fun ExchangeRate(
     var selectedItemIndex by rememberSaveable {
         mutableIntStateOf(0)
     }
-
+    LaunchedEffect(key1 = true) {
+        exchangeRateViewModel.fetchExchangeRates()
+    }
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -93,7 +98,7 @@ fun ExchangeRate(
                         onClick = {
                             selectedItemIndex = index
                             scope.launch {
-                              navHostController.navigate(items[selectedItemIndex].route)
+                                navHostController.navigate(items[selectedItemIndex].route)
                             }
                         },
                         icon = {
@@ -115,7 +120,7 @@ fun ExchangeRate(
                 }
             }
         }
-    ) {
+    ){
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -139,7 +144,6 @@ fun ExchangeRate(
                 )
             }
         ) { paddingValues ->
-            // Main content
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -153,14 +157,121 @@ fun ExchangeRate(
             ) {
                 Column(
                     modifier = Modifier
-                        .padding(16.dp)
                         .fillMaxWidth()
-                        .wrapContentHeight()
+                        .padding(16.dp)
                         .background(Color.White, shape = MaterialTheme.shapes.medium)
                         .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    // Currency Conversion Section
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        ExpandedDropdownUi(
+                            label = "From",
+                            options = uiStateCurrency.availableCurrencies,
+                            onSelectedItem = { },
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        Icon(
+                            imageVector = Icons.Default.SwapHoriz,
+                            contentDescription = "Swap Currencies",
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                                .clickable { /* TODO: Implement swap logic */ }
+                        )
+
+                        ExpandedDropdownUi(
+                            label = "To",
+                            options = uiStateCurrency.availableCurrencies,
+                            onSelectedItem = { /* TODO: Implement selection logic */ },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    // Amount Input
+                    InputTextFieldUi(
+                        label = "Enter Amount",
+                        onValueChanged = { /* TODO: Handle amount input */ },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    // Convert Button
+                    Button(
+                        onClick = { /* TODO: Implement conversion logic */ },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Convert")
+                    }
+
+                    // Conversion Result
                     Text(
+                        text = "Converted Amount: 0.00", // TODO: Replace with actual converted value
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = Color(0xFF3D5AFE)
+                    )
+
+                    // Exchange Rates Section
+                    when {
+                        uiState.isLoading -> {
+                            CircularProgressIndicator()
+                        }
+                        uiState.errorMessage != null -> {
+                            Text("Error: ${uiState.errorMessage}", color = Color.Red)
+                        }
+                        else -> {
+                            val rates = uiState.ExchangeRatesList ?: emptyList()
+                            ExchangeRateList(rates)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
+/*@Preview(showBackground = true)
+@Composable
+fun PreviewSignInScreen() {
+    ExchangeRate()
+}*/
+
+/*NavHost(
+navController = navHostController,
+startDestination = "home",
+modifier = Modifier.padding(paddingValues)
+) {
+    composable("home") {
+        HomeScreen()
+    }
+    composable("info") {
+        InfoScreen()
+    }
+    composable("edit") {
+        EditScreen()
+    }
+    composable("signup") {
+        SettingsScreen()
+    }
+}*/
+
+/*   listOf(
+               ExchangeRate(
+                    "Dollar des États-Unis",
+                    "USD",
+                    "1",
+                    "3.116",
+                    "3.192",
+                    "2024-11-20"
+                ),
+                ExchangeRate("Euro", "EUR", "1", "3.299", "3.381", "2024-11-20")
+            )*/
+
+
+/*                    Text(
                         text = "Welcome Back",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
@@ -210,33 +321,4 @@ fun ExchangeRate(
                             color = Color(0xFF3D5AFE),
                             fontWeight = FontWeight.Bold
                         )
-                    )
-                }
-            }
-        }
-    }
-}
-/*@Preview(showBackground = true)
-@Composable
-fun PreviewSignInScreen() {
-    ExchangeRate()
-}*/
-
-/*NavHost(
-navController = navHostController,
-startDestination = "home",
-modifier = Modifier.padding(paddingValues)
-) {
-    composable("home") {
-        HomeScreen()
-    }
-    composable("info") {
-        InfoScreen()
-    }
-    composable("edit") {
-        EditScreen()
-    }
-    composable("signup") {
-        SettingsScreen()
-    }
-}*/
+                    )*/

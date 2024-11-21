@@ -4,25 +4,11 @@ import ExchangeRate
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -32,8 +18,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.b_rich.data.entities.user
 import com.example.b_rich.data.network.RetrofitClient
+import com.example.b_rich.data.repositories.ExchangeRateRepository
 import com.example.b_rich.data.repositories.UserRepository
-import com.example.b_rich.ui.biometricDialog.BiometricAuthenticator
+import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
 import com.example.b_rich.ui.resetPassword.CodeEntryScreen
 import com.example.b_rich.ui.resetPassword.PasswordEntryScreen
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
@@ -44,7 +31,6 @@ import com.example.b_rich.ui.signup.SignupViewModel
 import com.example.b_rich.ui.theme.BrichTheme
 import com.example.b_rich.ui.welcome.WelcomeScreen
 import com.google.gson.Gson
-import java.net.URLDecoder
 
 class MainActivity : FragmentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -55,9 +41,12 @@ class MainActivity : FragmentActivity() {
         // Initialize your API service and repository here
         val apiService = RetrofitClient.getApiService()
         val userRepository = UserRepository(apiService)
+        val exchangeRateRepository =ExchangeRateRepository(apiService)
         val signinViewModel = SigninViewModel(userRepository)
         val resetPasswordViewModel = ResetPasswordViewModel(userRepository)
         val signupViewModel= SignupViewModel(userRepository)
+        val exchangeRateViewModel=ExchangeRateViewModel(exchangeRateRepository)
+
 
         setContent {
             BrichTheme {
@@ -82,7 +71,7 @@ class MainActivity : FragmentActivity() {
                         ) { backStackEntry ->
                             val userJson = backStackEntry.arguments?.getString("userJson")
                             val user = userJson?.let { Gson().fromJson(it, user::class.java) }
-                            user?.let { ExchangeRate(it, navController, resetPasswordViewModel) }
+                            user?.let { ExchangeRate(it, navController, resetPasswordViewModel,exchangeRateViewModel) }
                         }
 
                         composable(
