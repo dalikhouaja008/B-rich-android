@@ -25,103 +25,11 @@ fun AddAccountScreen(
     drawerState: DrawerState,
     viewModel: AddAccountViewModel
 ) {
-    val scope = rememberCoroutineScope()
-    val items = listOf(
-        NavigationItems(
-            title = "Home",
-            selectedIcon = Icons.Filled.Home,
-            unselectedIcon = Icons.Outlined.Home,
-            route = "home"
-        ),
-        NavigationItems(
-            title = "Comptes bancaires",
-            selectedIcon = Icons.Filled.AccountBalance,
-            unselectedIcon = Icons.Outlined.AccountBalance,
-            route = "Comptes_bancaires"
-        ),
-        NavigationItems(
-            title = "Wallets",
-            selectedIcon = Icons.Filled.Wallet,
-            unselectedIcon = Icons.Outlined.Wallet,
-            badgeCount = 105,
-            route = "edit"
-        ),
-        NavigationItems(
-            title = "Settings",
-            selectedIcon = Icons.Filled.Settings,
-            unselectedIcon = Icons.Outlined.Settings,
-            route = "signup"
-        )
-    )
-
-    var selectedItemIndex by rememberSaveable { mutableIntStateOf(1) }
     val currentStep = viewModel.currentStep.value
-
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet {
-                Spacer(modifier = Modifier.height(16.dp))
-                items.forEachIndexed { index, item ->
-                    NavigationDrawerItem(
-                        label = { Text(text = item.title) },
-                        selected = index == selectedItemIndex,
-                        onClick = {
-                            selectedItemIndex = index
-                            scope.launch {
-                                navHostController.navigate(items[selectedItemIndex].route)
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = if (index == selectedItemIndex) {
-                                    item.selectedIcon
-                                } else item.unselectedIcon,
-                                contentDescription = item.title
-                            )
-                        },
-                        badge = {
-                            item.badgeCount?.let {
-                                Text(text = item.badgeCount.toString())
-                            }
-                        },
-                        modifier = Modifier
-                            .padding(NavigationDrawerItemDefaults.ItemPadding)
-                    )
-                }
-            }
-        }
-    ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Add Bank Account") },
-                    navigationIcon = {
-                        IconButton(onClick = {
-                            scope.launch {
-                                drawerState.apply {
-                                    if (isClosed) open() else close()
-                                }
-                            }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Menu,
-                                contentDescription = "Menu"
-                            )
-                        }
-                    },
-                    actions = {
-                        TextButton(onClick = { /* Handle Cancel Action */ }) {
-                            Text("Cancel", color = MaterialTheme.colorScheme.primary)
-                        }
-                    }
-                )
-            }
-        ) { padding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
+                    .padding()
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -164,8 +72,6 @@ fun AddAccountScreen(
                 )
             }
         }
-    }
-}
 
 @Composable
 fun StepOneContent(

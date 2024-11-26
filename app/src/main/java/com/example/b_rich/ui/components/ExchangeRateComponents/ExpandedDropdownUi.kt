@@ -1,10 +1,16 @@
 package com.example.b_rich.ui.components.ExchangeRateComponents
 
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CurrencyExchange
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -20,48 +26,57 @@ import androidx.compose.ui.window.PopupProperties
 @Composable
 fun ExpandedDropdownUi(
     label: String,
+    selectedOption: String,
     options: List<String>,
     onSelectedItem: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isError: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var selectedOptionText by rememberSaveable { mutableStateOf("") }
+    var selectedOptionText by remember { mutableStateOf(options.firstOrNull() ?: "") }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { newValue ->
-            expanded = newValue
-        },
+        onExpandedChange = { expanded = !expanded },
         modifier = modifier
     ) {
-        TextField(
+        OutlinedTextField(
             value = selectedOptionText,
-            onValueChange = { selectedOptionText = it },
-            label = { Text(text = label) },
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            isError = isError,
             trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                ExposedDropdownMenuDefaults.TrailingIcon(
+                    expanded = expanded
+                )
             },
-            colors = ExposedDropdownMenuDefaults.textFieldColors(),
-            modifier = Modifier.menuAnchor()
+            //colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.CurrencyExchange,
+                    contentDescription = "$label Currency Icon"
+                )
+            },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium
         )
 
-        val filteringOptions = options.filter { it.contains(selectedOptionText, ignoreCase = true) }
-        if (filteringOptions.isEmpty()) return@ExposedDropdownMenuBox
-        DropdownMenu(
-            modifier = Modifier.exposedDropdownSize(true),
-            properties = PopupProperties(focusable = false),
+        ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
+            onDismissRequest = { expanded = false }
         ) {
-            filteringOptions.forEach { selectionOption ->
+            options.forEach { selectionOption ->
                 DropdownMenuItem(
                     text = { Text(selectionOption) },
                     onClick = {
                         selectedOptionText = selectionOption
                         expanded = false
-                        onSelectedItem.invoke(selectedOptionText)
+                        onSelectedItem(selectionOption)
                     },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
                 )
             }
         }

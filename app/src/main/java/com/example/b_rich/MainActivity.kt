@@ -24,6 +24,7 @@ import com.example.b_rich.data.repositories.ExchangeRateRepository
 import com.example.b_rich.data.repositories.UserRepository
 import com.example.b_rich.ui.AddAccount.AddAccountScreen
 import com.example.b_rich.ui.AddAccount.AddAccountViewModel
+import com.example.b_rich.ui.MainScreen
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
 import com.example.b_rich.ui.profil.UserProfileScreen
 import com.example.b_rich.ui.resetPassword.CodeEntryScreen
@@ -96,7 +97,7 @@ class MainActivity : FragmentActivity() {
                         ) { backStackEntry ->
                             val userJson = backStackEntry.arguments?.getString("userJson")
                             val user = userJson?.let { Gson().fromJson(it, user::class.java) }
-                            user?.let { ExchangeRate(it, navController, resetPasswordViewModel,exchangeRateViewModel) }
+                            user?.let { MainScreen(it, navController, resetPasswordViewModel,exchangeRateViewModel,addAccountViewModel) }
                         }
 
                         composable(

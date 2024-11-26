@@ -6,6 +6,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 
 // Request model for login
@@ -41,8 +42,8 @@ data class ResetPasswordBody(
     val newPassword: String
 )
 
-
 interface ApiService {
+
     @POST("auth/signup")
     suspend fun createUser(@Body user: user): Response<user>
 
@@ -64,7 +65,16 @@ interface ApiService {
     @GET("exchange-rate")
     suspend fun getExchangeRate():Response<List<ExchangeRate>>
 
-    //suspend fun
+    @GET("exchange-rate/sellingRate/{currency}/{amount}")
+    suspend fun getSellingRate(
+        @Path("currency") currency: String,
+        @Path("amount") amount: String
+    ): Double
 
+    @GET("exchange-rate/buyingRate/{currency}/{amount}")
+    suspend fun getBuyingRate(
+        @Path("currency") currency: String,
+        @Path("amount") amount: String
+    ): Double
 
 }
