@@ -25,6 +25,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 import co.yml.charts.ui.linechart.LineChart
 import com.example.b_rich.ui.components.Charts.LineChartComponent
 import com.example.b_rich.ui.components.ExchangeRateComponents.ExchangeRateList
@@ -200,14 +202,19 @@ fun CurrencyConverter(
                     Text(
                         text = "Converted Amount: ${
                             currencyConverterViewModel.formatConvertedAmount(uiStateCurrency.convertedAmount)
-                            //uiStateCurrency.convertedAmount
                         } ${uiStateCurrency.toCurrency}",
                         style = MaterialTheme.typography.headlineSmall,
                         color = Color(0xFF3D5AFE)
                     )
                 }
             }
-
+            Text(
+                text = "You can see in the Line chart the ${uiStateCurrency.toCurrency}'s variation in the next seven days. Please wait",
+                fontSize = 20.sp,
+                color = Color.Gray,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
             LineChartComponent(
                 currencyConverterViewModel,
                 uiStateCurrency.toCurrency
