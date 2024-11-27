@@ -36,23 +36,41 @@ class CurrencyConverterViewModel(private val exchangeRateRepository: CurrencyCon
     private val _predictions = MutableStateFlow<Map<String, List<PredictionData>>>(emptyMap())
     val predictions: StateFlow<Map<String, List<PredictionData>>> = _predictions.asStateFlow()
 
+    private val _isLoadingPredictions = MutableStateFlow(false)
+    val isLoadingPredictions: StateFlow<Boolean> = _isLoadingPredictions.asStateFlow()
+
     fun loadPredictions(date: String, currencies: List<String>) {
+        _isLoadingPredictions.value = true
         viewModelScope.launch {
             try {
+                // Log des paramètres
+                //println("Loading Predictions - Date: $date, Currencies: $currencies")
                 val response = exchangeRateRepository.getCurrencyPredictions(date, currencies)
+                // Log de la réponse complète
+                //println("Response Code: ${response.code()}")
+                //println("Response Body: ${response.body()}")
+                //println("Response Error: ${response.errorBody()?.string()}")
                 if (response.isSuccessful) {
-                    _predictions.value = response.body()?.predictions ?: emptyMap()
+                    val predictions = response.body()?.predictions ?: emptyMap()
+                    println("Parsed Predictions: $predictions")
+                    _predictions.value = predictions
                 } else {
-                    // Gérer les erreurs de réponse
+                    // Log des détails d'erreur
+                    val errorBody = response.errorBody()?.string()
+                    println("Error Response: $errorBody")
                     _predictions.value = emptyMap()
                 }
             } catch (e: Exception) {
-                // Gérer les exceptions
+                // Log de l'exception
+                println("Exception in loadPredictions: ${e.message}")
+                e.printStackTrace()
                 _predictions.value = emptyMap()
+            } finally {
+                _isLoadingPredictions.value = false  // Always set loading to false
             }
+
         }
     }
-
     fun formatConvertedAmount(amount: Double): String {
         val formatter = NumberFormat.getNumberInstance(Locale.getDefault()) as DecimalFormat
         formatter.maximumFractionDigits = 2

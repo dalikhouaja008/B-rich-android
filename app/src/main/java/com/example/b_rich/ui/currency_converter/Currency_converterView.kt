@@ -208,7 +208,10 @@ fun CurrencyConverter(
                 }
             }
 
-            LineChartComponent()
+            LineChartComponent(
+                currencyConverterViewModel,
+                uiStateCurrency.toCurrency
+            )
 
         }
     }

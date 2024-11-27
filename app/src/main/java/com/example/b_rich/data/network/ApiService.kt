@@ -1,5 +1,6 @@
 package com.example.b_rich.data.network
 
+import com.example.b_rich.data.dataModel.PredictionRequest
 import com.example.b_rich.data.dataModel.PredictionResponse
 import com.example.b_rich.data.entities.ExchangeRate
 import com.example.b_rich.data.entities.user
@@ -78,9 +79,8 @@ interface ApiService {
         @Path("amount") amount: String
     ): Double
 
-    @POST("predictions/create-prediction")
+    @POST("prediction/create-prediction")
     suspend fun getPredictions(
-        @Body date: String,
-        @Body currencies: List<String>
+        @Body request: PredictionRequest
     ): Response<PredictionResponse>
 }

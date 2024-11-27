@@ -1,5 +1,6 @@
 package com.example.b_rich.data.repositories
 
+import com.example.b_rich.data.dataModel.PredictionRequest
 import com.example.b_rich.data.dataModel.PredictionResponse
 import com.example.b_rich.data.network.ApiService
 import okhttp3.ResponseBody
@@ -37,7 +38,7 @@ class CurrencyConverterRepository @Inject constructor(
         currencies: List<String>
     ): Response<PredictionResponse> {
         return try {
-            apiService.getPredictions(date, currencies)
+            apiService.getPredictions(PredictionRequest(date, currencies))
         } catch (e: Exception) {
             e.printStackTrace()
             Response.error(500, ResponseBody.create(null, "Error fetching currency predictions"))
