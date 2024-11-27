@@ -22,17 +22,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.b_rich.data.Wallet.Wallet
-import com.example.b_rich.data.Transaction.Transaction
+import com.example.b_rich.data.entities.Wallet
+import com.example.b_rich.data.entities.Transaction
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun HomeBrichScreen(
-    totalBalance: Double,
-    wallets: List<Wallet>,
-    recentTransactions: List<Transaction>
+fun Wallets(
+    totalBalance: Double
 ) {
     val gradientBackground = Brush.verticalGradient(
         colors = listOf(
@@ -334,7 +331,7 @@ data class QuickAction(
 
 @Preview(showBackground = true, device = "spec:width=412dp,height=892dp", backgroundColor = 0xFF1A73E8)
 @Composable
-fun PreviewHomeBrichScreen() {
+fun PreviewWallets() {
     val sampleWallets = listOf(
         Wallet(
             currency = "Tunisian Dinar",
@@ -359,9 +356,7 @@ fun PreviewHomeBrichScreen() {
         Transaction(id = 1, status = "Completed", description = "Deposit", amount = 200.00, date = Date()),
         Transaction(id = 2, status = "Completed", description = "Shopping", amount = -50.00, date = Date())
     )
-    HomeBrichScreen(
-        totalBalance = 4800.00,
-        wallets = sampleWallets,
-        recentTransactions = sampleTransactions
+    Wallets(
+        totalBalance = 4800.00
     )
 }

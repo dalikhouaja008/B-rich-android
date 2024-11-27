@@ -98,7 +98,14 @@ class MainActivity : FragmentActivity() {
                         ) { backStackEntry ->
                             val userJson = backStackEntry.arguments?.getString("userJson")
                             val user = userJson?.let { Gson().fromJson(it, user::class.java) }
-                            user?.let { MainScreen(it, navController, resetPasswordViewModel,exchangeRateViewModel,addAccountViewModel,currencyConverterViewModel) }
+                            user?.let { MainScreen(
+                                it,
+                                navController,
+                                resetPasswordViewModel,
+                                exchangeRateViewModel,
+                                addAccountViewModel,
+                                currencyConverterViewModel
+                            ) }
                         }
 
                         composable(

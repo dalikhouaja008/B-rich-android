@@ -2,14 +2,14 @@ package com.example.b_rich.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.b_rich.data.Transaction.Transaction
-import com.example.b_rich.data.Wallet.Wallet
+import com.example.b_rich.data.entities.Transaction
+import com.example.b_rich.data.entities.Wallet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.Date
 
-class HomeViewModel : ViewModel() {
+class WalletsViewModel : ViewModel() {
 
     // MutableStateFlow to hold the data
     private val _totalBalance = MutableStateFlow(0.0)

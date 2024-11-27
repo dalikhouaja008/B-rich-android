@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.androidx.storage)
     implementation(libs.androidx.foundation.android)
+    implementation(libs.androidx.navigation.runtime.ktx)
 
 
     testImplementation(libs.junit)

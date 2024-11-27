@@ -6,30 +6,22 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.CurrencyExchange
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -53,6 +44,10 @@ import com.example.b_rich.ui.components.CustomTopAppBar
 import com.example.b_rich.ui.currency_converter.CurrencyConverter
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
+
+import com.example.b_rich.ui.home.Wallets
+import com.example.b_rich.ui.home.WalletsViewModel
+
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.exyte.animatednavbar.AnimatedNavigationBar
 import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
@@ -87,7 +82,8 @@ fun MainScreen(
     viewModel: ResetPasswordViewModel = viewModel(),
     exchangeRateViewModel: ExchangeRateViewModel = viewModel(),
     addAccountViewModel: AddAccountViewModel = viewModel(),
-    currencyConverterViewModel: CurrencyConverterViewModel
+    currencyConverterViewModel: CurrencyConverterViewModel,
+    walletsViewModel: WalletsViewModel = viewModel()
 ) {
     val navigationBarItems = remember { NavigationBarItems.values() }
     var selectedIndex by remember { mutableStateOf(0) }
@@ -143,7 +139,7 @@ fun MainScreen(
             when (selectedIndex) {
                 NavigationBarItems.Home.ordinal -> ExchangeRate(exchangeRateViewModel)
                 NavigationBarItems.Convert.ordinal -> CurrencyConverter(currencyConverterViewModel)
-                //NavigationBarItems.Wallet.ordinal -> SettingsScreen()
+                NavigationBarItems.Wallet.ordinal -> Wallets(WalletsViewModel)
                 NavigationBarItems.Account.ordinal -> AddAccountScreen(
                     navHostController = navHostController,
                     drawerState = drawerState,
