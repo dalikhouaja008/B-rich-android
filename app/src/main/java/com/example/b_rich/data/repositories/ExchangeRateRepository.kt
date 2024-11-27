@@ -1,5 +1,6 @@
 package com.example.b_rich.data.repositories
 
+import com.example.b_rich.data.dataModel.PredictionResponse
 import com.example.b_rich.data.entities.ExchangeRate
 import com.example.b_rich.data.network.ApiService
 import okhttp3.ResponseBody
@@ -18,25 +19,4 @@ class ExchangeRateRepository @Inject constructor(
         }
     }
 
-    suspend fun getSellingRate(currency: String, amount: String): Double {
-        return try {
-            val result = apiService.getSellingRate(currency, amount)
-            println("Selling rate result: $result")
-            result
-        } catch (e: Exception) {
-            println("Error getting selling rate: ${e.message}")
-
-            // Additional error handling or logging
-            0.0 // or throw the exception, depending on your error handling strategy
-        }
-    }
-
-    suspend fun getBuyingRate(currency: String, amount: String): Double {
-        return try {
-            apiService.getBuyingRate(currency, amount)
-        } catch (e: Exception) {
-            println("Error getting buying rate: ${e.message}")
-            0.0 // or throw the exception, depending on your error handling strategy
-        }
-    }
 }

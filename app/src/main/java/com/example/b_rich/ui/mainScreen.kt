@@ -3,46 +3,31 @@ package com.example.b_rich.ui
 import ExchangeRate
 import android.content.Context
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.CurrencyExchange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Wallet
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -60,21 +44,20 @@ import androidx.navigation.NavHostController
 import com.example.b_rich.data.entities.user
 import com.example.b_rich.ui.AddAccount.AddAccountScreen
 import com.example.b_rich.ui.AddAccount.AddAccountViewModel
-import com.example.b_rich.ui.components.ExchangeRateComponents.ExchangeRateList
-import com.example.b_rich.ui.components.ExchangeRateComponents.ExpandedDropdownUi
-import com.example.b_rich.ui.components.TextfieldsComponenets.InputTextFieldUi
+import com.example.b_rich.ui.currency_converter.CurrencyConverter
+import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.example.b_rich.ui.theme.PREF_FILE
 import com.exyte.animatednavbar.AnimatedNavigationBar
 import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height
-import com.exyte.animatednavbar.animation.indendshape.ShapeCornerRadius
 import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
 import com.exyte.animatednavbar.utils.noRippleClickable
 
 enum class NavigationBarItems(val icon: ImageVector){
     Home(icon = Icons.Default.Home),
+    Convert(icon= Icons.Default.CurrencyExchange),
     Wallet(icon = Icons.Default.Wallet),
     Person(icon=Icons.Default.Person),
     Account(icon = Icons.Default.AccountBalance),
@@ -97,32 +80,16 @@ fun MainScreen(
     navHostController: NavHostController,
     viewModel: ResetPasswordViewModel = viewModel(),
     exchangeRateViewModel: ExchangeRateViewModel = viewModel(),
-    addAccountViewModel: AddAccountViewModel =viewModel()
+    addAccountViewModel: AddAccountViewModel = viewModel(),
+    currencyConverterViewModel: CurrencyConverterViewModel
 ) {
     val navigationBarItems = remember { NavigationBarItems.values() }
     var selectedIndex by remember { mutableStateOf(0) }
-    val context = LocalContext.current
-    val uiState by exchangeRateViewModel.uiState.collectAsState()
-    val uiStateCurrency by exchangeRateViewModel.uiStateCurrency.collectAsState()
-    val mSharedPreferences =
-        remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
     LaunchedEffect(key1 = true) {
         exchangeRateViewModel.fetchExchangeRates()
     }
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = "B-Rich", color = Color.White) // Set title text color to white
-                },
-                colors = TopAppBarDefaults.smallTopAppBarColors(
-                    containerColor = Color.Red,
-                    //contentColor = Color.White
-                )
-            )
-        },
         bottomBar = {
             AnimatedNavigationBar(
                 modifier = Modifier
@@ -165,12 +132,8 @@ fun MainScreen(
                 .padding(paddingValues)
         ) {
             when (selectedIndex) {
-                NavigationBarItems.Home.ordinal -> ExchangeRate(
-                    user,
-                    navHostController,
-                    viewModel,
-                    exchangeRateViewModel
-                )
+                NavigationBarItems.Home.ordinal -> ExchangeRate(exchangeRateViewModel)
+                NavigationBarItems.Convert.ordinal -> CurrencyConverter(currencyConverterViewModel)
                 //NavigationBarItems.Wallet.ordinal -> SettingsScreen()
                 NavigationBarItems.Account.ordinal -> AddAccountScreen(
                     navHostController = navHostController,

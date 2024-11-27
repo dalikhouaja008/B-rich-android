@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.b_rich"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -104,17 +104,19 @@ dependencies {
     implementation ("androidx.compose.material:material-icons-extended:1.5.0")
     //biometric
     implementation("androidx.biometric:biometric:1.1.0")
-    implementation("androidx.biometric:biometric:1.4.0-alpha02")
+    implementation(libs.biometric)
     //hilt dagger
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
     //google authentication
-    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation(libs.play.services.auth)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid.vlatestversion)
     //animatedBar
-    implementation("com.exyte:animated-navigation-bar:1.0.0")
+    implementation(libs.animated.navigation.bar)
+    //YChart
+    implementation (libs.ycharts)
 }
 kapt {
     correctErrorTypes = true
