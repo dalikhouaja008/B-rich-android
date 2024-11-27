@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,6 +33,8 @@ import com.example.b_rich.data.network.RetrofitClient
 import com.example.b_rich.data.repositories.ExchangeRateRepository
 import com.example.b_rich.data.repositories.UserRepository
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
+import com.example.b_rich.ui.home.HomeBrichScreen
+import com.example.b_rich.ui.home.HomeViewModel
 import com.example.b_rich.ui.resetPassword.CodeEntryScreen
 import com.example.b_rich.ui.resetPassword.PasswordEntryScreen
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
@@ -78,6 +81,20 @@ class MainActivity : FragmentActivity() {
                         }
                         composable("loginPage") {
                             LoginScreen(signinViewModel, navController)
+                        }
+
+                        composable("home") {
+                            val homeViewModel: HomeViewModel = HomeViewModel()
+                            // Collect the state flows as state
+                            val totalBalance by homeViewModel.totalBalance.collectAsState()
+                            val wallets by homeViewModel.wallets.collectAsState()
+                            val recentTransactions by homeViewModel.recentTransactions.collectAsState()
+
+                            HomeBrichScreen(
+                                totalBalance = totalBalance,
+                                wallets = wallets,
+                                recentTransactions = recentTransactions
+                            )
                         }
 
                         composable(
@@ -127,8 +144,6 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-
-}
 
 
 fun navigateToExchangeRate(user: user, navController: NavController) {

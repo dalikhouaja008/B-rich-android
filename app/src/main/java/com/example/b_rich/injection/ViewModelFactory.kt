@@ -11,10 +11,10 @@ import com.example.b_rich.ui.signin.SigninViewModel
 import com.example.b_rich.ui.signup.SignupViewModel
 
 
-class ViewModelFactory(private val userRepository: UserRepository,private val exchangeRateRepository: ExchangeRateRepository) : ViewModelProvider.Factory {
 class ViewModelFactory(
     private val userRepository: UserRepository,
-    private val sharedPreferences: SharedPreferences
+    private val sharedPreferences: SharedPreferences,
+    private val exchangeRateRepository: ExchangeRateRepository
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

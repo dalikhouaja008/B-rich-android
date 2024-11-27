@@ -1,47 +1,43 @@
 package com.example.b_rich.ui.home
 
 import androidx.lifecycle.ViewModel
-import com.example.b_rich.data.Wallet.Wallet
+import androidx.lifecycle.viewModelScope
 import com.example.b_rich.data.Transaction.Transaction
+import com.example.b_rich.data.Wallet.Wallet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import java.util.Date
 
 class HomeViewModel : ViewModel() {
 
-    private val _totalBalance = MutableStateFlow(1234.56)
+    // MutableStateFlow to hold the data
+    private val _totalBalance = MutableStateFlow(0.0)
+    private val _wallets = MutableStateFlow<List<Wallet>>(emptyList())
+    private val _recentTransactions = MutableStateFlow<List<Transaction>>(emptyList())
+
+    // Public property to expose StateFlow
     val totalBalance: StateFlow<Double> get() = _totalBalance
-
-    private val _wallets = MutableStateFlow(
-        listOf(
-            Wallet(currency = "USD", symbol = "$", balance = 500.0),
-            Wallet(currency = "EUR", symbol = "€", balance = 300.0),
-            Wallet(currency = "TND", symbol = "د.ت", balance = 2500.0)
-        )
-    )
     val wallets: StateFlow<List<Wallet>> get() = _wallets
-
-    private val _recentTransactions = MutableStateFlow(
-        listOf(
-            Transaction(id = 1, status = "Completed", description = "Grocery", amount = -50.0, date = Date()),
-            Transaction(id = 2, status = "Completed", description = "Salary", amount = 2000.0, date = Date()),
-            Transaction(id = 3, status = "Completed", description = "Coffee", amount = -5.0, date = Date())
-        )
-    )
     val recentTransactions: StateFlow<List<Transaction>> get() = _recentTransactions
 
-
-    fun addWallet(wallet: Wallet) {
-        _wallets.value = _wallets.value + wallet
+    init {
+        loadData()
     }
 
-
-    fun addTransaction(transaction: Transaction) {
-        _recentTransactions.value = _recentTransactions.value + transaction
-    }
-
-
-    fun updateTotalBalance(newBalance: Double) {
-        _totalBalance.value = newBalance
+    private fun loadData() {
+        viewModelScope.launch {
+            // Simulate loading data
+            _totalBalance.value = 4800.00
+            _wallets.value = listOf(
+                Wallet(currency = "Tunisian Dinar", symbol = "TND", balance = 2500.00, transactions = emptyList()),
+                Wallet(currency = "Euro", symbol = "€", balance = 800.00, transactions = emptyList()),
+                Wallet(currency = "US Dollar", symbol = "$", balance = 1500.00, transactions = emptyList())
+            )
+            _recentTransactions.value = listOf(
+                Transaction(id = 1, status = "Completed", description = "Deposit", amount = 200.00, date = Date()),
+                Transaction(id = 2, status = "Completed", description = "Shopping", amount = -50.00, date = Date())
+            )
+        }
     }
 }
