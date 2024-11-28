@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -22,47 +21,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.entities.Transaction
 import java.text.SimpleDateFormat
 import java.util.*
 
-// Initialisation des données en dehors de Wallets()
-val sampleWallets = listOf(
-    Wallet(
-        currency = "Tunisian Dinar",
-        symbol = "TND",
-        balance = 2500.00,
-        transactions = emptyList()
-    ),
-    Wallet(
-        currency = "Euro",
-        symbol = "€",
-        balance = 800.00,
-        transactions = emptyList()
-    ),
-    Wallet(
-        currency = "US Dollar",
-        symbol = "$",
-        balance = 1500.00,
-        transactions = emptyList()
-    )
-)
-
-val sampleTransactions = listOf(
-    Transaction(id = 1, status = "Completed", description = "Deposit", amount = 200.00, date = Date()),
-    Transaction(id = 2, status = "Completed", description = "Shopping", amount = -50.00, date = Date())
-)
-
-val totalBalance = 4800.00
-
 @Composable
-fun WalletsScreen() {
+fun WalletsScreen(viewModel: WalletsViewModel) {
+    val totalBalance by viewModel.totalBalance.collectAsState()
+    val wallets by viewModel.wallets.collectAsState()
+    val recentTransactions by viewModel.recentTransactions.collectAsState()
+
     Wallets(
         totalBalance = totalBalance,
-        wallets = sampleWallets,
-        recentTransactions = sampleTransactions
+        wallets = wallets,
+        recentTransactions = recentTransactions
     )
 }
 
@@ -119,7 +92,7 @@ fun Wallets(
 
 @Composable
 fun UserHeader() {
-
+    // Header implementation
 }
 
 @Composable
@@ -237,6 +210,7 @@ fun WalletCard(wallet: Wallet) {
         }
     }
 }
+
 @Composable
 fun SectionTitle(title: String) {
     Text(
@@ -335,34 +309,6 @@ data class QuickAction(
 
 @Preview(showBackground = true, device = "spec:width=412dp,height=892dp", backgroundColor = 0xFF1A73E8)
 @Composable
-fun PreviewWallets() {
-    val sampleWallets = listOf(
-        Wallet(
-            currency = "Tunisian Dinar",
-            symbol = "TND",
-            balance = 2500.00,
-            transactions = emptyList()
-        ),
-        Wallet(
-            currency = "Euro",
-            symbol = "€",
-            balance = 800.00,
-            transactions = emptyList()
-        ),
-        Wallet(
-            currency = "US Dollar",
-            symbol = "$",
-            balance = 1500.00,
-            transactions = emptyList()
-        )
-    )
-    val sampleTransactions = listOf(
-        Transaction(id = 1, status = "Completed", description = "Deposit", amount = 200.00, date = Date()),
-        Transaction(id = 2, status = "Completed", description = "Shopping", amount = -50.00, date = Date())
-    )
-    Wallets(
-        totalBalance = 4800.00,
-        wallets = sampleWallets,
-        recentTransactions = sampleTransactions
-    )
+fun PreviewWallets(viewModel: WalletsViewModel = WalletsViewModel()) {
+    WalletsScreen(viewModel)
 }
