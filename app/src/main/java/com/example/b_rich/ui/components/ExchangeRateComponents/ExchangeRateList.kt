@@ -28,7 +28,7 @@ fun ExchangeRateList(rates: List<ExchangeRate>) {
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(Color.White.copy(alpha = 0.5f))
             .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
     ) {
         // Header
