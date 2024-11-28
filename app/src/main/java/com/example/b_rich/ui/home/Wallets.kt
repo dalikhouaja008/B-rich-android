@@ -22,19 +22,60 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.entities.Transaction
 import java.text.SimpleDateFormat
 import java.util.*
 
+// Initialisation des données en dehors de Wallets()
+val sampleWallets = listOf(
+    Wallet(
+        currency = "Tunisian Dinar",
+        symbol = "TND",
+        balance = 2500.00,
+        transactions = emptyList()
+    ),
+    Wallet(
+        currency = "Euro",
+        symbol = "€",
+        balance = 800.00,
+        transactions = emptyList()
+    ),
+    Wallet(
+        currency = "US Dollar",
+        symbol = "$",
+        balance = 1500.00,
+        transactions = emptyList()
+    )
+)
+
+val sampleTransactions = listOf(
+    Transaction(id = 1, status = "Completed", description = "Deposit", amount = 200.00, date = Date()),
+    Transaction(id = 2, status = "Completed", description = "Shopping", amount = -50.00, date = Date())
+)
+
+val totalBalance = 4800.00
+
+@Composable
+fun WalletsScreen() {
+    Wallets(
+        totalBalance = totalBalance,
+        wallets = sampleWallets,
+        recentTransactions = sampleTransactions
+    )
+}
+
 @Composable
 fun Wallets(
-    totalBalance: Double
+    totalBalance: Double,
+    wallets: List<Wallet>,
+    recentTransactions: List<Transaction>
 ) {
     val gradientBackground = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFE91E63),
-            Color(0xFF00BCD4)
+            Color(0xFFFFFFFF),
+            Color(0xFF2196F3)
         )
     )
 
@@ -64,18 +105,13 @@ fun Wallets(
                     SectionTitle("My Wallets")
                     WalletsCarousel(wallets)
                 }
-                /*
-                                item {
-                                    SectionTitle("Recent Transactions")
-                                }
 
-
-
-                                items(recentTransactions) { transaction ->
-                                    TransactionRow(transaction)
-                                }
-
-                 */
+                item {
+                    SectionTitle("Recent Transactions")
+                }
+                items(recentTransactions) { transaction ->
+                    TransactionRow(transaction)
+                }
             }
         }
     }
@@ -83,39 +119,7 @@ fun Wallets(
 
 @Composable
 fun UserHeader() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column {
-            Text(
-                text = "Hello, User",
-                style = MaterialTheme.typography.titleLarge,
-                color = Color.Black,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "Welcome back to B-Rich",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.DarkGray
-            )
-        }
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(Color.LightGray),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Profile",
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-    }
+
 }
 
 @Composable
@@ -357,6 +361,8 @@ fun PreviewWallets() {
         Transaction(id = 2, status = "Completed", description = "Shopping", amount = -50.00, date = Date())
     )
     Wallets(
-        totalBalance = 4800.00
+        totalBalance = 4800.00,
+        wallets = sampleWallets,
+        recentTransactions = sampleTransactions
     )
 }

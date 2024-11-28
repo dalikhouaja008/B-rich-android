@@ -25,6 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -139,7 +140,16 @@ fun MainScreen(
             when (selectedIndex) {
                 NavigationBarItems.Home.ordinal -> ExchangeRate(exchangeRateViewModel)
                 NavigationBarItems.Convert.ordinal -> CurrencyConverter(currencyConverterViewModel)
-                NavigationBarItems.Wallet.ordinal -> Wallets(WalletsViewModel)
+                NavigationBarItems.Wallet.ordinal -> {
+                    val wallets by walletsViewModel.wallets.collectAsState()
+                    val recentTransactions by walletsViewModel.recentTransactions.collectAsState()
+                    val totalBalance by walletsViewModel.totalBalance.collectAsState()
+                    Wallets(
+                        totalBalance = walletsViewModel.totalBalance.collectAsState().value,
+                        wallets = wallets,
+                        recentTransactions = recentTransactions
+                    )
+                }
                 NavigationBarItems.Account.ordinal -> AddAccountScreen(
                     navHostController = navHostController,
                     drawerState = drawerState,
