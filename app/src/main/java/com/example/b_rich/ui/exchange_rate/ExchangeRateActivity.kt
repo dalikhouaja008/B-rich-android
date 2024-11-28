@@ -43,6 +43,7 @@ fun ExchangeRate(
     Box(
         modifier = Modifier
             .fillMaxSize()
+
             .padding(),
         contentAlignment = Alignment.Center
     ) {
@@ -50,8 +51,9 @@ fun ExchangeRate(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-                .background(Color.White, shape = MaterialTheme.shapes.medium)
+                .background(Color.White.copy(alpha = 0.9f), shape = MaterialTheme.shapes.medium)
                 .padding(24.dp),
+
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {

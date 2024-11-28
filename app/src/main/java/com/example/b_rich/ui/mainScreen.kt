@@ -2,34 +2,27 @@ package com.example.b_rich.ui
 
 import ExchangeRate
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.CurrencyExchange
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,7 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -54,6 +47,8 @@ import com.example.b_rich.ui.currency_converter.CurrencyConverter
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
+import com.example.b_rich.ui.wallets.WalletsScreen
+import com.example.b_rich.ui.wallets.WalletsViewModel
 import com.exyte.animatednavbar.AnimatedNavigationBar
 import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height
@@ -87,11 +82,18 @@ fun MainScreen(
     viewModel: ResetPasswordViewModel = viewModel(),
     exchangeRateViewModel: ExchangeRateViewModel = viewModel(),
     addAccountViewModel: AddAccountViewModel = viewModel(),
-    currencyConverterViewModel: CurrencyConverterViewModel
+    currencyConverterViewModel: CurrencyConverterViewModel,
+    walletsViewModel: WalletsViewModel
 ) {
     val navigationBarItems = remember { NavigationBarItems.values() }
     var selectedIndex by remember { mutableStateOf(0) }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val gradientBackground = Brush.verticalGradient(
+        colors = listOf(
+            Color(0xFFFFFFFF),
+            Color(0xFF2196F3)
+        )
+    )
     LaunchedEffect(key1 = true) {
         exchangeRateViewModel.fetchExchangeRates()
     }
@@ -108,8 +110,8 @@ fun MainScreen(
                 cornerRadius = shapeCornerRadius(cornerRadius = 34.dp),
                 ballAnimation = Parabolic(tween(300)),
                 indentAnimation = Height(tween(300)),
-                barColor =  Color(0xFF3D5AFE),
-                ballColor = Color(0xFF3D5AFE),
+                barColor =  Color(0xFFFFFFFF),
+                ballColor = Color(0xFF2196F3),
 
                 ) {
                 navigationBarItems.forEach { item ->
@@ -125,7 +127,7 @@ fun MainScreen(
                             imageVector = item.icon,
                             contentDescription = "Bottom bar Icon",
                             tint = if (selectedIndex == item.ordinal)
-                                MaterialTheme.colorScheme.onPrimary
+                                Color(0xFF2196F3)
                             else
                                 MaterialTheme.colorScheme.inversePrimary
                         )
@@ -139,14 +141,13 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .background(gradientBackground)
         ) {
             when (selectedIndex) {
                 NavigationBarItems.Home.ordinal -> ExchangeRate(exchangeRateViewModel)
                 NavigationBarItems.Convert.ordinal -> CurrencyConverter(currencyConverterViewModel)
-                //NavigationBarItems.Wallet.ordinal -> SettingsScreen()
+                NavigationBarItems.Wallet.ordinal -> WalletsScreen(walletsViewModel)
                 NavigationBarItems.Account.ordinal -> AddAccountScreen(
-                    navHostController = navHostController,
-                    drawerState = drawerState,
                     viewModel = addAccountViewModel
                 )
                 //NavigationBarItems.Person.ordinal -> SettingsScreen()

@@ -1,47 +1,65 @@
 package com.example.b_rich.ui.wallets
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.b_rich.data.entities.Transaction
 import com.example.b_rich.data.entities.Wallet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import java.util.Date
+import java.util.UUID
 
-class HomeViewModel : ViewModel() {
+class WalletsViewModel : ViewModel() {
 
-    private val _totalBalance = MutableStateFlow(1234.56)
-    val totalBalance: StateFlow<Double> get() = _totalBalance
-
-    private val _wallets = MutableStateFlow(
-        listOf(
-            Wallet(currency = "USD", symbol = "$", balance = 500.0),
-            Wallet(currency = "EUR", symbol = "€", balance = 300.0),
-            Wallet(currency = "TND", symbol = "د.ت", balance = 2500.0)
-        )
-    )
+    private val _wallets = MutableStateFlow<List<Wallet>>(emptyList())
     val wallets: StateFlow<List<Wallet>> get() = _wallets
 
-    private val _recentTransactions = MutableStateFlow(
-        listOf(
-            Transaction(id = 1, status = "Completed", description = "Grocery", amount = -50.0, date = Date()),
-            Transaction(id = 2, status = "Completed", description = "Salary", amount = 2000.0, date = Date()),
-            Transaction(id = 3, status = "Completed", description = "Coffee", amount = -5.0, date = Date())
-        )
-    )
+    //transactions récent
+    private val _recentTransactions = MutableStateFlow<List<Transaction>>(emptyList())
     val recentTransactions: StateFlow<List<Transaction>> get() = _recentTransactions
 
+    //solde total
+    private val _totalBalance = MutableStateFlow(0.0)
+    val totalBalance: StateFlow<Double> get() = _totalBalance
 
-    fun addWallet(wallet: Wallet) {
-        _wallets.value = _wallets.value + wallet
+    init {
+        loadData()
     }
 
+    private fun loadData() {
+        viewModelScope.launch {
+            val walletsList = listOf(
+                Wallet(
+                    currency = "Tunisian Dinar",
+                    symbol = "TND",
+                    balance = 1500.0,
+                    transactions = emptyList()
+                ),
+                Wallet(
+                    currency = "Euro",
+                    symbol = "€",
+                    balance = 500.0,
+                    transactions = emptyList()
+                ),
+                Wallet(
+                    currency = "US Dollar",
+                    symbol = "$",
+                    balance = 800.0,
+                    transactions = emptyList()
+                )
+            )
+            _wallets.value = walletsList
 
-    fun addTransaction(transaction: Transaction) {
-        _recentTransactions.value = _recentTransactions.value + transaction
-    }
+            // Définition des transactions récentes
+            _recentTransactions.value = listOf(
+                Transaction(1, "Completed", "Deposit", 200.0, Date()),
+                Transaction(2, "Completed", "Shopping", -50.0, Date()),
+                Transaction(3, "Pending", "Transfer to USD", -100.0, Date())
+            )
 
-
-    fun updateTotalBalance(newBalance: Double) {
-        _totalBalance.value = newBalance
+            // Calcul du solde total
+            _totalBalance.value = walletsList.sumOf { it.balance }
+        }
     }
 }

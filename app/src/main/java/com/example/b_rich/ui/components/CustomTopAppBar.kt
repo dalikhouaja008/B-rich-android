@@ -27,7 +27,7 @@ fun CustomTopAppBar() {
             }
         },
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = Color(0xFF3D5AFE), // Couleur de fond
+            containerColor = Color(0xFF2196F3), // Couleur de fond
             titleContentColor = Color.White, // Couleur du titre
             navigationIconContentColor = Color(0xFF442C2E), // Couleur des icônes
             actionIconContentColor = Color(0xFF442C2E) // Couleur des icônes d'action

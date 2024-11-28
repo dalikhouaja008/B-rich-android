@@ -33,7 +33,7 @@ import com.example.b_rich.ui.signin.SigninViewModel
 import com.example.b_rich.ui.signup.SignUpScreen
 import com.example.b_rich.ui.signup.SignupViewModel
 import com.example.b_rich.ui.theme.BrichTheme
-import com.example.b_rich.ui.wallets.HomeViewModel
+import com.example.b_rich.ui.wallets.WalletsViewModel
 import com.example.b_rich.ui.welcome.WelcomeScreen
 import com.google.gson.Gson
 
@@ -55,7 +55,8 @@ class MainActivity : FragmentActivity() {
         val exchangeRateViewModel=ExchangeRateViewModel(exchangeRateRepository)
         val addAccountViewModel= AddAccountViewModel()
         val currencyConverterViewModel=CurrencyConverterViewModel(currencyRepository)
-        val HomeViewModel=HomeViewModel()
+        val walletsViewModel = WalletsViewModel()
+        //val HomeViewModel=HomeViewModel()
 
 
         setContent {
@@ -98,7 +99,7 @@ class MainActivity : FragmentActivity() {
                         ) { backStackEntry ->
                             val userJson = backStackEntry.arguments?.getString("userJson")
                             val user = userJson?.let { Gson().fromJson(it, user::class.java) }
-                            user?.let { MainScreen(it, navController, resetPasswordViewModel,exchangeRateViewModel,addAccountViewModel,currencyConverterViewModel) }
+                            user?.let { MainScreen(it, navController, resetPasswordViewModel,exchangeRateViewModel,addAccountViewModel,currencyConverterViewModel,walletsViewModel) }
                         }
 
                         composable(
