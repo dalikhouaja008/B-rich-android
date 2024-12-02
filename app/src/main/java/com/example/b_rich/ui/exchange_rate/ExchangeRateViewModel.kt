@@ -6,6 +6,8 @@ import com.example.b_rich.data.repositories.ExchangeRateRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import androidx.lifecycle.viewModelScope
+import com.example.b_rich.data.dataModel.NewsItem
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 
@@ -15,9 +17,32 @@ data class ExchangeRateUiState(
     val errorMessage :String? =null,
 )
 
+sealed class NewsState {
+    data object Loading : NewsState()
+    data class Success(val news: List<NewsItem>) : NewsState()
+    data class Error(val message: String) : NewsState()
+}
+
 class ExchangeRateViewModel (private val exchangeRateRepository: ExchangeRateRepository): ViewModel(){
     private val _uiState = MutableStateFlow(ExchangeRateUiState())
     val uiState: StateFlow<ExchangeRateUiState> = _uiState
+
+    private val _newsState = MutableStateFlow<NewsState>(NewsState.Loading)
+    val newsState: StateFlow<NewsState> = _newsState.asStateFlow()
+
+    fun fetchNews() {
+        viewModelScope.launch {
+            _newsState.value = NewsState.Loading
+
+            try {
+                val news = exchangeRateRepository.getttingAllNews()
+                println(news)
+                _newsState.value = NewsState.Success(news)
+            } catch (e: Exception) {
+                _newsState.value = NewsState.Error(e.message ?: "Unknown error")
+            }
+        }
+    }
 
     fun fetchExchangeRates() {
         // Mettre à jour l'état pour indiquer que le chargement a commencé
@@ -47,5 +72,12 @@ class ExchangeRateViewModel (private val exchangeRateRepository: ExchangeRateRep
             }
         }
     }
+       /* fun fetchNews() {
+            viewModelScope.launch {
+                val fetchedNews = exchangeRateRepository.getttingAllNews()
+                _newsItems.value = fetchedNews
+            }
+        }*/
+    }
 
-}
+

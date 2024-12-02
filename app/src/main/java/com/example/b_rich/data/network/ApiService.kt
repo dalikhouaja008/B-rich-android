@@ -1,5 +1,6 @@
 package com.example.b_rich.data.network
 
+import com.example.b_rich.data.dataModel.NewsItem
 import com.example.b_rich.data.dataModel.PredictionRequest
 import com.example.b_rich.data.dataModel.PredictionResponse
 import com.example.b_rich.data.entities.ExchangeRate
@@ -83,4 +84,6 @@ interface ApiService {
     suspend fun getPredictions(
         @Body request: PredictionRequest
     ): Response<PredictionResponse>
+    @GET("news")
+    suspend fun getAllNews(): List<NewsItem>
 }

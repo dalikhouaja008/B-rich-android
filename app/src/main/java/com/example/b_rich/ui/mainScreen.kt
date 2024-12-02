@@ -60,9 +60,8 @@ enum class NavigationBarItems(val icon: ImageVector){
     Home(icon = Icons.Default.Home),
     Convert(icon= Icons.Default.CurrencyExchange),
     Wallet(icon = Icons.Default.Wallet),
-    Person(icon=Icons.Default.Person),
     Account(icon = Icons.Default.AccountBalance),
-    Settings(icon = Icons.Default.Settings)
+    Person(icon=Icons.Default.Person),
 }
 
 fun Modifier.noRippleClickable (onClick: ()-> Unit):Modifier = composed{
@@ -151,7 +150,6 @@ fun MainScreen(
                     viewModel = addAccountViewModel
                 )
                 //NavigationBarItems.Person.ordinal -> SettingsScreen()
-                //NavigationBarItems.Settings.ordinal -> SettingsScreen()
             }
 
         }
