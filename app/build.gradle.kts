@@ -89,22 +89,22 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     //navigation
     val nav_version = "2.8.0"
-    implementation("androidx.navigation:navigation-compose:$nav_version")
+    implementation(libs.androidx.navigation.compose)
     //Room injection
     val room_version = "2.6.1"
-    implementation("androidx.room:room-runtime:$room_version")
-    annotationProcessor("androidx.room:room-compiler:$room_version")
+    implementation(libs.androidx.room.runtime)
+    annotationProcessor(libs.androidx.room.compiler)
     //Kapt annotation processor
     kapt("androidx.room:room-compiler:2.6.1")
     //Retrofit
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation (libs.retrofit)
+    implementation (libs.converter.gson)
     //live data
-    implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.5.1")
+    implementation (libs.androidx.lifecycle.livedata.ktx)
     //icones
-    implementation ("androidx.compose.material:material-icons-extended:1.5.0")
+    implementation (libs.androidx.material.icons.extended.v150)
     //biometric
-    implementation("androidx.biometric:biometric:1.1.0")
+    implementation(libs.androidx.biometric.v110)
     implementation(libs.biometric)
     //hilt dagger
     implementation(libs.hilt.android)
@@ -118,6 +118,16 @@ dependencies {
     implementation(libs.animated.navigation.bar)
     //YChart
     implementation (libs.ycharts)
+
+    // Coroutines
+    implementation (libs.kotlinx.coroutines.android)
+
+
+    // Hilt for Dependency Injection
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.android.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
+
 }
 kapt {
     correctErrorTypes = true

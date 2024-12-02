@@ -9,7 +9,8 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
-
+import com.example.b_rich.data.entities.Wallet
+import com.example.b_rich.data.entities.Transaction
 
 // Request model for login
 data class LoginRequest(
@@ -43,6 +44,8 @@ data class ResetPasswordBody(
     val code: String,
     val newPassword: String
 )
+
+
 
 interface ApiService {
 
@@ -83,4 +86,12 @@ interface ApiService {
     suspend fun getPredictions(
         @Body request: PredictionRequest
     ): Response<PredictionResponse>
+
+
+    ///walllllet
+    @GET("wallets")
+    suspend fun getWallets(): Response<List<Wallet>>
+
+    @GET("transactions")
+    suspend fun getRecentTransactions(): Response<List<Transaction>>
 }

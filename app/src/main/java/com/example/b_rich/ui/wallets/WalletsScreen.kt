@@ -1,4 +1,4 @@
-package com.example.b_rich.ui.home
+package com.example.b_rich.ui.wallets
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -21,23 +21,37 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.entities.Transaction
+import com.example.b_rich.data.entities.Wallet
+import com.example.b_rich.ui.wallets.WalletsViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.hilt.navigation.compose.hiltViewModel
+
 
 @Composable
-fun WalletsScreen(viewModel: WalletsViewModel) {
-    val totalBalance by viewModel.totalBalance.collectAsState()
-    val wallets by viewModel.wallets.collectAsState()
-    val recentTransactions by viewModel.recentTransactions.collectAsState()
+fun WalletsScreen(viewModel: WalletsViewModel = hiltViewModel()) {
+    val wallets = viewModel.wallets.collectAsState().value
 
-    Wallets(
-        totalBalance = totalBalance,
-        wallets = wallets,
-        recentTransactions = recentTransactions
-    )
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (wallets.isNotEmpty()) {
+            wallets.forEach { wallet ->
+                Text(text = "Wallet Name: ${wallet.walletName}, Balance: ${wallet.balance}")
+            }
+        } else {
+            Text(text = "No wallets available.")
+        }
+    }
 }
+
+
+
 
 @Composable
 fun Wallets(
@@ -47,8 +61,8 @@ fun Wallets(
 ) {
     val gradientBackground = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFFFFFFF),
-            Color(0xFF2196F3)
+            Color(0xFFFFFFFF), // Couleur de fond blanche
+            Color(0xFF2196F3)  // Couleur de fond bleue pour le bas
         )
     )
 
@@ -70,17 +84,17 @@ fun Wallets(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
-                    SectionTitle("Quick Actions")
+                    SectionTitle("Actions rapides")
                     QuickActionsRow()
                 }
 
                 item {
-                    SectionTitle("My Wallets")
+                    SectionTitle("Mes Portefeuilles")
                     WalletsCarousel(wallets)
                 }
 
                 item {
-                    SectionTitle("Recent Transactions")
+                    SectionTitle("Transactions Récentes")
                 }
                 items(recentTransactions) { transaction ->
                     TransactionRow(transaction)
@@ -92,7 +106,7 @@ fun Wallets(
 
 @Composable
 fun UserHeader() {
-    // Header implementation
+    // Implémentation de l'entête de l'utilisateur
 }
 
 @Composable
@@ -112,12 +126,12 @@ fun TotalBalanceCard(totalBalance: Double) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "Total Balance",
+                text = "Solde Total",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.DarkGray
             )
             Text(
-                text = "${"%.2f".format(totalBalance)} USD",
+                text = "${"%.2f".format(totalBalance)} USD", // Formatez la balance en USD
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -142,16 +156,16 @@ fun WalletCard(wallet: Wallet) {
     var isExpanded by remember { mutableStateOf(false) }
     val elevation by animateDpAsState(if (isExpanded) 12.dp else 4.dp)
 
-    // Assign different gradient colors for each currency
-    val gradientBackground = when (wallet.currency) {
+    // Affecter différentes couleurs de dégradé pour chaque portefeuille
+    val gradientBackground = when (wallet.walletName) {
         "Tunisian Dinar" -> Brush.horizontalGradient(
-            colors = listOf(Color(0xFFFFC107), Color(0xFFFFD54F)) // gold tones for dinars
+            colors = listOf(Color(0xFFFFC107), Color(0xFFFFD54F)) // Or pour dinars
         )
         "Euro" -> Brush.horizontalGradient(
-            colors = listOf(Color(0xFF1976D2), Color(0xFF64B5F6)) // blue tones for euros
+            colors = listOf(Color(0xFF1976D2), Color(0xFF64B5F6)) // Bleu pour euros
         )
         "US Dollar" -> Brush.horizontalGradient(
-            colors = listOf(Color(0xFF4CAF50), Color(0xFF81C784)) // green tones for dollars
+            colors = listOf(Color(0xFF4CAF50), Color(0xFF81C784)) // Vert pour dollars
         )
         else -> Brush.horizontalGradient(
             colors = listOf(Color.LightGray, Color.Gray)
@@ -187,21 +201,21 @@ fun WalletCard(wallet: Wallet) {
                         modifier = Modifier.size(24.dp)
                     )
                     Text(
-                        text = wallet.currency,
+                        text = wallet.walletName,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
                 }
                 Text(
-                    text = "${wallet.symbol}${"%.2f".format(wallet.balance)}",
+                    text = "${"%.2f".format(wallet.balance)}", // Affiche le solde du portefeuille
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
                 if (isExpanded) {
                     Text(
-                        text = "Last updated: ${SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date())}",
+                        text = "Dernière mise à jour : ${SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date())}",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.7f)
                     )
@@ -224,10 +238,10 @@ fun SectionTitle(title: String) {
 @Composable
 fun QuickActionsRow(
     actions: List<QuickAction> = listOf(
-        QuickAction(Icons.Default.Send, "Send"),
-        QuickAction(Icons.Default.Download, "Receive"),
-        QuickAction(Icons.Default.QrCode, "Scan"),
-        QuickAction(Icons.Default.CreditCard, "Pay")
+        QuickAction(Icons.Default.Send, "Envoyer"),
+        QuickAction(Icons.Default.Download, "Recevoir"),
+        QuickAction(Icons.Default.QrCode, "Scanner"),
+        QuickAction(Icons.Default.CreditCard, "Payer")
     )
 ) {
     Row(
@@ -249,7 +263,7 @@ fun QuickActionButton(icon: ImageVector, label: String) {
             .size(80.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(Color.White.copy(alpha = 0.2f))
-            .clickable { /* Action implementation */ }
+            .clickable { /* Implémenter action */ }
             .padding(12.dp)
     ) {
         Icon(
@@ -283,7 +297,7 @@ fun TransactionRow(transaction: Transaction) {
         ) {
             Column {
                 Text(
-                    text = transaction.description,
+                    text = transaction.type,
                     style = MaterialTheme.typography.bodyLarge,
                     color = Color.White
                 )
@@ -293,7 +307,7 @@ fun TransactionRow(transaction: Transaction) {
                     color = if (transaction.amount < 0) Color(0xFFFF6B6B) else Color(0xFF4CAF50)
                 )
                 Text(
-                    text = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(transaction.date),
+                    text = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(transaction.createdAt),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White.copy(alpha = 0.7f)
                 )
@@ -302,13 +316,45 @@ fun TransactionRow(transaction: Transaction) {
     }
 }
 
+
+@Composable
+fun TransactionDetails(transaction: Transaction) {
+    Text(
+        text = transaction.type,
+        style = MaterialTheme.typography.bodyLarge,
+        color = Color.White
+    )
+    Text(
+        text = formatTransactionAmount(transaction.amount),
+        style = MaterialTheme.typography.bodyMedium,
+        color = if (transaction.amount < 0) Color(0xFFFF6B6B) else Color(0xFF4CAF50)
+    )
+    Text(
+        text = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(transaction.createdAt),
+        style = MaterialTheme.typography.bodySmall,
+        color = Color.White.copy(alpha = 0.7f)
+    )
+}
+
+fun formatTransactionAmount(amount: Double): String {
+    return "${if (amount < 0) "-" else ""}${"%.2f".format(kotlin.math.abs(amount))}"
+}
+
 data class QuickAction(
     val icon: ImageVector,
     val label: String
 )
 
+/*
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreview() {
+    WalletsScreen()
+}
+ */
+
 @Preview(showBackground = true, device = "spec:width=412dp,height=892dp", backgroundColor = 0xFF1A73E8)
 @Composable
-fun PreviewWallets(viewModel: WalletsViewModel = WalletsViewModel()) {
-    WalletsScreen(viewModel)
+fun PreviewWallets() {
+    WalletsScreen()
 }

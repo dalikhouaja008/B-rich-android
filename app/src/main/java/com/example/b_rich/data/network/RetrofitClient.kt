@@ -1,12 +1,20 @@
 package com.example.b_rich.data.network
 
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Singleton
 
+@Module
+@InstallIn(SingletonComponent::class)
 object RetrofitClient {
-
-    private const val BASE_URL = "http://172.16.8.113:3000/"
+    //@Provides
+    @Singleton
+    private const val BASE_URL = "http://192.168.1.43:3000/"
 
     private val retrofit by lazy {
         val client = OkHttpClient.Builder().build()

@@ -9,8 +9,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.b_rich.data.entities.user
 import com.example.b_rich.data.network.LoginResponse
 import com.example.b_rich.data.repositories.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import retrofit2.Response
+import javax.inject.Inject
 
 
 data class LoginUiState(
@@ -23,7 +25,10 @@ data class LoginUiState(
     val hasNavigated: Boolean = false
 )
 
-class SigninViewModel(private val userRepository: UserRepository) : ViewModel() {
+@HiltViewModel
+class SigninViewModel @Inject constructor(
+    private val userRepository: UserRepository
+) : ViewModel() {
 
     private var _loginUiState: MutableLiveData<LoginUiState> = MutableLiveData(LoginUiState())
     val loginUiState: LiveData<LoginUiState> get() = _loginUiState // Expose as LiveData

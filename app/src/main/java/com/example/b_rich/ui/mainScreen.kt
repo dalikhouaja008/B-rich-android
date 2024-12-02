@@ -45,10 +45,8 @@ import com.example.b_rich.ui.components.CustomTopAppBar
 import com.example.b_rich.ui.currency_converter.CurrencyConverter
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
-
-import com.example.b_rich.ui.home.Wallets
-import com.example.b_rich.ui.home.WalletsViewModel
-
+import com.example.b_rich.ui.wallets.Wallets
+import com.example.b_rich.ui.wallets.WalletsViewModel
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.exyte.animatednavbar.AnimatedNavigationBar
 import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
@@ -105,17 +103,15 @@ fun MainScreen(
                 cornerRadius = shapeCornerRadius(cornerRadius = 34.dp),
                 ballAnimation = Parabolic(tween(300)),
                 indentAnimation = Height(tween(300)),
-                barColor =  Color(0xFF3D5AFE),
-                ballColor = Color(0xFF3D5AFE),
-
-                ) {
+                barColor = Color(0xFF3D5AFE),
+                ballColor = Color(0xFF3D5AFE)
+            ) {
                 navigationBarItems.forEach { item ->
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .noRippleClickable { selectedIndex = item.ordinal },
                         contentAlignment = Alignment.Center
-
                     ) {
                         Icon(
                             modifier = Modifier.size(26.dp),
@@ -130,7 +126,6 @@ fun MainScreen(
                 }
             }
         }
-
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -145,7 +140,7 @@ fun MainScreen(
                     val recentTransactions by walletsViewModel.recentTransactions.collectAsState()
                     val totalBalance by walletsViewModel.totalBalance.collectAsState()
                     Wallets(
-                        totalBalance = walletsViewModel.totalBalance.collectAsState().value,
+                        totalBalance = totalBalance,
                         wallets = wallets,
                         recentTransactions = recentTransactions
                     )
@@ -155,10 +150,7 @@ fun MainScreen(
                     drawerState = drawerState,
                     viewModel = addAccountViewModel
                 )
-                //NavigationBarItems.Person.ordinal -> SettingsScreen()
-                //NavigationBarItems.Settings.ordinal -> SettingsScreen()
             }
-
         }
     }
 }
