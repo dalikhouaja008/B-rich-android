@@ -9,11 +9,14 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
-@Module
-@InstallIn(SingletonComponent::class)
+//@Module
+//@InstallIn(SingletonComponent::class)
+
 object RetrofitClient {
+
     //@Provides
-    @Singleton
+    //@Singleton
+
     private const val BASE_URL = "http://192.168.1.43:3000/"
 
     private val retrofit by lazy {

@@ -20,6 +20,7 @@ import com.example.b_rich.data.network.RetrofitClient
 import com.example.b_rich.data.repositories.CurrencyConverterRepository
 import com.example.b_rich.data.repositories.ExchangeRateRepository
 import com.example.b_rich.data.repositories.UserRepository
+import com.example.b_rich.data.repositories.WalletRepository
 import com.example.b_rich.ui.AddAccount.AddAccountViewModel
 import com.example.b_rich.ui.MainScreen
 import com.example.b_rich.ui.currency_converter.CurrencyConverter
@@ -33,6 +34,7 @@ import com.example.b_rich.ui.signin.SigninViewModel
 import com.example.b_rich.ui.signup.SignUpScreen
 import com.example.b_rich.ui.signup.SignupViewModel
 import com.example.b_rich.ui.theme.BrichTheme
+import com.example.b_rich.ui.wallets.WalletsScreen
 import com.example.b_rich.ui.wallets.WalletsViewModel
 import com.example.b_rich.ui.welcome.WelcomeScreen
 import com.google.gson.Gson
@@ -41,13 +43,14 @@ class MainActivity : FragmentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge() // Assuming this is a custom function you've defined
+        enableEdgeToEdge()
 
-        // Initialize your API service and repository here
         val apiService = RetrofitClient.getApiService()
         val userRepository = UserRepository(apiService)
         val exchangeRateRepository =ExchangeRateRepository(apiService)
         val currencyRepository= CurrencyConverterRepository(apiService)
+        val walletRepository = WalletRepository(apiService)
+
 
         val signinViewModel = SigninViewModel(userRepository)
         val resetPasswordViewModel = ResetPasswordViewModel(userRepository)
@@ -55,7 +58,7 @@ class MainActivity : FragmentActivity() {
         val exchangeRateViewModel=ExchangeRateViewModel(exchangeRateRepository)
         val addAccountViewModel= AddAccountViewModel()
         val currencyConverterViewModel=CurrencyConverterViewModel(currencyRepository)
-        //val WalletsViewModel=WalletsViewModel()
+        val walletsViewModel = WalletsViewModel(walletRepository)
 
 
         setContent {
@@ -90,6 +93,9 @@ class MainActivity : FragmentActivity() {
                         composable("currencyConvert") {
                             CurrencyConverter(currencyConverterViewModel)
                         }
+                        composable("currencyConvert") {
+                            WalletsScreen(walletsViewModel)
+                        }
                         composable(
                             route = "exchangeRate/{userJson}",
                             arguments = listOf(
@@ -104,7 +110,8 @@ class MainActivity : FragmentActivity() {
                                 resetPasswordViewModel,
                                 exchangeRateViewModel,
                                 addAccountViewModel,
-                                currencyConverterViewModel
+                                currencyConverterViewModel,
+                                walletsViewModel
                             ) }
                         }
 

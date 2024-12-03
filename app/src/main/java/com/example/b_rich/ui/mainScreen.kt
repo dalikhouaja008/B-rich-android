@@ -7,7 +7,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -52,25 +51,20 @@ import com.exyte.animatednavbar.AnimatedNavigationBar
 import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height
 import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
-import com.exyte.animatednavbar.utils.noRippleClickable
 
-
-enum class NavigationBarItems(val icon: ImageVector){
+enum class NavigationBarItems(val icon: ImageVector) {
     Home(icon = Icons.Default.Home),
-    Convert(icon= Icons.Default.CurrencyExchange),
+    Convert(icon = Icons.Default.CurrencyExchange),
     Wallet(icon = Icons.Default.Wallet),
-    Person(icon=Icons.Default.Person),
+    Person(icon = Icons.Default.Person),
     Account(icon = Icons.Default.AccountBalance),
     Settings(icon = Icons.Default.Settings)
 }
 
-fun Modifier.noRippleClickable (onClick: ()-> Unit):Modifier = composed{
-    clickable (
-        indication = null,
-        interactionSource = remember { MutableInteractionSource() }){
+fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
+    clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
         onClick()
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,12 +78,20 @@ fun MainScreen(
     currencyConverterViewModel: CurrencyConverterViewModel,
     walletsViewModel: WalletsViewModel = viewModel()
 ) {
-    val navigationBarItems = remember { NavigationBarItems.values() }
-    var selectedIndex by remember { mutableStateOf(0) }
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    // Fetch data on screen load
     LaunchedEffect(key1 = true) {
-        exchangeRateViewModel.fetchExchangeRates()
+        walletsViewModel.fetchWallets()
+        walletsViewModel.fetchRecentTransactions()
     }
+
+    // Observing wallets and transactions
+    val wallets by walletsViewModel.wallets.collectAsState()
+    val recentTransactions by walletsViewModel.recentTransactions.collectAsState()
+    val totalBalance by walletsViewModel.totalBalance.collectAsState()
+
+    var selectedIndex by remember { mutableStateOf(0) }
+    val navigationBarItems = remember { NavigationBarItems.values() }
+
     Scaffold(
         topBar = {
             CustomTopAppBar()
@@ -98,7 +100,7 @@ fun MainScreen(
             AnimatedNavigationBar(
                 modifier = Modifier
                     .height(55.dp)
-                    .offset(y = (-50).dp),
+                    .padding(bottom = 16.dp),
                 selectedIndex = selectedIndex,
                 cornerRadius = shapeCornerRadius(cornerRadius = 34.dp),
                 ballAnimation = Parabolic(tween(300)),
@@ -136,9 +138,6 @@ fun MainScreen(
                 NavigationBarItems.Home.ordinal -> ExchangeRate(exchangeRateViewModel)
                 NavigationBarItems.Convert.ordinal -> CurrencyConverter(currencyConverterViewModel)
                 NavigationBarItems.Wallet.ordinal -> {
-                    val wallets by walletsViewModel.wallets.collectAsState()
-                    val recentTransactions by walletsViewModel.recentTransactions.collectAsState()
-                    val totalBalance by walletsViewModel.totalBalance.collectAsState()
                     Wallets(
                         totalBalance = totalBalance,
                         wallets = wallets,
@@ -147,12 +146,13 @@ fun MainScreen(
                 }
                 NavigationBarItems.Account.ordinal -> AddAccountScreen(
                     navHostController = navHostController,
-                    drawerState = drawerState,
+                    drawerState = rememberDrawerState(DrawerValue.Closed),
                     viewModel = addAccountViewModel
                 )
+                NavigationBarItems.Settings.ordinal -> {
+                    // Placeholder for settings screen if needed
+                }
             }
         }
     }
 }
-
-

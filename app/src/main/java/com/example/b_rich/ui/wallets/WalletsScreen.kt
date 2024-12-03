@@ -31,27 +31,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun WalletsScreen(viewModel: WalletsViewModel = hiltViewModel()) {
-    val wallets = viewModel.wallets.collectAsState().value
+    val wallets by viewModel.wallets.collectAsState()
+    val transactions by viewModel.recentTransactions.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        if (wallets.isNotEmpty()) {
-            wallets.forEach { wallet ->
-                Text(text = "Wallet Name: ${wallet.walletName}, Balance: ${wallet.balance}")
-            }
-        } else {
-            Text(text = "No wallets available.")
-        }
-    }
+    Wallets(
+        totalBalance = wallets.sumOf { it.balance },
+        wallets = wallets,
+        recentTransactions = transactions
+    )
 }
-
-
-
 
 @Composable
 fun Wallets(
@@ -90,19 +78,28 @@ fun Wallets(
 
                 item {
                     SectionTitle("Mes Portefeuilles")
-                    WalletsCarousel(wallets)
+                    if (wallets.isEmpty()) {
+                        Text("Aucun portefeuille disponible.", color = Color.White)
+                    } else {
+                        WalletsCarousel(wallets)
+                    }
                 }
 
                 item {
                     SectionTitle("Transactions Récentes")
-                }
-                items(recentTransactions) { transaction ->
-                    TransactionRow(transaction)
+                    if (recentTransactions.isEmpty()) {
+                        Text("Aucune transaction récente.", color = Color.White)
+                    } else {
+                        recentTransactions.forEach { transaction ->
+                            TransactionRow(transaction)
+                        }
+                    }
                 }
             }
         }
     }
 }
+
 
 @Composable
 fun UserHeader() {
@@ -114,9 +111,7 @@ fun TotalBalanceCard(totalBalance: Double) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.9f)
-        )
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f))
     ) {
         Column(
             modifier = Modifier
@@ -125,52 +120,28 @@ fun TotalBalanceCard(totalBalance: Double) {
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = "Solde Total",
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color.DarkGray
-            )
-            Text(
-                text = "${"%.2f".format(totalBalance)} USD", // Formatez la balance en USD
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
+            Text("Solde Total", style = MaterialTheme.typography.bodyLarge, color = Color.DarkGray)
+            Text("${"%.2f".format(totalBalance)} USD", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = Color.Black)
         }
     }
 }
 
 @Composable
 fun WalletsCarousel(wallets: List<Wallet>) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
         items(wallets) { wallet ->
             WalletCard(wallet)
         }
     }
 }
 
+
 @Composable
 fun WalletCard(wallet: Wallet) {
     var isExpanded by remember { mutableStateOf(false) }
-    val elevation by animateDpAsState(if (isExpanded) 12.dp else 4.dp)
-
-    // Affecter différentes couleurs de dégradé pour chaque portefeuille
-    val gradientBackground = when (wallet.walletName) {
-        "Tunisian Dinar" -> Brush.horizontalGradient(
-            colors = listOf(Color(0xFFFFC107), Color(0xFFFFD54F)) // Or pour dinars
-        )
-        "Euro" -> Brush.horizontalGradient(
-            colors = listOf(Color(0xFF1976D2), Color(0xFF64B5F6)) // Bleu pour euros
-        )
-        "US Dollar" -> Brush.horizontalGradient(
-            colors = listOf(Color(0xFF4CAF50), Color(0xFF81C784)) // Vert pour dollars
-        )
-        else -> Brush.horizontalGradient(
-            colors = listOf(Color.LightGray, Color.Gray)
-        )
-    }
+    val gradientBackground = Brush.horizontalGradient(
+        colors = if (wallet.walletName == "US Dollar") listOf(Color(0xFF4CAF50), Color(0xFF81C784)) else listOf(Color.LightGray, Color.Gray)
+    )
 
     Card(
         modifier = Modifier
@@ -178,7 +149,6 @@ fun WalletCard(wallet: Wallet) {
             .clickable { isExpanded = !isExpanded }
             .clip(RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(elevation),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Box(
@@ -186,40 +156,9 @@ fun WalletCard(wallet: Wallet) {
                 .background(gradientBackground)
                 .padding(20.dp)
         ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.AccountBalanceWallet,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Text(
-                        text = wallet.walletName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-                Text(
-                    text = "${"%.2f".format(wallet.balance)}", // Affiche le solde du portefeuille
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-                if (isExpanded) {
-                    Text(
-                        text = "Dernière mise à jour : ${SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date())}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.7f)
-                    )
-                }
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(wallet.walletName, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
+                Text("${"%.2f".format(wallet.balance)}", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = Color.White)
             }
         }
     }
@@ -263,7 +202,23 @@ fun QuickActionButton(icon: ImageVector, label: String) {
             .size(80.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(Color.White.copy(alpha = 0.2f))
-            .clickable { /* Implémenter action */ }
+            .clickable {
+                // Implémenter la logique ici, comme naviguer vers une autre page
+                when (label) {
+                    "Envoyer" -> {
+                        // Logique pour envoyer de l'argent
+                    }
+                    "Recevoir" -> {
+                        // Logique pour recevoir de l'argent
+                    }
+                    "Scanner" -> {
+                        // Logique pour scanner un QR Code
+                    }
+                    "Payer" -> {
+                        // Logique pour effectuer un paiement
+                    }
+                }
+            }
             .padding(12.dp)
     ) {
         Icon(
@@ -286,32 +241,23 @@ fun TransactionRow(transaction: Transaction) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.1f)
-        )
+        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.1f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    text = transaction.type,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White
-                )
-                Text(
-                    text = "${if (transaction.amount < 0) "-" else ""}${"%.2f".format(transaction.amount)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (transaction.amount < 0) Color(0xFFFF6B6B) else Color(0xFF4CAF50)
-                )
-                Text(
-                    text = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(transaction.createdAt),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.7f)
-                )
-            }
+            Text(
+                text = transaction.type,
+                style = MaterialTheme.typography.bodyLarge,
+                color = Color.White
+            )
+            Text(
+                text = "%.2f".format(transaction.amount),
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (transaction.amount < 0) Color.Red else Color.Green
+            )
         }
     }
 }
@@ -353,8 +299,9 @@ fun DefaultPreview() {
 }
  */
 
-@Preview(showBackground = true, device = "spec:width=412dp,height=892dp", backgroundColor = 0xFF1A73E8)
+@Preview(showBackground = true, backgroundColor = 0xFF1A73E8)
 @Composable
 fun PreviewWallets() {
     WalletsScreen()
 }
+

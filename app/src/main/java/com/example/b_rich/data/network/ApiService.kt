@@ -92,6 +92,9 @@ interface ApiService {
     @GET("wallets")
     suspend fun getWallets(): Response<List<Wallet>>
 
-    @GET("transactions")
+    @GET("wallets/{walletId}/transactions")
+    suspend fun getTransactions(@Path("walletId") walletId: String): Response<List<Transaction>>
+
+    @GET("transactions/recent")
     suspend fun getRecentTransactions(): Response<List<Transaction>>
 }
