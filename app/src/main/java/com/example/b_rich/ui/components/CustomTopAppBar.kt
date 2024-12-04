@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,4 +39,9 @@ fun CustomTopAppBar() {
             .windowInsetsPadding(WindowInsets.statusBars)
 
     )
+}
+@Preview(showBackground = true, widthDp = 360, heightDp = 120)
+@Composable
+fun PreviewCustomTopAppBar() {
+    CustomTopAppBar()
 }

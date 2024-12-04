@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -20,12 +21,6 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun AddAccountScreen(viewModel: AddAccountViewModel = remember { AddAccountViewModel() }) {
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Add Account") },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = Color(0xFFEFEFEF))
-            )
-        },
         content = { innerPadding ->
             Box(
                 modifier = Modifier
@@ -33,7 +28,7 @@ fun AddAccountScreen(viewModel: AddAccountViewModel = remember { AddAccountViewM
                     .padding(innerPadding)
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.White, Color(0xFFEEEEEE))
+                            colors = listOf(Color.White, Color(0xFFEFEFEF))
                         )
                     )
             ) {
@@ -42,6 +37,22 @@ fun AddAccountScreen(viewModel: AddAccountViewModel = remember { AddAccountViewM
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
+                    // User Guidance
+                    Text(
+                        text = when (viewModel.currentStep.value) {
+                            1 -> "Step 1: Enter your RIB to find your account."
+                            2 -> "Step 2: Add a nickname for your account."
+                            3 -> "Step 3: Enter the OTP sent to your email."
+                            else -> ""
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    )
+
                     // Step Progress Bar
                     StepProgressBar(
                         currentStep = viewModel.currentStep.value,
@@ -50,30 +61,53 @@ fun AddAccountScreen(viewModel: AddAccountViewModel = remember { AddAccountViewM
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Step Content
-                    Column(modifier = Modifier.weight(1f)) {
-                        for (step in 1..viewModel.totalSteps) {
-                            StepView(
-                                isCurrentStep = viewModel.currentStep.value == step,
-                                stepNumber = step,
-                                title = viewModel.getStepTitle(step),
-                                content = {
-                                    StepContent(step, viewModel)
-                                },
-                                onStepTapped = { viewModel.currentStep.value = step }
-                            )
-                        }
-                    }
+                    // Render Step Content for the Current Step
+                    StepView(
+                        isCurrentStep = true,
+                        stepNumber = viewModel.currentStep.value,
+                        title = viewModel.getStepTitle(viewModel.currentStep.value),
+                        content = {
+                            StepContent(viewModel.currentStep.value, viewModel)
+                        },
+                        onStepTapped = {}
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Navigation Buttons
                     Button(
                         onClick = {
-                            if (viewModel.currentStep.value < viewModel.totalSteps) {
-                                viewModel.currentStep.value += 1
-                            } else {
-                                viewModel.saveAccount()
+                            when (viewModel.currentStep.value) {
+                                1 -> {
+                                    viewModel.searchAccountByRIB(
+                                        onSuccess = {
+                                            viewModel.currentStep.value += 1
+                                        },
+                                        onFailure = {
+                                            viewModel.backendMessage.value = "Account not found. Please check the RIB."
+                                        }
+                                    )
+                                }
+                                2 -> {
+                                    viewModel.sendOtp(
+                                        onSuccess = {
+                                            viewModel.currentStep.value += 1
+                                        },
+                                        onFailure = {
+                                            viewModel.backendMessage.value = "Failed to send OTP. Please try again."
+                                        }
+                                    )
+                                }
+                                3 -> {
+                                    viewModel.verifyOtpAndSaveNickname(
+                                        onSuccess = {
+                                            viewModel.backendMessage.value = "Account added successfully!"
+                                        },
+                                        onFailure = {
+                                            viewModel.backendMessage.value = "Failed to verify OTP. Please try again."
+                                        }
+                                    )
+                                }
                             }
                         },
                         modifier = Modifier
@@ -87,14 +121,100 @@ fun AddAccountScreen(viewModel: AddAccountViewModel = remember { AddAccountViewM
                         Text(
                             text = if (viewModel.currentStep.value < viewModel.totalSteps) "Next" else "Finish",
                             color = Color.White,
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(8.dp)
+                            fontSize = 16.sp
+                        )
+                    }
+
+                    // Display backend messages
+                    if (viewModel.backendMessage.value.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = viewModel.backendMessage.value,
+                            color = if (viewModel.isBackendCallSuccessful.value) Color.Green else Color.Red,
+                            style = MaterialTheme.typography.bodySmall,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
             }
         }
     )
+}
+
+@Composable
+fun StepContent(step: Int, viewModel: AddAccountViewModel) {
+    when (step) {
+        1 -> {
+            OutlinedTextField(
+                value = viewModel.rib.value,
+                onValueChange = { viewModel.rib.value = it },
+                label = { Text("Enter RIB") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+        2 -> {
+            OutlinedTextField(
+                value = viewModel.nickname.value,
+                onValueChange = { viewModel.nickname.value = it },
+                label = { Text("Enter Nickname") },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+        3 -> {
+            Column {
+                Text(
+                    text = "Enter the 6-digit OTP sent to your email.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    for (index in 0..5) {
+                        OutlinedTextField(
+                            value = viewModel.otp.value[index],
+                            onValueChange = {
+                                if (it.length <= 1) {
+                                    viewModel.otp.value[index] = it
+                                }
+                            },
+                            modifier = Modifier
+                                .width(40.dp)
+                                .height(56.dp),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            singleLine = true
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun StepProgressBar(currentStep: Int, totalSteps: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        for (step in 1..totalSteps) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(8.dp)
+                    .background(
+                        color = if (step <= currentStep) Color.Blue else Color.Gray.copy(alpha = 0.3f),
+                        RoundedCornerShape(4.dp)
+                    )
+            )
+        }
+    }
 }
 
 @Composable
@@ -108,7 +228,7 @@ fun StepView(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 16.dp)
             .background(
                 if (isCurrentStep) Color(0xFFEEF4FF) else Color.Transparent,
                 RoundedCornerShape(8.dp)
@@ -148,113 +268,4 @@ fun StepView(
             }
         }
     }
-}
-
-@Composable
-fun StepContent(step: Int, viewModel: AddAccountViewModel) {
-    when (step) {
-        1 -> {
-            OutlinedTextField(
-                value = viewModel.accountName.value,
-                onValueChange = { viewModel.accountName.value = it },
-                label = { Text("Enter Account Name") },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-        2 -> {
-            OutlinedTextField(
-                value = viewModel.accountNumber.value,
-                onValueChange = { viewModel.accountNumber.value = it },
-                label = { Text("Enter Account Number") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-        3 -> {
-            Column {
-                Text(
-                    text = "Enter the 6-digit OTP sent to your phone",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    for (index in 0..5) {
-                        OutlinedTextField(
-                            value = viewModel.otp.value[index],
-                            onValueChange = {
-                                if (it.length <= 1) {
-                                    viewModel.otp.value[index] = it
-                                }
-                            },
-                            modifier = Modifier.width(48.dp),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            singleLine = true
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun StepProgressBar(currentStep: Int, totalSteps: Int) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        for (step in 1..totalSteps) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(8.dp)
-                    .background(
-                        color = if (step <= currentStep) Color.Blue else Color.Gray.copy(alpha = 0.3f),
-                        RoundedCornerShape(4.dp)
-                    )
-            )
-        }
-    }
-}
-@Preview(showBackground = true, widthDp = 360, heightDp = 640)
-@Composable
-fun PreviewAddAccountScreenStep1() {
-    val mockViewModel = AddAccountViewModel().apply {
-        accountName.value = "John Doe"
-        accountNumber.value = ""
-        currentStep.value = 1
-    }
-
-    AddAccountScreen(viewModel = mockViewModel)
-}
-
-@Preview(showBackground = true, widthDp = 360, heightDp = 640)
-@Composable
-fun PreviewAddAccountScreenStep2() {
-    val mockViewModel = AddAccountViewModel().apply {
-        accountName.value = "John Doe"
-        accountNumber.value = "12345678"
-        currentStep.value = 2
-    }
-
-    AddAccountScreen(viewModel = mockViewModel)
-}
-
-@Preview(showBackground = true, widthDp = 360, heightDp = 640)
-@Composable
-fun PreviewAddAccountScreenStep3() {
-    val mockViewModel = AddAccountViewModel().apply {
-        accountName.value = "John Doe"
-        accountNumber.value = "12345678"
-        otp.value = MutableList(6) { if (it < 4) "1" else "" }
-        currentStep.value = 3
-    }
-
-    AddAccountScreen(viewModel = mockViewModel)
 }

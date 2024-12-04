@@ -46,6 +46,7 @@ import com.example.b_rich.ui.components.CustomTopAppBar
 import com.example.b_rich.ui.currency_converter.CurrencyConverter
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
+import com.example.b_rich.ui.listAccounts.ListAccountsViewModel
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.example.b_rich.ui.wallets.WalletsScreen
 import com.example.b_rich.ui.wallets.WalletsViewModel
@@ -81,6 +82,7 @@ fun MainScreen(
     navHostController: NavHostController,
     viewModel: ResetPasswordViewModel = viewModel(),
     exchangeRateViewModel: ExchangeRateViewModel = viewModel(),
+    //listAccountsViewModel: ListAccountsViewModel =viewModel(),
     addAccountViewModel: AddAccountViewModel = viewModel(),
     currencyConverterViewModel: CurrencyConverterViewModel,
     walletsViewModel: WalletsViewModel
