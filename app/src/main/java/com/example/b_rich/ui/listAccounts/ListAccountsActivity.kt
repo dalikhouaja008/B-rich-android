@@ -1,70 +1,57 @@
 package com.example.b_rich.ui.listAccounts
 
+import CustomAccount
+import ListAccountsViewModel
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 
-// Data class representing an account
-data class CustomAccount(
-    val id: Int,
-    val name: String,
-    val balance: Double,
-    var isDefault: Boolean = false
-)
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListAccountsView() {
-    // State to hold the list of accounts and the selected account
-    val accounts = remember {
-        mutableStateListOf(
-            CustomAccount(1, "Savings Account", 1200.0, isDefault = true),
-            CustomAccount(2, "Checking Account", 850.5),
-            CustomAccount(3, "Investment Account", 3500.75)
-        )
-    }
+fun ListAccountsView(viewModel: ListAccountsViewModel = viewModel()) {
+    // Use collectAsState to observe the state from the ViewModel
+    val uiState by viewModel.uiState.collectAsState()
 
-    // Automatically select the default account if available
-    var selectedAccount by remember {
-        mutableStateOf(accounts.find { it.isDefault })
-    }
+    val gradientBackground = Brush.verticalGradient(
+        colors = listOf(Color(0xFFFFFFFF), Color(0xFF2196F3))
+    )
 
-    // Main UI structure with a Scaffold layout
-    Scaffold(
-        //topBar = { TopAppBarSection() }
-    ) { paddingValues ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(gradientBackground)
+            .padding(30.dp)
+    ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .background(Color(0xFFF3F4F6)) // Light gray background
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
-            HeaderSection(onAddAccountClick = { /* Navigate to Add Account Screen */ })
-            AccountListSection(accounts, selectedAccount) { account ->
-                selectedAccount = account
+            HeaderSection(onAddAccountClick = { /* Add Account Logic */ })
+            AccountListSection(uiState.accounts, uiState.selectedAccount) { account ->
+                viewModel.selectAccount(account)
             }
             Spacer(modifier = Modifier.height(16.dp))
-            AccountDetailsSection(selectedAccount, accounts)
+            AccountDetailsSection(uiState.selectedAccount, uiState.accounts, viewModel)
         }
     }
 }
-
-
 
 @Composable
 fun HeaderSection(onAddAccountClick: () -> Unit) {
@@ -94,15 +81,18 @@ fun HeaderSection(onAddAccountClick: () -> Unit) {
 }
 
 @Composable
-fun AccountListSection(accounts: List<CustomAccount>, selectedAccount: CustomAccount?, onAccountSelected: (CustomAccount) -> Unit) {
-    Row(
+fun AccountListSection(
+    accounts: List<CustomAccount>,
+    selectedAccount: CustomAccount?,
+    onAccountSelected: (CustomAccount) -> Unit
+) {
+    LazyRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
-            .horizontalScroll(rememberScrollState()),
+            .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        accounts.forEach { account ->
+        items(accounts) { account ->
             AccountCardView(
                 account = account,
                 isSelected = selectedAccount?.id == account.id,
@@ -113,75 +103,81 @@ fun AccountListSection(accounts: List<CustomAccount>, selectedAccount: CustomAcc
 }
 
 @Composable
-fun NoAccountSelectedMessage() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(
-            text = "No account selected",
-            style = MaterialTheme.typography.titleMedium,
-            color = Color.Gray
-        )
-    }
-}
-
-@Composable
 fun AccountCardView(account: CustomAccount, isSelected: Boolean, onClick: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    var isExpanded by remember { mutableStateOf(false) }
+
+    // Animate elevation with `animateDpAsState`
+    val elevation by animateDpAsState(targetValue = if (isExpanded) 12.dp else 6.dp)
+
+    // Brush for gradient background depending on selection state
+    val gradientBackground = if (isSelected) {
+        Brush.horizontalGradient(colors = listOf(Color(0xFF2196F3), Color(0xFF9C27B0)))
+    } else {
+        Brush.horizontalGradient(colors = listOf(Color.LightGray, Color.Gray))
+    }
+
+    // ElevatedCard component with animated elevation
+    ElevatedCard(
         modifier = Modifier
             .width(150.dp)
-            .padding(8.dp)
-            .background(
-                Brush.verticalGradient(
-                    if (isSelected) listOf(Color(0xFF2196F3), Color(0xFF9C27B0)) // Blue to Purple gradient
-                    else listOf(Color.LightGray, Color.Gray)
-                ),
-                shape = MaterialTheme.shapes.medium // Rounded corners for the card view
-            )
-            //.shadow(elevation = 4.dp, shape = MaterialTheme.shapes.medium) // Adding shadow for depth
-            .padding(16.dp)
-            .clickable { onClick() }
+            .clickable { isExpanded = !isExpanded }
+            .clip(RoundedCornerShape(16.dp)),
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation), // Correct way to apply elevation
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
-        Text(
-            text = account.name,
-            color = if (isSelected) Color.White else Color.Black,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-            fontSize = 16.sp // Added font size for better readability
-        )
+        Box(
+            modifier = Modifier
+                .background(gradientBackground)
+                .padding(20.dp) // Increase padding here for more spacing
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Account name with bold font
+                Text(
+                    text = account.name,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
 
-        if (isSelected) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "${account.balance} TND",
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                fontSize = 14.sp // Added font size for consistency
-            )
+                // Account balance with lighter font weight
+                Text(
+                    text = "${account.balance} TND",
+                    color = Color.White,
+                    fontSize = 14.sp
+                )
+
+                // Show additional info if expanded
+                if (isExpanded) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Account ID: ${account.id}",
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 12.sp
+                    )
+                }
+            }
         }
     }
 }
 
+
 @Composable
-fun AccountDetailsSection(selectedAccount: CustomAccount?, accounts: List<CustomAccount>) {
+fun AccountDetailsSection(
+    selectedAccount: CustomAccount?,
+    accounts: List<CustomAccount>,
+    viewModel: ListAccountsViewModel
+) {
     selectedAccount?.let { account ->
-        AccountDetailsView(account, onToggleDefault(accounts), onTopUpWallet(account))
+        AccountDetailsView(account, viewModel::toggleDefault)
     } ?: NoAccountSelectedMessage()
 }
 
-private fun onToggleDefault(accounts: List<CustomAccount>): (CustomAccount) -> Unit {
-    return { account ->
-        accounts.forEach { it.isDefault = false }
-        account.isDefault = true // Set the toggled account as default
-    }
-}
-
-private fun onTopUpWallet(account: CustomAccount): () -> Unit {
-    return {
-        println("Top-Up Wallet for ${account.name}")
-    }
-}
-
 @Composable
-fun AccountDetailsView(account: CustomAccount, onToggleDefault: (CustomAccount) -> Unit, onTopUpWallet: () -> Unit) {
+fun AccountDetailsView(account: CustomAccount, onToggleDefault: (CustomAccount) -> Unit) {
+    var checked by remember { mutableStateOf(account.isDefault) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -201,19 +197,35 @@ fun AccountDetailsView(account: CustomAccount, onToggleDefault: (CustomAccount) 
             Text("Default Account", modifier = Modifier.weight(1f))
 
             Switch(
-                checked = account.isDefault,
-                onCheckedChange = { onToggleDefault(account) },
+                checked = checked,
+                onCheckedChange = {
+                    checked = it
+                    // Toggle default status
+                    onToggleDefault(account)
+                },
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color(0xFF2196F3), // Customize thumb color when checked
-                    uncheckedThumbColor= Color.Gray // Customize thumb color when unchecked
-                )
+                    checkedThumbColor = MaterialTheme.colorScheme.primary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                    uncheckedThumbColor = MaterialTheme.colorScheme.secondary,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.secondaryContainer,
+                ),
+                thumbContent = {
+                    // Display check icon when switched on
+                    if (checked) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(SwitchDefaults.IconSize)
+                        )
+                    }
+                }
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = onTopUpWallet,
+            onClick = { /* Top-Up Logic */ },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)), // Blue color for the button
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -222,8 +234,19 @@ fun AccountDetailsView(account: CustomAccount, onToggleDefault: (CustomAccount) 
     }
 }
 
+@Composable
+fun NoAccountSelectedMessage() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            text = "No account selected",
+            style = MaterialTheme.typography.titleMedium,
+            color = Color.Gray
+        )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
-fun ListAccountsViewPreview() {
+fun PreviewListAccountsView() {
     ListAccountsView()
 }
