@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.b_rich.data.entities.user
+import com.example.b_rich.data.network.AuthInterceptor
 import com.example.b_rich.data.network.LoginResponse
 import com.example.b_rich.data.repositories.UserRepository
 import kotlinx.coroutines.launch
@@ -30,7 +31,6 @@ class SigninViewModel(private val userRepository: UserRepository) : ViewModel() 
 
 
     // Function to handle user login
-    // Function to handle user login
     fun loginUser(email: String, password: String) {
         viewModelScope.launch {
             _loginUiState.value = LoginUiState(isLoading = true)  // Set loading state
@@ -40,19 +40,29 @@ class SigninViewModel(private val userRepository: UserRepository) : ViewModel() 
                 Log.d("LoginRequest", "Email: $email, Password: $password")
                 val response: Response<LoginResponse> = userRepository.login(email, password)
                 Log.d("LoginResponse", "Response Code: ${response.code()}, Message: ${response.message()}")
+
                 if (response.isSuccessful) {
                     // Extract tokens and user ID from the response
                     val loginResponse = response.body()
-                    print(loginResponse)
-                    if (loginResponse != null) {
-                        val accessToken = loginResponse.accessToken
-                        val refreshToken = loginResponse.refreshToken
-                        val user = loginResponse.user
+                    loginResponse?.let {
+                        val accessToken = it.accessToken
+                        val refreshToken = it.refreshToken
+                        val user = it.user
+
+                        // Stocker le token dans l'intercepteur
+                        AuthInterceptor.setToken(accessToken)
+
+                        // Sauvegarder les tokens de manière sécurisée (optionnel)
+                        //saveTokensSecurely(accessToken, refreshToken)
 
                         // Update state with success
-                        _loginUiState.value = LoginUiState(isLoggedIn = true, token = accessToken, refreshToken = refreshToken, user = user)
-                        // Optionally, you can store refreshToken and userId if needed
-                    } else {
+                        _loginUiState.value = LoginUiState(
+                            isLoggedIn = true,
+                            token = accessToken,
+                            refreshToken = refreshToken,
+                            user = user
+                        )
+                    } ?: run {
                         // Handle case where response body is null
                         _loginUiState.value = LoginUiState(errorMessage = "Login failed: No response body")
                     }
@@ -62,7 +72,7 @@ class SigninViewModel(private val userRepository: UserRepository) : ViewModel() 
                 }
             } catch (e: Exception) {
                 // Handle exceptions during the network call
-                _loginUiState.value = LoginUiState(errorMessage = e.message)
+                _loginUiState.value = LoginUiState(errorMessage = e.localizedMessage ?: "Login failed")
             }
         }
     }
@@ -76,30 +86,56 @@ class SigninViewModel(private val userRepository: UserRepository) : ViewModel() 
                 val response: Response<LoginResponse> = userRepository.loginWithBiometric(email, password)
 
                 if (response.isSuccessful) {
-                    // recup token, id, refresh token
                     val loginResponse = response.body()
-                    print(loginResponse)
-                    if (loginResponse != null) {
-                        val accessToken = loginResponse.accessToken
-                        val refreshToken = loginResponse.refreshToken
-                        val user = loginResponse.user
-                        // Update state with success
-                        _loginUiState.value = LoginUiState(isLoggedIn = true, token = accessToken, refreshToken = refreshToken, user = user)
+                    loginResponse?.let {
+                        val accessToken = it.accessToken
+                        val refreshToken = it.refreshToken
+                        val user = it.user
 
-                    } else {
-                        //reponse est nulle
+                        // Stocker le token dans l'intercepteur
+                        AuthInterceptor.setToken(accessToken)
+                       // Log.d("token $accessToken")
+                        // Sauvegarder les tokens de manière sécurisée (optionnel)
+                        //saveTokensSecurely(accessToken, refreshToken)
+
+                        // Update state with success
+                        _loginUiState.value = LoginUiState(
+                            isLoggedIn = true,
+                            token = accessToken,
+                            refreshToken = refreshToken,
+                            user = user
+                        )
+                    } ?: run {
+                        // reponse est nulle
                         _loginUiState.value = LoginUiState(errorMessage = "Login failed: No response body")
                     }
+
                 } else {
-                    //log failed
+                    // log failed
                     _loginUiState.value = LoginUiState(errorMessage = "Login failed: ${response.message()}")
                 }
             } catch (e: Exception) {
-                //throw exception
-                _loginUiState.value = LoginUiState(errorMessage = e.message)
+                // throw exception
+                _loginUiState.value = LoginUiState(errorMessage = e.localizedMessage ?: "Login failed")
             }
         }
     }
+    // Fonction pour sauvegarder les tokens de manière sécurisée
+    /*  private fun saveTokensSecurely(accessToken: String, refreshToken: String) {
+          // Utiliser EncryptedSharedPreferences ou un gestionnaire de clés sécurisé
+          val sharedPreferences = EncryptedSharedPreferences.create(
+              "secure_tokens",
+              masterKey,
+              context,
+              EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+              EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+          )
+
+          sharedPreferences.edit()
+              .putString("access_token", accessToken)
+              .putString("refresh_token", refreshToken)
+              .apply()
+      }*/
 
     fun validateEmail(email: String, setError: (String) -> Unit): Boolean {
         return when {
@@ -128,4 +164,23 @@ class SigninViewModel(private val userRepository: UserRepository) : ViewModel() 
             else -> true
         }
     }
+
+    /* fun logout() {
+       // Réinitialiser le token dans l'intercepteur
+       AuthInterceptor.setToken(null)
+
+       // Effacer les tokens stockés
+       val sharedPreferences = EncryptedSharedPreferences.create(
+           "secure_tokens",
+           masterKey,
+           context,
+           EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+           EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+       )
+
+       sharedPreferences.edit().clear().apply()
+
+       // Réinitialiser l'état de connexion
+       _loginUiState.value = LoginUiState()
+   }*/
 }

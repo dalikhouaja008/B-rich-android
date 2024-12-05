@@ -146,7 +146,7 @@ fun MainScreen(
             when (selectedIndex) {
                 NavigationBarItems.Home.ordinal -> ExchangeRate(exchangeRateViewModel)
                 NavigationBarItems.Convert.ordinal -> CurrencyConverter(currencyConverterViewModel)
-                NavigationBarItems.Wallet.ordinal -> WalletsScreen(walletsViewModel)
+                NavigationBarItems.Wallet.ordinal -> WalletsScreen(walletsViewModel,currencyConverterViewModel)
                 NavigationBarItems.Account.ordinal -> AddAccountScreen(
                     viewModel = addAccountViewModel
                 )

@@ -20,6 +20,7 @@ import com.example.b_rich.data.network.RetrofitClient
 import com.example.b_rich.data.repositories.CurrencyConverterRepository
 import com.example.b_rich.data.repositories.ExchangeRateRepository
 import com.example.b_rich.data.repositories.UserRepository
+import com.example.b_rich.data.repositories.WalletRepository
 import com.example.b_rich.ui.AddAccount.AddAccountViewModel
 import com.example.b_rich.ui.MainScreen
 import com.example.b_rich.ui.currency_converter.CurrencyConverter
@@ -48,14 +49,14 @@ class MainActivity : FragmentActivity() {
         val userRepository = UserRepository(apiService)
         val exchangeRateRepository =ExchangeRateRepository(apiService)
         val currencyRepository= CurrencyConverterRepository(apiService)
-
+        val walletRepository= WalletRepository(apiService)
         val signinViewModel = SigninViewModel(userRepository)
         val resetPasswordViewModel = ResetPasswordViewModel(userRepository)
         val signupViewModel= SignupViewModel(userRepository)
         val exchangeRateViewModel=ExchangeRateViewModel(exchangeRateRepository)
         val addAccountViewModel= AddAccountViewModel()
         val currencyConverterViewModel=CurrencyConverterViewModel(currencyRepository)
-        val walletsViewModel = WalletsViewModel()
+        val walletsViewModel = WalletsViewModel(walletRepository)
         //val HomeViewModel=HomeViewModel()
 
 

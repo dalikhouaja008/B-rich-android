@@ -1,4 +1,9 @@
 package com.example.b_rich.data.entities
 
-class NewsItem {
-}
+data class NewsItem(
+    val id: String,
+    val title: String,
+    val content: String,
+    val link: String,
+    val date: String
+)

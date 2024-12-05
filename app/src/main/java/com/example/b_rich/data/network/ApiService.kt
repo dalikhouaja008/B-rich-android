@@ -3,6 +3,8 @@ package com.example.b_rich.data.network
 import com.example.b_rich.data.dataModel.PredictionRequest
 import com.example.b_rich.data.dataModel.PredictionResponse
 import com.example.b_rich.data.entities.ExchangeRate
+import com.example.b_rich.data.entities.NewsItem
+import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.entities.user
 import retrofit2.Response
 import retrofit2.http.Body
@@ -38,10 +40,26 @@ data class VerifyCodeBody(
     val code: String
 )
 
+data class CurrencyConversionRequest(
+    val amount: Number,
+    val fromCurrency: String
+)
+
+
 data class ResetPasswordBody(
     val email: String,
     val code: String,
     val newPassword: String
+)
+
+data class SendTransactionRequest(
+    val fromWalletPublicKey: String,
+    val toWalletPublicKey: String,
+    val amount: Double
+)
+
+data class TransactionResponse(
+    val signature: String
 )
 
 interface ApiService {
@@ -83,4 +101,19 @@ interface ApiService {
     suspend fun getPredictions(
         @Body request: PredictionRequest
     ): Response<PredictionResponse>
+
+    @GET("news")
+    suspend fun getAllNews(): List<NewsItem>
+
+    @POST("wallets/transfer")
+    suspend fun transferBetweenWallets(@Body request: SendTransactionRequest): String
+
+    @POST("solana/convert-currency")
+    suspend fun convertCurrency(
+        @Body conversionRequest: CurrencyConversionRequest
+    ): Wallet
+
+
+    @GET("solana/my-wallets")
+    suspend fun getUserWallets(): List<Wallet>
 }
