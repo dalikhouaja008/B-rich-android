@@ -2,6 +2,7 @@
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -17,7 +18,7 @@ import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
 import com.example.b_rich.ui.components.SectionTitle
 
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ExchangeRate(
     exchangeRateViewModel: ExchangeRateViewModel = viewModel(),
@@ -30,28 +31,39 @@ fun ExchangeRate(
         exchangeRateViewModel.fetchNews()
     }
 
-    // Replace Box with a Scaffold if using Material 3
     Scaffold(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) { innerPadding ->
-        // Use a vertically scrollable column
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .background(Color.White.copy(alpha = 0.9f))
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .background(Color.White.copy(alpha = 0.95f))
         ) {
-            // News Carousel Section
-            SectionTitle("Latest News")
-            NewsCarousel(newsUiState)
+            // Conteneur principal avec scrolling
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Section Actualités (scrollable)
+                item {
+                    SectionTitle("Latest News")
+                    NewsCarousel(newsUiState)
+                }
 
-            // Currency Rates Section
-            SectionTitle("Currency Rates")
-            CurrencyRatesContent(exchangeRateUiState)
+                // Section des taux de change (non scrollable)
+                item {
+                    SectionTitle("Currency Rates")
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 600.dp) // Section fixe avec une hauteur maximale
+                    ) {
+                        CurrencyRatesContent(exchangeRateUiState)
+                    }
+                }
+            }
         }
     }
 }
+

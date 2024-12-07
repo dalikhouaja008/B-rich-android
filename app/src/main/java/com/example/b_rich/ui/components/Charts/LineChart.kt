@@ -1,5 +1,6 @@
 package com.example.b_rich.ui.components.Charts
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,12 +39,13 @@ fun LineChartComponent(
     toCurrency: String
 ) {
     // Collecter les prédictions en tant que state
-    val predictions by currencyConverterViewModel.predictions.collectAsState()
-
+    val predictions by currencyConverterViewModel.predictions.collectAsState(initial = emptyMap())
+    // Effect to load predictions when currency changes
+    LaunchedEffect(predictions) {
+        Log.d("LineChartComponent", "Predictions for $toCurrency: $predictions")
+    }
     // State to track prediction loading
     val isLoadingPredictions by currencyConverterViewModel.isLoadingPredictions.collectAsState()
-
-    // Effect to load predictions when currency changes
     LaunchedEffect(toCurrency) {
         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         currencyConverterViewModel.loadPredictions(currentDate, listOf(toCurrency))
@@ -51,7 +53,6 @@ fun LineChartComponent(
 
     // Get prediction data for current currency
     val currencyData = predictions[toCurrency] ?: emptyList()
-
     // Conteneur pour le graphique
     Box(
         modifier = Modifier

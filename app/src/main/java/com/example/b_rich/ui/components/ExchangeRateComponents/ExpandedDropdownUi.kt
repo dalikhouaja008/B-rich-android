@@ -1,6 +1,9 @@
 package com.example.b_rich.ui.components.ExchangeRateComponents
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CurrencyExchange
 import androidx.compose.material3.DropdownMenu
@@ -20,6 +23,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,7 +39,7 @@ fun ExpandedDropdownUi(
     isError: Boolean = false
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var selectedOptionText by remember { mutableStateOf(options.firstOrNull() ?: "") }
+    var selectedOptionText by remember { mutableStateOf(selectedOption) }
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -47,11 +53,12 @@ fun ExpandedDropdownUi(
             label = { Text(label) },
             isError = isError,
             trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(
-                    expanded = expanded
-                )
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
-            //colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                focusedLabelColor = Color(0xFF3D5AFE),
+                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            ),
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Outlined.CurrencyExchange,
@@ -61,7 +68,7 @@ fun ExpandedDropdownUi(
             modifier = Modifier
                 .menuAnchor()
                 .fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium
+            shape = RoundedCornerShape(12.dp)
         )
 
         ExposedDropdownMenu(
@@ -70,15 +77,20 @@ fun ExpandedDropdownUi(
         ) {
             options.forEach { selectionOption ->
                 DropdownMenuItem(
-                    text = { Text(selectionOption) },
+                    text = { Text(selectionOption, color = MaterialTheme.colorScheme.onSurface) },
                     onClick = {
                         selectedOptionText = selectionOption
                         expanded = false
                         onSelectedItem(selectionOption)
                     },
-                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White) // Fond transparent
+                        .padding(vertical = 8.dp) // Ajouter de l'espacement vertical
+                        .clip(RoundedCornerShape(8.dp)) // Coins arrondis pour chaque item
                 )
             }
         }
     }
 }
+
