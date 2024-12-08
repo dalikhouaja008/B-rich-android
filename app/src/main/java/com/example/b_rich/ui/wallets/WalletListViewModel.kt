@@ -63,7 +63,11 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
             )
 
             _sendTransactionState.value = when {
-                result.isSuccess -> SendTransactionState.Success(result.getOrNull())
+                result.isSuccess -> {
+                    // Mettre à jour les wallets après une transaction réussie
+                    fetchWallets()
+                    SendTransactionState.Success(result.getOrNull())
+                }
                 else -> SendTransactionState.Error(result.exceptionOrNull()?.message ?: "Transaction failed")
             }
         }
@@ -76,6 +80,8 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
             try {
                 val wallet = repository.convertCurrency(amount, fromCurrency)
                 _convertedWallet.value = wallet
+                // Mettre à jour la liste complète des wallets après la conversion
+                fetchWallets()
             } catch (e: Exception) {
                 _conversionError.value = e.message ?: "Erreur de conversion"
             } finally {

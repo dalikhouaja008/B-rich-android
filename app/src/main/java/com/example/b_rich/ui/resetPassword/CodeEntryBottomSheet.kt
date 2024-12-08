@@ -44,15 +44,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.b_rich.data.entities.user
+import com.example.b_rich.ui.signin.SigninViewModel
 
-/*@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CodeEntryBottomSheet(
     user: user,
     viewModel: ResetPasswordViewModel = viewModel(),
     onDismiss: () -> Unit,
-    onCodeVerified: (String) -> Unit
 ) {
     var code by remember { mutableStateOf("") }
     var codeError by remember { mutableStateOf<String?>(null) }
@@ -70,7 +71,7 @@ fun CodeEntryBottomSheet(
     // Handle code verification success
     LaunchedEffect(resetPasswordUiState.isCodeVerified) {
         if (resetPasswordUiState.isCodeVerified) {
-            onCodeVerified(code)
+            //je veux fermer bottom sheet et aafficher un message de succès
         }
     }
 
@@ -229,4 +230,4 @@ fun CodeEntryBottomSheet(
             }
         }
     }
-}*/
+}

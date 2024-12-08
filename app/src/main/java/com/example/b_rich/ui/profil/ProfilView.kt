@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -41,27 +42,40 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.b_rich.data.entities.user
 import com.example.b_rich.navigateToCodeVerification
+import com.example.b_rich.ui.profil.componenets.LogoutConfirmationDialog
+import com.example.b_rich.ui.resetPassword.PasswordEntryBottomSheet
 //import com.example.b_rich.ui.resetPassword.PasswordEntryBottomSheet
 import com.example.b_rich.ui.resetPassword.ResetPasswordUiState
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
+import com.example.b_rich.ui.theme.EMAIL
+import com.example.b_rich.ui.theme.IS_REMEMBERED
+import com.example.b_rich.ui.theme.PASSWORD
 import com.example.b_rich.ui.theme.PREF_FILE
+import kotlin.system.exitProcess
 
+enum class ResetPasswordStep {
+    None,
+    PasswordEntry,
+    CodeEntry
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfilePage(
     user: user,
     viewModel: ResetPasswordViewModel = viewModel(),
 ) {
-    // State to control the visibility of the PasswordEntryBottomSheet
     var showPasswordBottomSheet by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
     val resetPasswordUiState by viewModel.resetPasswordUiState.observeAsState(ResetPasswordUiState())
     val isLoading = resetPasswordUiState.isLoading
+    val context = LocalContext.current
+    val sharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF9F9F9)) // Light gray background
+                .background(Color(0xFFF9F9F9))
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
@@ -76,7 +90,7 @@ fun ProfilePage(
                     modifier = Modifier
                         .size(100.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFFF9800)), // Orange color
+                        .background(Color(0xFFFF9800)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -93,7 +107,7 @@ fun ProfilePage(
                     text = user.name,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF6D4C41) // Soft brown
+                    color = Color(0xFF6D4C41)
                 )
                 Text(
                     text = "Email: ${user.email}",
@@ -119,8 +133,8 @@ fun ProfilePage(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp), // Increased height
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336)) // Red
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
@@ -130,13 +144,11 @@ fun ProfilePage(
                 }
 
                 OutlinedButton(
-                    onClick = {
-                        // Add your logout logic here
-                    },
+                    onClick = { showLogoutDialog = true },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp), // Increased height
-                    border = BorderStroke(1.dp, Color(0xFFF44336)), // Red border
+                        .height(56.dp),
+                    border = BorderStroke(1.dp, Color(0xFFF44336)),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFF44336))
                 ) {
                     Text("Logout")
@@ -144,17 +156,36 @@ fun ProfilePage(
             }
         }
 
-        // Show Password Entry Bottom Sheet when requestReset is successful
-        /*if (showPasswordBottomSheet) {
+        // Show Password Entry Bottom Sheet
+        if (showPasswordBottomSheet) {
             PasswordEntryBottomSheet(
                 mail = user.email,
                 viewModel = viewModel,
                 onDismiss = { showPasswordBottomSheet = false }
             )
-        }*/
+        }
+
+        // Show Logout Confirmation Dialog
+        if (showLogoutDialog) {
+            LogoutConfirmationDialog(
+                onConfirm = {
+                    sharedPreferences.edit().apply {
+                        remove(EMAIL)
+                        remove(PASSWORD)
+                        remove(IS_REMEMBERED)
+                        apply()
+                    }
+                    if (context is Activity) {
+                        context.finishAffinity()
+                        exitProcess(0)
+                    }
+                },
+                onDismiss = { showLogoutDialog = false }
+            )
+        }
     }
 
-    // Effect to open PasswordEntryBottomSheet when the reset request is successful
+    //Show Password Bottom Sheet on Reset Request Success
     LaunchedEffect(resetPasswordUiState.isCodeSent) {
         if (resetPasswordUiState.isCodeSent) {
             showPasswordBottomSheet = true

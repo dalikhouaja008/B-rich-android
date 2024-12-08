@@ -21,7 +21,7 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 
-/*@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PasswordEntryBottomSheet(
     mail: String,
@@ -142,7 +142,7 @@ fun PasswordEntryBottomSheet(
                     }
 
                     if (isNewPasswordValid && isConfirmValid) {
-                        viewModel.resetPassword(mail, code, newPassword)
+                        //viewModel.resetPassword(mail, code, newPassword)
                         onDismiss()
                     }
                 },
@@ -161,5 +161,5 @@ fun PasswordEntryBottomSheet(
             }
         }
     }
-}*/
+}
 
