@@ -28,12 +28,16 @@ import androidx.compose.ui.unit.dp
 import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.entities.Transaction
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
+import com.example.b_rich.ui.wallets.components.WalletCard
 import com.example.b_rich.ui.wallets.components.Wallets
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun WalletsScreen(viewModel: WalletsViewModel,currencyConverterViewModel: CurrencyConverterViewModel ) {
+fun WalletsScreen(
+    viewModel: WalletsViewModel,
+    currencyConverterViewModel: CurrencyConverterViewModel
+) {
     val wallets by viewModel.wallets.collectAsState()
     val recentTransactions by viewModel.recentTransactions.collectAsState()
 
@@ -44,15 +48,69 @@ fun WalletsScreen(viewModel: WalletsViewModel,currencyConverterViewModel: Curren
         viewModel.fetchWallets()
     }
 
-    Wallets(
-        wallets = wallets,
-        recentTransactions = recentTransactions,
-        onWalletSelected = { wallet -> selectedWallet = wallet },
-        selectedWallet = selectedWallet,
-        currencyConverterViewModel = currencyConverterViewModel,
-        viewModel= viewModel
-    )
+    when {
+        wallets.isEmpty() -> {
+            // Show a button to create the first wallet in TND
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Button(
+                    onClick = {
+                        // Navigate to wallet creation in TND
+                        //viewModel.navigateToCreateWallet(currency = "TND")
+                    },
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                ) {
+                    Text("Create Your First Wallet in Dinars (TND)")
+                }
+            }
+        }
+        wallets.size == 1 && wallets.first().currency == "TND" -> {
+            // Show the wallet and a button to create the first wallet in another currency
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Display the single TND wallet
+                WalletCard(
+                    wallet = wallets.first(),
+                    isSelected = selectedWallet == wallets.first(),
+                    onSelect = { selectedWallet = wallets.first() }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Button to create a wallet in another currency
+                Button(
+                    onClick = {
+                        // Navigate to wallet creation in another currency
+                        //viewModel.navigateToCreateWallet(currency = "Other")
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Create Your First Wallet in Another Currency")
+                }
+            }
+        }
+        else -> {
+            // Show wallets and transactions when there are multiple wallets or wallets with non-TND currency
+            Wallets(
+                wallets = wallets,
+                recentTransactions = recentTransactions,
+                onWalletSelected = { wallet -> selectedWallet = wallet },
+                selectedWallet = selectedWallet,
+                currencyConverterViewModel = currencyConverterViewModel,
+                viewModel = viewModel
+            )
+        }
+    }
 }
+
 
 
 
