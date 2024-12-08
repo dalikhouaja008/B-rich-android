@@ -23,6 +23,7 @@ import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.wallets.QuickAction
 import com.example.b_rich.ui.wallets.WalletsViewModel
 import com.example.b_rich.ui.wallets.components.dialogs.AlimentDialog
+import com.example.b_rich.ui.wallets.components.dialogs.ReceiveDialog
 import com.example.b_rich.ui.wallets.components.dialogs.SendFundsDialog
 
 @Composable
@@ -39,6 +40,7 @@ fun QuickActionsRow(
 ) {
     var showAlimentDialog by remember { mutableStateOf(false) }
     var showSendDialog by remember { mutableStateOf(false) }
+    var showReceiveDialog by remember { mutableStateOf(false) }
     val uiState by currencyConverterViewModel.uiStateCurrency.collectAsState()
 
     LazyRow(
@@ -63,6 +65,11 @@ fun QuickActionsRow(
                                 showSendDialog = true
                             }
                         }
+                        "Receive" -> {
+                            if (selectedWallet != null) {
+                                showReceiveDialog = true
+                            }
+                        }
                     }
                 }
             )
@@ -84,6 +91,13 @@ fun QuickActionsRow(
             selectedWallet = selectedWallet,
             walletsViewModel = walletsViewModel,
             onDismiss = { showSendDialog = false }
+        )
+    }
+
+    if (showReceiveDialog && selectedWallet != null) {
+        ReceiveDialog(
+            selectedWallet = selectedWallet,
+            onDismiss = { showReceiveDialog = false }
         )
     }
 }

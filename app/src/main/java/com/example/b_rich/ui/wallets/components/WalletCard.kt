@@ -94,12 +94,25 @@ fun WalletCard(
                         color = Color.White
                     )
                 }
-                Text(
-                    text = "${"%.2f".format(wallet.balance)} ${wallet.currency}",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "${wallet.balance} SOL",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+
+                    Text(
+                        text = "Original: ${"%.2f".format(wallet.originalAmount.toDouble())} ${wallet.currency}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.White.copy(alpha = 0.8f)
+                    )
+                }
                 if (isSelected) {
                     Box(
                         modifier = Modifier

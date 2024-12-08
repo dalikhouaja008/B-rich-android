@@ -32,11 +32,14 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
 
     private val _convertedWallet = MutableStateFlow<Wallet?>(null)
     val convertedWallet: StateFlow<Wallet?> = _convertedWallet.asStateFlow()
+
     private val _conversionError = MutableStateFlow<String?>(null)
     val conversionError: StateFlow<String?> = _conversionError.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+
 
     init {
         loadData()

@@ -105,7 +105,7 @@ interface ApiService {
     @GET("news")
     suspend fun getAllNews(): List<NewsItem>
 
-    @POST("wallets/transfer")
+    @POST("solana/transfer-between-wallets")
     suspend fun transferBetweenWallets(@Body request: SendTransactionRequest): String
 
     @POST("solana/convert-currency")

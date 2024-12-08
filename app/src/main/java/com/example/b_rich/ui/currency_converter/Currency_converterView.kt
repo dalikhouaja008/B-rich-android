@@ -69,7 +69,10 @@ fun CurrencyConverter(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Title Section
-                SectionTitle("Currency Converter")
+                SectionTitle(
+                    title = "Currency converter",
+                    description = "Convert for any currency you want"
+                )
 
                 // Currency Conversion Section
                 Row(
@@ -202,15 +205,10 @@ fun CurrencyConverter(
                         )
                     }
                 }
-
                 // Prediction Section
-                SectionTitle("Prediction Space")
-                Text(
-                    text = "You can see the variation of ${uiStateCurrency.toCurrency} over the next 7 days below.",
-                    fontSize = 16.sp,
-                    color = Color.Gray,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                SectionTitle(
+                    title = "Prediction space",
+                    description = "You can see the variation of ${uiStateCurrency.toCurrency} over the next 7 days below."
                 )
                 LineChartComponent(
                     currencyConverterViewModel,

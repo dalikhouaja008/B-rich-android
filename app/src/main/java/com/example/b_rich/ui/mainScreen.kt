@@ -58,6 +58,7 @@ import com.example.b_rich.ui.components.CustomTopAppBar
 import com.example.b_rich.ui.currency_converter.CurrencyConverter
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
+import com.example.b_rich.ui.profil.ProfilePage
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.example.b_rich.ui.wallets.WalletsScreen
 import com.example.b_rich.ui.wallets.WalletsViewModel
@@ -170,7 +171,7 @@ fun MainScreen(
                 NavigationBarItems.Convert.ordinal -> CurrencyConverter(currencyConverterViewModel)
                 NavigationBarItems.Wallet.ordinal -> WalletsScreen(walletsViewModel, currencyConverterViewModel)
                 NavigationBarItems.Account.ordinal -> AddAccountScreen(viewModel = addAccountViewModel)
-                NavigationBarItems.Person.ordinal -> {} // Placeholder for Person screen
+                NavigationBarItems.Person.ordinal -> ProfilePage(user,viewModel)
             }
         }
     }

@@ -47,13 +47,19 @@ fun ExchangeRate(
             ) {
                 // Section Actualités (scrollable)
                 item {
-                    SectionTitle("Latest News")
+                    SectionTitle(
+                        title = "Currency converter",
+                        description = "Convert for any currency you want"
+                    )
                     NewsCarousel(newsUiState)
                 }
 
                 // Section des taux de change (non scrollable)
                 item {
-                    SectionTitle("Currency Rates")
+                    SectionTitle(
+                        title = "Currency converter",
+                        description = "Here you can find today's exchange rate"
+                    )
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()

@@ -1,5 +1,7 @@
 package com.example.b_rich.ui.wallets.components.dialogs
 
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.b_rich.data.entities.Wallet
@@ -52,12 +55,15 @@ fun AlimentDialog(
     uiState: CurrencyUiState,
     walletsViewModel: WalletsViewModel,
     currencyConverterViewModel: CurrencyConverterViewModel,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    context: Context = LocalContext.current // Context for Toast messages
 ) {
     var dinarsAmount by remember { mutableStateOf("") }
     var convertedAmount by remember { mutableStateOf("0.0") }
     var conversionInProgress by remember { mutableStateOf(false) }
     val isLoading by walletsViewModel.isLoading.collectAsState()
+    val conversionError by walletsViewModel.conversionError.collectAsState()
+    val convertedWallet by walletsViewModel.convertedWallet.collectAsState()
 
     // Conversion Effect
     LaunchedEffect(dinarsAmount) {
@@ -73,8 +79,25 @@ fun AlimentDialog(
     // Update converted amount
     LaunchedEffect(uiState.convertedAmount) {
         if (uiState.convertedAmount > 0) {
-            convertedAmount = "%.2f".format(uiState.convertedAmount)
+            convertedAmount = uiState.convertedAmount.toString() // No formatting to avoid issues
             conversionInProgress = false
+        }
+    }
+
+    LaunchedEffect(conversionError) {
+        conversionError?.let { error ->
+            Toast.makeText(context, "Conversion failed: $error", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    LaunchedEffect(convertedWallet) {
+        convertedWallet?.let { wallet ->
+            Toast.makeText(
+                context,
+                "Conversion successful! New balance: ${wallet.balance} ${wallet.currency}",
+                Toast.LENGTH_LONG
+            ).show()
+            onDismiss() // Dismiss the dialog after success
         }
     }
 
@@ -105,7 +128,7 @@ fun AlimentDialog(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Montant en dinars
+                // Amount in dinars
                 OutlinedTextField(
                     value = dinarsAmount,
                     onValueChange = { dinarsAmount = it },
@@ -128,7 +151,7 @@ fun AlimentDialog(
                     shape = RoundedCornerShape(16.dp)
                 )
 
-                // Montant converti
+                // Converted amount
                 OutlinedTextField(
                     value = convertedAmount,
                     onValueChange = { },
@@ -164,10 +187,12 @@ fun AlimentDialog(
                     val amount = dinarsAmount.toDoubleOrNull()
                     if (amount != null && amount > 0) {
                         walletsViewModel.convertCurrency(
-                            amount = convertedAmount.toDoubleOrNull() ?: 0.0,
+                            amount = amount,
                             fromCurrency = selectedWallet.currency
                         )
                         onDismiss()
+                    } else {
+                        Toast.makeText(context, "Invalid amount entered.", Toast.LENGTH_SHORT).show()
                     }
                 },
                 enabled = !conversionInProgress,
