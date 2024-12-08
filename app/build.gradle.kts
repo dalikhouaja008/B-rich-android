@@ -101,9 +101,9 @@ dependencies {
     //live data
     implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.5.1")
     //icones
-    implementation ("androidx.compose.material:material-icons-extended:1.5.0")
+    implementation (libs.androidx.material.icons.extended.v150)
     //biometric
-    implementation("androidx.biometric:biometric:1.1.0")
+    implementation(libs.androidx.biometric.v110)
     implementation(libs.biometric)
     //hilt dagger
     implementation(libs.hilt.android)
@@ -117,6 +117,17 @@ dependencies {
     implementation(libs.animated.navigation.bar)
     //YChart
     implementation (libs.ycharts)
+    // QR Code generation
+    implementation (libs.core)
+    implementation (libs.zxing.android.embedded)
+    // QR Code scanner
+    implementation (libs.barcode.scanning)
+    //caméra
+    val camerax_version = "1.3.0"
+    implementation (libs.androidx.camera.core)
+    implementation (libs.androidx.camera.camera2)
+    implementation (libs.androidx.camera.lifecycle)
+    implementation (libs.androidx.camera.view)
 }
 kapt {
     correctErrorTypes = true

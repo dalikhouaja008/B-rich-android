@@ -2,15 +2,27 @@ package com.example.b_rich.injection
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.b_rich.data.repositories.CurrencyConverterRepository
 import com.example.b_rich.data.repositories.ExchangeRateRepository
 import com.example.b_rich.data.repositories.UserRepository
+import com.example.b_rich.data.repositories.WalletRepository
+import com.example.b_rich.ui.AddAccount.AddAccountViewModel
+import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
 import com.example.b_rich.ui.forgetpassword.ForgetpasswordViewModel
+import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.example.b_rich.ui.signin.SigninViewModel
 import com.example.b_rich.ui.signup.SignupViewModel
+import com.example.b_rich.ui.wallets.WalletsViewModel
 
-
-class ViewModelFactory(private val userRepository: UserRepository,private val exchangeRateRepository: ExchangeRateRepository) : ViewModelProvider.Factory {
+//Cette approche vous permet de centraliser la création de vos ViewModels tout en gardant la flexibilité d'ajouter de nouveaux ViewModels
+// facilement.
+class ViewModelFactory(
+    private val userRepository: UserRepository,
+    private val exchangeRateRepository: ExchangeRateRepository,
+    private val currencyRepository: CurrencyConverterRepository,
+    private val walletRepository: WalletRepository
+) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
@@ -20,13 +32,21 @@ class ViewModelFactory(private val userRepository: UserRepository,private val ex
             modelClass.isAssignableFrom(SigninViewModel::class.java) -> {
                 SigninViewModel(userRepository) as T
             }
-            modelClass.isAssignableFrom(ForgetpasswordViewModel::class.java) -> {
-                ForgetpasswordViewModel(userRepository) as T
+            modelClass.isAssignableFrom(ResetPasswordViewModel::class.java) -> {
+                ResetPasswordViewModel(userRepository) as T
             }
             modelClass.isAssignableFrom(ExchangeRateViewModel::class.java) -> {
-                ForgetpasswordViewModel(userRepository) as T
+                ExchangeRateViewModel(exchangeRateRepository) as T
             }
-
+            modelClass.isAssignableFrom(AddAccountViewModel::class.java) -> {
+                AddAccountViewModel() as T
+            }
+            modelClass.isAssignableFrom(CurrencyConverterViewModel::class.java) -> {
+                CurrencyConverterViewModel(currencyRepository) as T
+            }
+            modelClass.isAssignableFrom(WalletsViewModel::class.java) -> {
+                WalletsViewModel(walletRepository) as T
+            }
             else -> throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
@@ -34,11 +54,21 @@ class ViewModelFactory(private val userRepository: UserRepository,private val ex
     companion object {
         private var factory: ViewModelFactory? = null
 
-        fun getInstance(userRepository: UserRepository,exchangeRateRepository: ExchangeRateRepository): ViewModelFactory {
+        fun getInstance(
+            userRepository: UserRepository,
+            exchangeRateRepository: ExchangeRateRepository,
+            currencyRepository: CurrencyConverterRepository,
+            walletRepository: WalletRepository
+        ): ViewModelFactory {
             if (factory == null) {
                 synchronized(ViewModelFactory::class.java) {
                     if (factory == null) {
-                        factory = ViewModelFactory(userRepository,exchangeRateRepository)
+                        factory = ViewModelFactory(
+                            userRepository,
+                            exchangeRateRepository,
+                            currencyRepository,
+                            walletRepository
+                        )
                     }
                 }
             }

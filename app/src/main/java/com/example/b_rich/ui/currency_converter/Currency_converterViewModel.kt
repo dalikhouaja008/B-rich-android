@@ -1,5 +1,6 @@
 package com.example.b_rich.ui.currency_converter
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,32 +44,22 @@ class CurrencyConverterViewModel(private val exchangeRateRepository: CurrencyCon
         _isLoadingPredictions.value = true
         viewModelScope.launch {
             try {
-                // Log des paramètres
-                //println("Loading Predictions - Date: $date, Currencies: $currencies")
                 val response = exchangeRateRepository.getCurrencyPredictions(date, currencies)
-                // Log de la réponse complète
-                //println("Response Code: ${response.code()}")
-                //println("Response Body: ${response.body()}")
-                //println("Response Error: ${response.errorBody()?.string()}")
                 if (response.isSuccessful) {
-                    val predictions = response.body()?.predictions ?: emptyMap()
-                    println("Parsed Predictions: $predictions")
-                    _predictions.value = predictions
+                    val newPredictions = response.body()?.predictions ?: emptyMap()
+                    _predictions.value = newPredictions
+                    Log.d("ViewModel", "Updated predictions: $newPredictions")
                 } else {
-                    // Log des détails d'erreur
                     val errorBody = response.errorBody()?.string()
-                    println("Error Response: $errorBody")
+                    Log.e("ViewModel", "Error Response: $errorBody")
                     _predictions.value = emptyMap()
                 }
             } catch (e: Exception) {
-                // Log de l'exception
-                println("Exception in loadPredictions: ${e.message}")
-                e.printStackTrace()
+                Log.e("ViewModel", "Exception in loadPredictions: ${e.message}", e)
                 _predictions.value = emptyMap()
             } finally {
-                _isLoadingPredictions.value = false  // Always set loading to false
+                _isLoadingPredictions.value = false
             }
-
         }
     }
     fun formatConvertedAmount(amount: Double): String {
