@@ -10,7 +10,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,57 +27,95 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun ListAccountsView(viewModel: ListAccountsViewModel = viewModel()) {
-    // Use collectAsState to observe the state from the ViewModel
+fun ListAccountsView(
+    viewModel: ListAccountsViewModel = viewModel(),
+    onAddAccountClick: () -> Unit // Navigation callback for AddAccountScreen
+) {
     val uiState by viewModel.uiState.collectAsState()
 
     val gradientBackground = Brush.verticalGradient(
-        colors = listOf(Color(0xFFFFFFFF), Color(0xFF2196F3))
+        colors = listOf(Color.White, Color(0xFF2196F3))
     )
+
+    val selectedAccount = remember(uiState.accounts) {
+        mutableStateOf(uiState.selectedAccount ?: uiState.accounts.firstOrNull())
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(gradientBackground)
-            .padding(30.dp)
+            .padding(16.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(30.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 72.dp), // Add padding to ensure proper spacing above the bottom bar
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            HeaderSection(onAddAccountClick = { /* Add Account Logic */ })
-            AccountListSection(uiState.accounts, uiState.selectedAccount) { account ->
+            HeaderSection(
+                onAddAccountClick = onAddAccountClick, // Pass the navigation callback
+                onSearchQueryChange = { /* Handle search logic */ }
+            )
+            AccountListSection(
+                accounts = uiState.accounts,
+                selectedAccount = selectedAccount.value
+            ) { account ->
+                selectedAccount.value = account
                 viewModel.selectAccount(account)
             }
             Spacer(modifier = Modifier.height(16.dp))
-            AccountDetailsSection(uiState.selectedAccount, uiState.accounts, viewModel)
+            AccountDetailsSection(
+                selectedAccount = selectedAccount.value,
+                accounts = uiState.accounts,
+                viewModel = viewModel
+            )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HeaderSection(onAddAccountClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Your Accounts",
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-            modifier = Modifier.weight(1f)
+fun HeaderSection(onAddAccountClick: () -> Unit, onSearchQueryChange: (String) -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+        TextField(
+            value = "",
+            onValueChange = onSearchQueryChange,
+            placeholder = {
+                Text(
+                    "Search Accounts",
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Medium
+                    )
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp)),
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            colors = TextFieldDefaults.textFieldColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
+            )
         )
-        Button(
-            onClick = onAddAccountClick,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF2196F3), // Blue color
-                contentColor = Color.White
-            ),
-            modifier = Modifier.padding(8.dp)
-        ) {
-            Text(text = "Add Account")
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "Your Accounts",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                ),
+                modifier = Modifier.weight(1f)
+            )
+            FloatingActionButton(
+                onClick = onAddAccountClick, // Trigger navigation to AddAccountScreen
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add Account")
+            }
         }
     }
 }
@@ -104,64 +144,60 @@ fun AccountListSection(
 
 @Composable
 fun AccountCardView(account: CustomAccount, isSelected: Boolean, onClick: () -> Unit) {
-    var isExpanded by remember { mutableStateOf(false) }
+    val elevation by animateDpAsState(targetValue = if (isSelected) 8.dp else 4.dp)
 
-    // Animate elevation with `animateDpAsState`
-    val elevation by animateDpAsState(targetValue = if (isExpanded) 12.dp else 6.dp)
-
-    // Brush for gradient background depending on selection state
-    val gradientBackground = if (isSelected) {
-        Brush.horizontalGradient(colors = listOf(Color(0xFF2196F3), Color(0xFF9C27B0)))
-    } else {
-        Brush.horizontalGradient(colors = listOf(Color.LightGray, Color.Gray))
-    }
-
-    // ElevatedCard component with animated elevation
-    ElevatedCard(
+    Card(
         modifier = Modifier
-            .width(150.dp)
-            .clickable { isExpanded = !isExpanded }
-            .clip(RoundedCornerShape(16.dp)),
-        elevation = CardDefaults.cardElevation(defaultElevation = elevation), // Correct way to apply elevation
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+            .width(250.dp)
+            .height(180.dp)
+            .padding(8.dp)
+            .clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = elevation),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) Color(0xFF2196F3) else MaterialTheme.colorScheme.surface
+        )
     ) {
         Box(
-            modifier = Modifier
-                .background(gradientBackground)
-                .padding(20.dp) // Increase padding here for more spacing
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center // Center the content of the card
         ) {
             Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally // Center text horizontally
             ) {
-                // Account name with bold font
                 Text(
                     text = account.name,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.2.sp,
+                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+                    ),
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                // Account balance with lighter font weight
                 Text(
                     text = "${account.balance} TND",
-                    color = Color.White,
-                    fontSize = 14.sp
-                )
-
-                // Show additional info if expanded
-                if (isExpanded) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Account ID: ${account.id}",
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 12.sp
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
                     )
-                }
+                )
             }
+
+            // Bank icon remains in the top-left corner
+            Icon(
+                imageVector = Icons.Filled.AccountBalance,
+                contentDescription = "Bank Icon",
+                tint = if (isSelected) Color.White else Color.Gray,
+                modifier = Modifier
+                    .padding(10.dp)
+                    .size(40.dp)
+                    .align(Alignment.TopStart) // Keeps the icon in the top-left
+            )
         }
     }
 }
-
 
 @Composable
 fun AccountDetailsSection(
@@ -182,54 +218,60 @@ fun AccountDetailsView(account: CustomAccount, onToggleDefault: (CustomAccount) 
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
-            .background(Color.White, shape = MaterialTheme.shapes.medium)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
+            .navigationBarsPadding() // Automatically add space above navigation bar
     ) {
-        Text("Account Details", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Text(
+            text = "Account Details",
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.1.sp
+            ),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Divider()
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text("Balance: ${account.balance} TND", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-
-        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Balance: ${account.balance} TND",
+            style = MaterialTheme.typography.titleLarge.copy(
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.SemiBold
+            ),
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Default Account", modifier = Modifier.weight(1f))
-
+            Text(
+                "Default Account",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.Medium
+                ),
+                modifier = Modifier.weight(1f)
+            )
             Switch(
                 checked = checked,
                 onCheckedChange = {
                     checked = it
-                    // Toggle default status
                     onToggleDefault(account)
-                },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.primary,
-                    checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                    uncheckedThumbColor = MaterialTheme.colorScheme.secondary,
-                    uncheckedTrackColor = MaterialTheme.colorScheme.secondaryContainer,
-                ),
-                thumbContent = {
-                    // Display check icon when switched on
-                    if (checked) {
-                        Icon(
-                            imageVector = Icons.Filled.Check,
-                            contentDescription = null,
-                            modifier = Modifier.size(SwitchDefaults.IconSize)
-                        )
-                    }
                 }
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
         Button(
             onClick = { /* Top-Up Logic */ },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)), // Blue color for the button
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
         ) {
-            Text(text = "Top-Up Wallet", color = Color.White)
+            Text(
+                "Top-Up Wallet",
+                style = MaterialTheme.typography.labelLarge.copy(
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            )
         }
     }
 }
@@ -243,10 +285,4 @@ fun NoAccountSelectedMessage() {
             color = Color.Gray
         )
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewListAccountsView() {
-    ListAccountsView()
 }
