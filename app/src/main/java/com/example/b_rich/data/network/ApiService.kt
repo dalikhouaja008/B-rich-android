@@ -116,4 +116,7 @@ interface ApiService {
 
     @GET("solana/my-wallets")
     suspend fun getUserWallets(): List<Wallet>
+
+
+    abstract fun createWallet(newWallet: Wallet)
 }

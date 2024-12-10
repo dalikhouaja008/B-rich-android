@@ -6,12 +6,14 @@ import com.example.b_rich.data.entities.Transaction
 import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.network.SendTransactionRequest
 import com.example.b_rich.data.repositories.WalletRepository
+import com.example.b_rich.ui.wallets.components.WalletCreationBottomSheet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.UUID
+
 sealed class SendTransactionState {
     object Idle : SendTransactionState()
     object Loading : SendTransactionState()
@@ -115,6 +117,17 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
 
             // Calcul du solde total
             // _totalBalance.value = walletsList.sumOf { it.balance }
+        }
+    }
+
+    fun createFirstWallet(initialAmount: Double) {
+        viewModelScope.launch {
+            try {
+                val newWallet = repository.createFirstWallet(currency = "TND", initialBalance = initialAmount)
+                fetchWallets() // Refresh wallets after creation
+            } catch (e: Exception) {
+                println("Error creating first wallet: ${e.message}")
+            }
         }
     }
 }

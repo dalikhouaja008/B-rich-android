@@ -29,6 +29,7 @@ import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.entities.Transaction
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.wallets.components.WalletCard
+import com.example.b_rich.ui.wallets.components.WalletCreationBottomSheet
 import com.example.b_rich.ui.wallets.components.Wallets
 import java.text.SimpleDateFormat
 import java.util.*
@@ -44,6 +45,9 @@ fun WalletsScreen(
     // State to track the currently selected wallet
     var selectedWallet by remember { mutableStateOf<Wallet?>(null) }
 
+    // State to control bottom sheet visibility
+    var showCreateWalletBottomSheet by remember { mutableStateOf(false) }
+
     LaunchedEffect(key1 = true) {
         viewModel.fetchWallets()
     }
@@ -58,10 +62,7 @@ fun WalletsScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Button(
-                    onClick = {
-                        // Navigate to wallet creation in TND
-                        //viewModel.navigateToCreateWallet(currency = "TND")
-                    },
+                    onClick = { showCreateWalletBottomSheet = true },
                     modifier = Modifier.fillMaxWidth(0.8f)
                 ) {
                     Text("Create Your First Wallet in Dinars (TND)")
@@ -87,10 +88,7 @@ fun WalletsScreen(
 
                 // Button to create a wallet in another currency
                 Button(
-                    onClick = {
-                        // Navigate to wallet creation in another currency
-                        //viewModel.navigateToCreateWallet(currency = "Other")
-                    },
+                    onClick = { showCreateWalletBottomSheet = true },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Create Your First Wallet in Another Currency")
@@ -109,9 +107,15 @@ fun WalletsScreen(
             )
         }
     }
+
+    // Bottom Sheet for Wallet Creation
+    if (showCreateWalletBottomSheet) {
+        WalletCreationBottomSheet(
+            viewModel = viewModel,
+            onDismiss = { showCreateWalletBottomSheet = false }
+        )
+    }
 }
-
-
 
 
 data class QuickAction(
