@@ -1,5 +1,6 @@
 package com.example.b_rich.ui.wallets
 
+import androidx.collection.emptyLongSet
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -43,70 +45,63 @@ fun WalletsScreen(
 
     // State to track the currently selected wallet
     var selectedWallet by remember { mutableStateOf<Wallet?>(null) }
-
+    //savoir si la reponse fetchWallets a été envoyé depuis backend afin de régler le délai
+    val hasResponse by viewModel.hasResponse.collectAsState()
+    val context=LocalContext.current
     LaunchedEffect(key1 = true) {
         viewModel.fetchWallets()
     }
 
-    when {
-        wallets.isEmpty() -> {
-            // Show a button to create the first wallet in TND
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Button(
-                    onClick = {
-                        // Navigate to wallet creation in TND
-                        //viewModel.navigateToCreateWallet(currency = "TND")
-                    },
-                    modifier = Modifier.fillMaxWidth(0.8f)
+
+    if (!hasResponse) {
+        // Affichage d'un loader pendant que la requête est en cours
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+    } else {
+        when {
+            wallets.isEmpty() -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text("Create Your First Wallet in Dinars (TND)")
+                    Button(
+                        onClick = {
+                            // Navigate to wallet creation in TND
+                            //viewModel.navigateToCreateWallet(currency = "TND")
+                        },
+                        modifier = Modifier.fillMaxWidth(0.8f)
+                    ) {
+                        Text("Create Your First Wallet in Dinars (TND)")
+                    }
                 }
             }
-        }
-        wallets.size == 1 && wallets.first().currency == "TND" -> {
-            // Show the wallet and a button to create the first wallet in another currency
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                // Display the single TND wallet
-                WalletCard(
-                    wallet = wallets.first(),
-                    isSelected = selectedWallet == wallets.first(),
-                    onSelect = { selectedWallet = wallets.first() }
-                )
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Button to create a wallet in another currency
-                Button(
-                    onClick = {
-                        // Navigate to wallet creation in another currency
-                        //viewModel.navigateToCreateWallet(currency = "Other")
-                    },
-                    modifier = Modifier.fillMaxWidth()
+            else -> {
+                // Show the wallet and a button to create the first wallet in another currency
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Create Your First Wallet in Another Currency")
+                    // Display the single TND wallet
+                    Wallets(
+                        wallets = wallets,
+                        recentTransactions = recentTransactions,
+                        onWalletSelected = { wallet -> selectedWallet = wallet },
+                        selectedWallet = selectedWallet,
+                        currencyConverterViewModel = currencyConverterViewModel,
+                        viewModel = viewModel
+                    )
+
                 }
             }
-        }
-        else -> {
-            // Show wallets and transactions when there are multiple wallets or wallets with non-TND currency
-            Wallets(
-                wallets = wallets,
-                recentTransactions = recentTransactions,
-                onWalletSelected = { wallet -> selectedWallet = wallet },
-                selectedWallet = selectedWallet,
-                currencyConverterViewModel = currencyConverterViewModel,
-                viewModel = viewModel
-            )
         }
     }
 }
