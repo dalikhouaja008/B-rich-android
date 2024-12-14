@@ -1,5 +1,7 @@
 package com.example.b_rich.ui.wallets
 
+import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.b_rich.data.entities.Transaction
@@ -15,7 +17,7 @@ import java.util.UUID
 sealed class SendTransactionState {
     object Idle : SendTransactionState()
     object Loading : SendTransactionState()
-    data class Success(val signature: String?) : SendTransactionState()
+    data class Success(val signature: String?= null) : SendTransactionState()
     data class Error(val message: String) : SendTransactionState()
 }
 class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
@@ -27,9 +29,6 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
     private val _recentTransactions = MutableStateFlow<List<Transaction>>(emptyList())
     val recentTransactions: StateFlow<List<Transaction>> get() = _recentTransactions
 
-    private val _totalBalance = MutableStateFlow(0.0)
-    val totalBalance: StateFlow<Double> = _totalBalance.asStateFlow()
-
     private val _convertedWallet = MutableStateFlow<Wallet?>(null)
     val convertedWallet: StateFlow<Wallet?> = _convertedWallet.asStateFlow()
 
@@ -39,7 +38,8 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-
+    private val _hasResponse = MutableStateFlow(false)
+    val hasResponse: StateFlow<Boolean> = _hasResponse
 
     init {
         loadData()
@@ -64,12 +64,31 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
 
             _sendTransactionState.value = when {
                 result.isSuccess -> {
+                    val signature = result.getOrNull()
                     // Mettre à jour les wallets après une transaction réussie
                     fetchWallets()
-                    SendTransactionState.Success(result.getOrNull())
+                    SendTransactionState.Success(signature)
                 }
                 else -> SendTransactionState.Error(result.exceptionOrNull()?.message ?: "Transaction failed")
             }
+        }
+    }
+
+    fun SendTransactionState.showNotification(context: Context) {
+        when (this) {
+            is SendTransactionState.Success -> {
+                val message = signature?.let {
+                    "Transaction successful - Signature: $it"
+                } ?: "Transaction successful"
+
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+
+            is SendTransactionState.Error -> {
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+
+            else -> {}
         }
     }
     fun convertCurrency(amount: Double, fromCurrency: String) {
@@ -95,7 +114,7 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
                 val fetchedWallets = repository.getUserWallets()
                 println(fetchedWallets)
                 _wallets.value = fetchedWallets
-                _totalBalance.value = fetchedWallets.sumOf { it.balance }
+                _hasResponse.value = true
             } catch (e: Exception) {
                 // Handle error
             }
@@ -112,9 +131,6 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
                 Transaction(2, "Completed", "Shopping", -50.0, Date()),
                 Transaction(3, "Pending", "Transfer to USD", -100.0, Date())
             )
-
-            // Calcul du solde total
-            // _totalBalance.value = walletsList.sumOf { it.balance }
         }
     }
 }
