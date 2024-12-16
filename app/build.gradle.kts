@@ -77,6 +77,9 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.androidx.storage)
     implementation(libs.androidx.foundation.android)
+    implementation(libs.androidx.foundation.android)
+    implementation(libs.androidx.foundation.android)
+    implementation(libs.androidx.ui.test.android)
 
 
     testImplementation(libs.junit)
@@ -128,6 +131,15 @@ dependencies {
     implementation (libs.androidx.camera.camera2)
     implementation (libs.androidx.camera.lifecycle)
     implementation (libs.androidx.camera.view)
+
+
+
+    implementation (libs.material3)
+    implementation (libs.androidx.foundation)
+
+    implementation (libs.androidx.material3.v110alpha01) // or the latest version
+    implementation (libs.androidx.material)
+
 }
 kapt {
     correctErrorTypes = true

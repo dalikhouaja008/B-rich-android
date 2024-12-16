@@ -1,5 +1,6 @@
 package com.example.b_rich.injection
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.b_rich.data.repositories.CurrencyConverterRepository
@@ -15,15 +16,15 @@ import com.example.b_rich.ui.signin.SigninViewModel
 import com.example.b_rich.ui.signup.SignupViewModel
 import com.example.b_rich.ui.wallets.WalletsViewModel
 
-//Cette approche vous permet de centraliser la création de vos ViewModels tout en gardant la flexibilité d'ajouter de nouveaux ViewModels
-// facilement.
 class ViewModelFactory(
     private val userRepository: UserRepository,
     private val exchangeRateRepository: ExchangeRateRepository,
     private val currencyRepository: CurrencyConverterRepository,
-    private val walletRepository: WalletRepository
+    private val walletRepository: WalletRepository,
+    private val context: Context
 ) : ViewModelProvider.Factory {
 
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
             modelClass.isAssignableFrom(SignupViewModel::class.java) -> {
@@ -35,6 +36,9 @@ class ViewModelFactory(
             modelClass.isAssignableFrom(ResetPasswordViewModel::class.java) -> {
                 ResetPasswordViewModel(userRepository) as T
             }
+            modelClass.isAssignableFrom(ForgetpasswordViewModel::class.java) -> {
+                ForgetpasswordViewModel(userRepository) as T
+            }
             modelClass.isAssignableFrom(ExchangeRateViewModel::class.java) -> {
                 ExchangeRateViewModel(exchangeRateRepository) as T
             }
@@ -45,34 +49,32 @@ class ViewModelFactory(
                 CurrencyConverterViewModel(currencyRepository) as T
             }
             modelClass.isAssignableFrom(WalletsViewModel::class.java) -> {
-                WalletsViewModel(walletRepository) as T
+                WalletsViewModel(walletRepository, context) as T
             }
             else -> throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 
     companion object {
-        private var factory: ViewModelFactory? = null
+        @Volatile
+        private var INSTANCE: ViewModelFactory? = null
 
         fun getInstance(
             userRepository: UserRepository,
             exchangeRateRepository: ExchangeRateRepository,
             currencyRepository: CurrencyConverterRepository,
-            walletRepository: WalletRepository
+            walletRepository: WalletRepository,
+            context: Context
         ): ViewModelFactory {
-            if (factory == null) {
-                synchronized(ViewModelFactory::class.java) {
-                    if (factory == null) {
-                        factory = ViewModelFactory(
-                            userRepository,
-                            exchangeRateRepository,
-                            currencyRepository,
-                            walletRepository
-                        )
-                    }
-                }
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: ViewModelFactory(
+                    userRepository,
+                    exchangeRateRepository,
+                    currencyRepository,
+                    walletRepository,
+                    context
+                ).also { INSTANCE = it }
             }
-            return factory!!
         }
     }
 }

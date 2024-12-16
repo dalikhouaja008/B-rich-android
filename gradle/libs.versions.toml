@@ -7,6 +7,7 @@ biometricVersion = "1.4.0-alpha02"
 cameraCore = "1.3.0"
 core = "3.5.1"
 credentials = "<latest version>"
+foundation = "1.7.6"
 googleidVersion = "<latest version>"
 hiltAndroidCompiler = "2.51.1"
 kotlin = "1.9.0"
@@ -17,6 +18,9 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.6"
 activityCompose = "1.9.3"
 composeBom = "2024.04.01"
+material = "1.7.6"
+material3 = "1.3.1"
+material3Version = "1.1.0-alpha01"
 materialIconsExtended = "1.7.5"
 materialIconsExtendedVersion = "1.5.0"
 playServicesAuth = "21.2.0"
@@ -28,6 +32,7 @@ storage = "1.5.0"
 foundationAndroid = "1.6.6"
 ycharts = "2.1.0"
 zxingAndroidEmbedded = "4.3.0"
+uiTestAndroid = "1.7.6"
 
 [libraries]
 androidx-biometric-v110 = { module = "androidx.biometric:biometric", version.ref = "biometric" }
@@ -38,8 +43,11 @@ androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "credentials" }
 androidx-credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentials" }
+androidx-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "foundation" }
+androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-material-icons-extended-v150 = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtendedVersion" }
+androidx-material3-v110alpha01 = { module = "androidx.compose.material3:material3", version.ref = "material3Version" }
 animated-navigation-bar = { module = "com.exyte:animated-navigation-bar", version.ref = "animatedNavigationBar" }
 barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcodeScanning" }
 biometric = { module = "androidx.biometric:biometric", version.ref = "biometricVersion" }
@@ -62,6 +70,7 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 androidx-foundation-layout-android = { group = "androidx.compose.foundation", name = "foundation-layout-android", version.ref = "foundationLayoutAndroid" }
+material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
 play-services-basement = { group = "com.google.android.gms", name = "play-services-basement", version.ref = "playServicesBasement" }
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
@@ -69,6 +78,7 @@ androidx-storage = { group = "androidx.test.services", name = "storage", version
 androidx-foundation-android = { group = "androidx.compose.foundation", name = "foundation-android", version.ref = "foundationAndroid" }
 ycharts = { module = "co.yml:ycharts", version.ref = "ycharts" }
 zxing-android-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroidEmbedded" }
+androidx-ui-test-android = { group = "androidx.compose.ui", name = "ui-test-android", version.ref = "uiTestAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

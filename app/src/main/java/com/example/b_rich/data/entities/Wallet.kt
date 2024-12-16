@@ -7,15 +7,15 @@ import java.util.Date
 
 
 data class Wallet(
-    val id: String,
+    val id: String = UUID.randomUUID().toString(),
     val userId: String,
     val publicKey: String,
-    val privateKey:String,
-    val type:String,
-    val network:String,
+    val privateKey: String,
+    val type: String,
+    val network: String,
     val balance: Double,
-    val createdAt: Date,
+    val createdAt: Date = Date(),
     val currency: String,
-    val originalAmount:Number,
-    val convertedAmount:Number
+    val originalAmount: Double,
+    val convertedAmount: Double
 )

@@ -45,19 +45,23 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         // Initialize your API service and repository here
         val apiService = RetrofitClient.getApiService()
         val userRepository = UserRepository(apiService)
-        val exchangeRateRepository =ExchangeRateRepository(apiService)
-        val currencyRepository= CurrencyConverterRepository(apiService)
-        val walletRepository= WalletRepository(apiService)
-        // Create ViewModelFactory with all repositories
+        val exchangeRateRepository = ExchangeRateRepository(apiService)
+        val currencyRepository = CurrencyConverterRepository(apiService)
+        val walletRepository = WalletRepository(apiService)
+
+        // Create ViewModelFactory with all repositories and context
         val viewModelFactory = ViewModelFactory.getInstance(
             userRepository,
             exchangeRateRepository,
             currencyRepository,
-            walletRepository
+            walletRepository,
+            this // Pass the context
         )
+
         // Use ViewModelProvider to create all ViewModels
         val signinViewModel: SigninViewModel = ViewModelProvider(this, viewModelFactory)[SigninViewModel::class.java]
         val resetPasswordViewModel: ResetPasswordViewModel = ViewModelProvider(this, viewModelFactory)[ResetPasswordViewModel::class.java]
@@ -66,6 +70,7 @@ class MainActivity : FragmentActivity() {
         val addAccountViewModel: AddAccountViewModel = ViewModelProvider(this, viewModelFactory)[AddAccountViewModel::class.java]
         val currencyConverterViewModel: CurrencyConverterViewModel = ViewModelProvider(this, viewModelFactory)[CurrencyConverterViewModel::class.java]
         val walletsViewModel: WalletsViewModel = ViewModelProvider(this, viewModelFactory)[WalletsViewModel::class.java]
+
         setContent {
             BrichTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
@@ -91,7 +96,17 @@ class MainActivity : FragmentActivity() {
                         ) { backStackEntry ->
                             val userJson = backStackEntry.arguments?.getString("userJson")
                             val user = userJson?.let { Gson().fromJson(it, user::class.java) }
-                            user?.let { MainScreen(it, navController, resetPasswordViewModel,exchangeRateViewModel,addAccountViewModel,currencyConverterViewModel,walletsViewModel) }
+                            user?.let {
+                                MainScreen(
+                                    it,
+                                    navController,
+                                    resetPasswordViewModel,
+                                    exchangeRateViewModel,
+                                    addAccountViewModel,
+                                    currencyConverterViewModel,
+                                    walletsViewModel
+                                )
+                            }
                         }
                         composable(
                             route = "codeVerification/{userJson}",
@@ -132,5 +147,3 @@ fun navigateToCodeVerification(user: user, navController: NavController) {
     val userJson = Uri.encode(Gson().toJson(user))
     navController.navigate("codeVerification/$userJson")
 }
-
-

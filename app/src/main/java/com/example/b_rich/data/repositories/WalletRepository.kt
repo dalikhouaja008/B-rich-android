@@ -4,10 +4,8 @@ import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.network.ApiService
 import com.example.b_rich.data.network.CurrencyConversionRequest
 import com.example.b_rich.data.network.SendTransactionRequest
-import retrofit2.Response
 
 class WalletRepository(private val apiService: ApiService) {
-    suspend fun getUserWallets(): List<Wallet> = apiService.getUserWallets()
 
     suspend fun sendTransaction(
         fromWalletPublicKey: String,
@@ -29,5 +27,13 @@ class WalletRepository(private val apiService: ApiService) {
 
     suspend fun convertCurrency(amount: Double, fromCurrency: String): Wallet {
         return apiService.convertCurrency(CurrencyConversionRequest(amount, fromCurrency))
+    }
+
+    suspend fun getUserWallets(): List<Wallet> {
+        return apiService.getUserWallets()
+    }
+
+    suspend fun addWallet(wallet: Wallet): Wallet {
+        return apiService.createWallet(wallet)
     }
 }
