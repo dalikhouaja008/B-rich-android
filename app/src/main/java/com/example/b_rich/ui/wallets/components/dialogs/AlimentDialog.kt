@@ -24,6 +24,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -56,7 +57,7 @@ fun AlimentDialog(
     walletsViewModel: WalletsViewModel,
     currencyConverterViewModel: CurrencyConverterViewModel,
     onDismiss: () -> Unit,
-    context: Context = LocalContext.current // Context for Toast messages
+    context: Context = LocalContext.current
 ) {
     var dinarsAmount by remember { mutableStateOf("") }
     var convertedAmount by remember { mutableStateOf("0.0") }
@@ -79,17 +80,19 @@ fun AlimentDialog(
     // Update converted amount
     LaunchedEffect(uiState.convertedAmount) {
         if (uiState.convertedAmount > 0) {
-            convertedAmount = uiState.convertedAmount.toString() // No formatting to avoid issues
+            convertedAmount = uiState.convertedAmount.toString()
             conversionInProgress = false
         }
     }
 
+    // Handle conversion errors
     LaunchedEffect(conversionError) {
         conversionError?.let { error ->
             Toast.makeText(context, "Conversion failed: $error", Toast.LENGTH_LONG).show()
         }
     }
 
+    // Handle successful conversion
     LaunchedEffect(convertedWallet) {
         convertedWallet?.let { wallet ->
             Toast.makeText(
@@ -97,7 +100,7 @@ fun AlimentDialog(
                 "Conversion successful! New balance: ${wallet.balance} ${wallet.currency}",
                 Toast.LENGTH_LONG
             ).show()
-            onDismiss() // Dismiss the dialog after success
+            onDismiss()
         }
     }
 
@@ -171,14 +174,18 @@ fun AlimentDialog(
                     shape = RoundedCornerShape(16.dp)
                 )
 
-                if (conversionInProgress) {
+                if (conversionInProgress || isLoading) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        CircularProgressIndicator(color = Color(0xFF3D5AFE))
+                           LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color(0xFF3D5AFE)
+                )
                     }
                 }
+
             }
         },
         confirmButton = {
@@ -190,12 +197,11 @@ fun AlimentDialog(
                             amount = amount,
                             fromCurrency = selectedWallet.currency
                         )
-                        onDismiss()
                     } else {
                         Toast.makeText(context, "Invalid amount entered.", Toast.LENGTH_SHORT).show()
                     }
                 },
-                enabled = !conversionInProgress,
+                enabled = !isLoading && !conversionInProgress,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3D5AFE))
             ) {
                 if (isLoading) {
@@ -212,7 +218,8 @@ fun AlimentDialog(
             OutlinedButton(
                 onClick = onDismiss,
                 border = BorderStroke(1.dp, Color(0xFF3D5AFE)),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF3D5AFE))
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF3D5AFE)),
+                enabled = !isLoading && !conversionInProgress
             ) {
                 Text("Cancel")
             }

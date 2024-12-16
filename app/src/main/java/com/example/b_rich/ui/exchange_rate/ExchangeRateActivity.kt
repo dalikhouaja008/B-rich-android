@@ -48,10 +48,10 @@ fun ExchangeRate(
                 // Section Actualités (scrollable)
                 item {
                     SectionTitle(
-                        title = "Currency converter",
-                        description = "Convert for any currency you want"
+                        title = "Latest News",
+                        description = "See the latest news about currencies"
                     )
-                    NewsCarousel(newsUiState)
+                    //NewsCarousel(newsUiState)
                 }
 
                 // Section des taux de change (non scrollable)

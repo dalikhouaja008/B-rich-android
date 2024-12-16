@@ -6,7 +6,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
+<<<<<<< HEAD
     private const val BASE_URL = "http://192.168.1.15:3000/"
+=======
+    private const val BASE_URL = "http://192.168.242.164:3000/"
+>>>>>>> f1034cc (corriger des bugs dans send money)
     private val authInterceptor = AuthInterceptor()
 
 
