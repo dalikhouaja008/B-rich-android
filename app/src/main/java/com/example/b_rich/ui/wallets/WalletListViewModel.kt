@@ -137,7 +137,6 @@ class WalletsViewModel(
         }
     }
 
-
     // Implement method to get current user's ID
     private fun getCurrentUserId(): String {
         // This should be replaced with actual user authentication logic
