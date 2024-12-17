@@ -94,18 +94,18 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     //navigation
     val nav_version = "2.8.0"
-    implementation("androidx.navigation:navigation-compose:$nav_version")
+    implementation(libs.androidx.navigation.compose)
     //Room injection
     val room_version = "2.6.1"
     implementation("androidx.room:room-runtime:$room_version")
-    annotationProcessor("androidx.room:room-compiler:$room_version")
+    annotationProcessor(libs.androidx.room.compiler)
     //Kapt annotation processor
     kapt("androidx.room:room-compiler:2.6.1")
     //Retrofit
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation (libs.retrofit)
+    implementation (libs.converter.gson)
     //live data
-    implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.5.1")
+    implementation (libs.androidx.lifecycle.livedata.ktx)
     //icones
     implementation (libs.androidx.material.icons.extended.v150)
     //biometric
@@ -142,6 +142,21 @@ dependencies {
 
     implementation (libs.androidx.material3.v110alpha01) // or the latest version
     implementation (libs.androidx.material)
+
+    implementation (libs.ui)
+    implementation (libs.androidx.material3.v120)
+    implementation (libs.androidx.lifecycle.viewmodel.compose)
+
+    // Compose UI dependencies
+    implementation (libs.androidx.ui.v160)
+    implementation (libs.material3)
+    implementation (libs.ui.tooling)
+
+    // Lifecycle support for ViewModel integration with Compose
+    implementation (libs.androidx.lifecycle.viewmodel.compose.v262)
+
+    // Compose runtime dependencies
+    implementation (libs.androidx.runtime)
 
 }
 kapt {

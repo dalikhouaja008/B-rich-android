@@ -46,6 +46,9 @@ class WalletsViewModel(
     private val _convertedWallet = MutableStateFlow<Wallet?>(null)
     val convertedWallet: StateFlow<Wallet?> = _convertedWallet
 
+    private val _totalBalance = MutableStateFlow<Double>(0.0)
+    val totalBalance: StateFlow<Double> = _totalBalance
+
     init {
         fetchWallets()
     }
@@ -75,6 +78,36 @@ class WalletsViewModel(
             else -> Unit
         }
     }
+
+    fun fetchWalletsAndBalance() {
+        viewModelScope.launch {
+            try {
+                // Fetch user wallets
+                val fetchedWallets = repository.getUserWallets()
+                _wallets.value = fetchedWallets
+
+                // Calculate total balance across all wallets
+                _totalBalance.value = fetchedWallets.sumOf { wallet ->
+                    when (wallet.currency) {
+                        "TND" -> wallet.balance
+                        "USD" -> wallet.balance * 3.3 // Convert USD to TND
+                        else -> 0.0
+                    }
+                }
+
+                _hasResponse.value = true
+            } catch (e: Exception) {
+                _hasResponse.value = true
+                _totalBalance.value = 0.0
+                Toast.makeText(
+                    context,
+                    "Failed to fetch wallets: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
 
     fun fetchWallets() {
         viewModelScope.launch {
@@ -183,14 +216,11 @@ class WalletsViewModel(
         )
     }
 
-    // Utility methods for generating keys (these should be implemented securely)
     private fun generatePublicKey(): String {
-        // Implement secure public key generation
-        return UUID.randomUUID().toString()
+        return "PUB_" + UUID.randomUUID().toString()
     }
 
     private fun generatePrivateKey(): String {
-        // Implement secure private key generation
-        return UUID.randomUUID().toString()
+        return "PRIV_" + UUID.randomUUID().toString()
     }
 }

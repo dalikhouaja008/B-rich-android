@@ -1,11 +1,18 @@
 package com.example.b_rich.data.network
 
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
 import com.example.b_rich.data.dataModel.PredictionRequest
 import com.example.b_rich.data.dataModel.PredictionResponse
+import com.example.b_rich.data.entities.Account
 import com.example.b_rich.data.entities.ExchangeRate
 import com.example.b_rich.data.entities.NewsItem
 import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.entities.user
+import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -60,6 +67,10 @@ data class SendTransactionRequest(
 
 data class TransactionResponse(
     val signature: String
+)
+
+data class AccountBalanceResponse(
+    val balance: Double
 )
 
 interface ApiService {
@@ -119,4 +130,29 @@ interface ApiService {
 
     @POST("solana/create-wallet")
     suspend fun createWallet(@Body wallet: Wallet): Wallet
+
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAccount(account: Account)
+
+    @Update
+    suspend fun updateAccount(account: Account)
+
+    @Delete
+    suspend fun deleteAccount(account: Account)
+
+    @Query("SELECT * FROM accounts WHERE account_id = :accountId")
+    suspend fun getAccountById(accountId: String): Account?
+
+    @Query("SELECT * FROM accounts WHERE user_id = :userId AND is_default = 1")
+    suspend fun getDefaultAccountForUser(userId: String): Account?
+
+    @Query("SELECT * FROM accounts WHERE user_id = :userId")
+    suspend fun getAllAccountsForUser(userId: String): List<Account>
+
+    @Query("SELECT SUM(balance) FROM accounts WHERE user_id = :userId")
+    suspend fun getTotalBalanceForUser(userId: String): Double
+
+    @GET("/accounts/default-balance/{userId}")
+    fun getDefaultAccountBalance(@Path("userId") userId: String): Call<AccountBalanceResponse>
 }

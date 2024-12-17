@@ -38,17 +38,12 @@ fun WalletsScreen(
     currencyConverterViewModel: CurrencyConverterViewModel
 ) {
     val wallets by viewModel.wallets.collectAsState()
-    val recentTransactions by viewModel.recentTransactions.collectAsState()
+    val totalBalance by viewModel.totalBalance.collectAsState()
     val hasResponse by viewModel.hasResponse.collectAsState()
     var showBottomSheet by remember { mutableStateOf(false) }
 
-    // Calculate total account balance in TND
-    val accountBalance = wallets
-        .filter { it.currency == "TND" }
-        .sumOf { it.balance }
-
     LaunchedEffect(Unit) {
-        viewModel.fetchWallets()
+        viewModel.fetchWalletsAndBalance()
     }
 
     if (!hasResponse) {
@@ -79,7 +74,7 @@ fun WalletsScreen(
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
-                        text = "${String.format("%.2f", accountBalance)} TND",
+                        text = "${String.format("%.2f", totalBalance)} TND",
                         style = MaterialTheme.typography.headlineLarge
                     )
                 }
@@ -106,8 +101,6 @@ fun WalletsScreen(
                     }
                 }
                 else -> {
-                    // Display existing wallets list
-                    // You can add your wallet list UI here
                     WalletsList(wallets)
                 }
             }
@@ -119,16 +112,15 @@ fun WalletsScreen(
         WalletCreationBottomSheet(
             onDismiss = { showBottomSheet = false },
             onDone = { amount ->
-                // Create a new wallet with all required fields
                 val newWallet = Wallet(
-                    id = UUID.randomUUID().toString(), // Generate unique ID
+                    id = UUID.randomUUID().toString(),
                     userId = "current_user_id", // Replace with actual user ID
-                    publicKey = generatePublicKey(), // Implement public key generation
-                    privateKey = generatePrivateKey(), // Implement private key generation
+                    publicKey = generatePublicKey(),
+                    privateKey = generatePrivateKey(),
                     type = "Personal",
-                    network = "TND", // Assuming TND is the network
+                    network = "TND",
                     balance = amount,
-                    createdAt = Date(), // Use current date
+                    createdAt = Date(),
                     currency = "TND",
                     originalAmount = amount,
                     convertedAmount = amount
@@ -137,7 +129,7 @@ fun WalletsScreen(
                 viewModel.addWallet(newWallet)
                 showBottomSheet = false
             },
-            accountBalance = accountBalance
+            accountBalance = totalBalance
         )
     }
 }
@@ -156,28 +148,82 @@ private fun generatePrivateKey(): String {
 
 @Composable
 fun WalletsList(wallets: List<Wallet>) {
-    // Implement a list or grid of wallets
-    Column {
-        wallets.forEach { wallet ->
+    LazyColumn {
+        item {
+            Text(
+                text = "My Wallets",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+        items(wallets) { wallet ->
             WalletItem(wallet)
+            Divider()
         }
     }
 }
 
 @Composable
 fun WalletItem(wallet: Wallet) {
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+        Column {
+            Text(
+                text = wallet.type,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = "${String.format("%.2f", wallet.balance)} ${wallet.currency}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Text(
+            text = wallet.network,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.secondary
+        )
+    }
+}
+
+
+@Composable
+fun BalanceCard(
+    title: String,
+    balance: Double,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Wallet Type: ${wallet.type}")
-            Text("Network: ${wallet.network}")
-            Text("Balance: ${String.format("%.2f", wallet.balance)} ${wallet.currency}")
-            Text("Created: ${wallet.createdAt}")
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = String.format("%.2f", balance),
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
