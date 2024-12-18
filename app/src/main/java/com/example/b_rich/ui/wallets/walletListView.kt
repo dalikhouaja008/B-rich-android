@@ -1,5 +1,6 @@
 package com.example.b_rich.ui.wallets
 
+import TransactionRow
 import androidx.collection.emptyLongSet
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
@@ -18,96 +19,187 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.entities.Transaction
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
+import com.example.b_rich.ui.wallets.components.QuickActionsRow
+import com.example.b_rich.ui.wallets.components.SectionTitle
+import com.example.b_rich.ui.wallets.components.TNDWalletCard
 import com.example.b_rich.ui.wallets.components.WalletCard
-import com.example.b_rich.ui.wallets.components.Wallets
-import java.text.SimpleDateFormat
-import java.util.*
+import com.example.b_rich.ui.wallets.components.dialogs.AddWalletDialog
 
 @Composable
-fun WalletsScreen(
+fun Wallets(
+    wallets: List<Wallet>,
+    TNDWallet: Wallet,
+    recentTransactions: List<Transaction>,
+    onWalletSelected: (Wallet) -> Unit,
+    selectedWallet: Wallet?,
+    currencyConverterViewModel: CurrencyConverterViewModel,
     viewModel: WalletsViewModel,
-    currencyConverterViewModel: CurrencyConverterViewModel
 ) {
-    val wallets by viewModel.wallets.collectAsState()
-    val recentTransactions by viewModel.recentTransactions.collectAsState()
-
-    // State to track the currently selected wallet
-    var selectedWallet by remember { mutableStateOf<Wallet?>(null) }
-    //savoir si la reponse fetchWallets a été envoyé depuis backend afin de régler le délai
-    val hasResponse by viewModel.hasResponse.collectAsState()
-    val context=LocalContext.current
-    LaunchedEffect(key1 = true) {
-        viewModel.fetchWallets()
-    }
-
-
-    if (!hasResponse) {
-        // Affichage d'un loader pendant que la requête est en cours
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+    var showDialog by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(30.dp)
         ) {
-            CircularProgressIndicator()
-        }
-    } else {
-        when {
-            wallets.isEmpty() -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Button(
-                        onClick = {
-                            // Navigate to wallet creation in TND
-                            //viewModel.navigateToCreateWallet(currency = "TND")
-                        },
-                        modifier = Modifier.fillMaxWidth(0.8f)
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                // Section TND Wallet
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text("Create Your First Wallet in Dinars (TND)")
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            SectionTitle(
+                                title = "My TND Wallet",
+                                description = "Here you can find your TND wallet balance."
+                            )
+
+                            Button(
+                                onClick = { /* Ajouter logique pour alimenter le wallet TND */ },
+                                modifier = Modifier.height(40.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF3D5AFE),
+                                    contentColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(20.dp),
+                                contentPadding = PaddingValues(horizontal = 16.dp)
+                            ) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Text(
+                                        text = "Aliment",
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                }
+                            }
+                        }
+
+                        Text(
+                            text = "Your main Tunisian Dinar wallet",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+
+                        TNDWalletCard(
+                            wallet = TNDWallet,
+                            isSelected = TNDWallet == selectedWallet,
+                            onSelect = { onWalletSelected(TNDWallet) }
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
                     }
                 }
-            }
 
-            else -> {
-                // Show the wallet and a button to create the first wallet in another currency
-                Row(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    // Display the single TND wallet
-                    Wallets(
-                        wallets = wallets,
-                        recentTransactions = recentTransactions,
-                        onWalletSelected = { wallet -> selectedWallet = wallet },
-                        selectedWallet = selectedWallet,
-                        currencyConverterViewModel = currencyConverterViewModel,
-                        viewModel = viewModel
+                // Section Wallets with horizontal scrolling
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        SectionTitle(
+                            title = "My Wallets",
+                            description = "Here you can find all your wallets and their current balances."
+                        )
+
+                        Button(
+                            onClick = { showDialog = true },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .height(40.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF3D5AFE),
+                                contentColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(20.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp)
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    text = if (wallets.isEmpty()) "Create Wallet" else "Add Wallet",
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // LazyRow for wallets
+                item {
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(wallets) { wallet ->
+                            WalletCard(
+                                wallet = wallet,
+                                isSelected = wallet == selectedWallet,
+                                onSelect = { onWalletSelected(wallet) }
+                            )
+                        }
+                    }
+                }
+
+                // Quick Actions Section
+                item {
+                    SectionTitle(
+                        title = "Quick Actions",
+                        description = "Select any wallet to perform actions like sending, receiving, withdrawing or topping up your wallet."
                     )
+                    QuickActionsRow(
+                        selectedWallet = selectedWallet,
+                        walletsViewModel = viewModel,
+                        currencyConverterViewModel = currencyConverterViewModel,
+                    )
+                }
 
+                // Recent Transactions Section
+                item {
+                    SectionTitle(
+                        title = "Recent Transactions",
+                        description = "Review your latest transactions and their details here."
+                    )
+                }
+
+                // Transactions List
+                items(recentTransactions) { transaction ->
+                    TransactionRow(transaction)
                 }
             }
         }
     }
+
 }
-
-
-
 
 data class QuickAction(
     val icon: ImageVector,
