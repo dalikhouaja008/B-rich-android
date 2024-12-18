@@ -60,8 +60,8 @@ import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
 import com.example.b_rich.ui.profil.ProfilePage
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
-import com.example.b_rich.ui.wallets.WalletsScreen
 import com.example.b_rich.ui.wallets.WalletsViewModel
+import com.example.b_rich.ui.wallets.components.WalletsScreen
 import com.exyte.animatednavbar.AnimatedNavigationBar
 import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height

@@ -1,147 +1,78 @@
 package com.example.b_rich.ui.wallets.components
 
-import TransactionRow
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.b_rich.data.entities.Transaction
 import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.wallets.WalletsViewModel
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.example.b_rich.ui.wallets.Wallets
 
 @Composable
-fun Wallets(
-    wallets: List<Wallet>,
-    recentTransactions: List<Transaction>,
-    onWalletSelected: (Wallet) -> Unit,
-    selectedWallet: Wallet?,
-    currencyConverterViewModel: CurrencyConverterViewModel,
+fun WalletsScreen(
     viewModel: WalletsViewModel,
+    currencyConverterViewModel: CurrencyConverterViewModel
 ) {
-    var showDialog by remember { mutableStateOf(false) }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(30.dp)
+    val tndWallet by viewModel.tndWallet.collectAsState()
+    val currencyWallets by viewModel.currencyWallets.collectAsState()
+    val recentTransactions by viewModel.recentTransactions.collectAsState()
+    var selectedWallet by remember { mutableStateOf<Wallet?>(null) }
+    val hasResponse by viewModel.hasResponse.collectAsState()
+
+    LaunchedEffect(key1 = true) {
+        viewModel.fetchWallets()
+    }
+
+    if (!hasResponse) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(bottom = 16.dp)
-            ) {
-                // Section Wallets with horizontal scrolling
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+            CircularProgressIndicator()
+        }
+    } else {
+        when {
+            tndWallet == null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Button(
+                        onClick = {
+                            // Logique pour créer un wallet TND
+                        },
+                        modifier = Modifier.fillMaxWidth(0.8f)
                     ) {
-                        SectionTitle(
-                            title = "My Wallets",
-                            description = "Here you can find all your wallets and their current balances."
-                        )
-
-                        // Styled Add Wallet Button
-                        IconButton(
-                            onClick = {
-                                //ouvrir un dialog
-                            },
-                            modifier = Modifier
-                                .size(48.dp) // Adjusted size for better appearance
-                                .clip(CircleShape)
-                                .background(
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = if (wallets.size == 1 && wallets.first().currency == "TND")
-                                    "Create your first wallet"
-                                else
-                                    "Add another wallet",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
+                        Text("Create Your First Wallet in Dinars (TND)")
                     }
                 }
-
-                //LazyRow for wallets
-                item {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        items(wallets) { wallet ->
-                            WalletCard(
-                                wallet = wallet,
-                                isSelected = wallet == selectedWallet,
-                                onSelect = { onWalletSelected(wallet) }
-                            )
-                        }
-                    }
-                }
-
-                // Quick Actions Section
-                item {
-                    SectionTitle(
-                        title = "Quick Actions",
-                        description = "Select any wallet to perform actions like sending, receiving, withdrawing or topping up your wallet."
-                    )
-                    QuickActionsRow(
-                        selectedWallet = selectedWallet,
-                        walletsViewModel = viewModel,
-                        currencyConverterViewModel = currencyConverterViewModel,
-                    )
-                }
-
-                // Recent Transactions Section
-                item {
-                    SectionTitle(
-                        title = "Recent Transactions",
-                        description = "Review your latest transactions and their details here."
-                    )
-                }
-
-                // Transactions List
-                items(recentTransactions) { transaction ->
-                    TransactionRow(transaction)
-                }
+            }
+            else -> {
+                Wallets(
+                    wallets = currencyWallets,
+                    TNDWallet = tndWallet!!,
+                    recentTransactions = recentTransactions,
+                    onWalletSelected = { wallet -> selectedWallet = wallet },
+                    selectedWallet = selectedWallet,
+                    currencyConverterViewModel = currencyConverterViewModel,
+                    viewModel = viewModel
+                )
             }
         }
     }

@@ -22,8 +22,8 @@ sealed class SendTransactionState {
 }
 class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
 
-    private val _wallets = MutableStateFlow<List<Wallet>>(emptyList())
-    val wallets: StateFlow<List<Wallet>> get() = _wallets
+    private val _currencyWallets = MutableStateFlow<List<Wallet>>(emptyList())
+    val currencyWallets: StateFlow<List<Wallet>> = _currencyWallets
 
     //transactions récent
     private val _recentTransactions = MutableStateFlow<List<Transaction>>(emptyList())
@@ -40,6 +40,9 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
 
     private val _hasResponse = MutableStateFlow(false)
     val hasResponse: StateFlow<Boolean> = _hasResponse
+
+    private val _tndWallet = MutableStateFlow<Wallet?>(null)
+    val tndWallet: StateFlow<Wallet?> = _tndWallet
 
     init {
         loadData()
@@ -113,7 +116,8 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
             try {
                 val fetchedWallets = repository.getUserWallets()
                 println(fetchedWallets)
-                _wallets.value = fetchedWallets
+                _tndWallet.value = fetchedWallets.find { it.currency == "TND" }
+                _currencyWallets.value = fetchedWallets.filter { it.currency != "TND" }
                 _hasResponse.value = true
             } catch (e: Exception) {
                 // Handle error
