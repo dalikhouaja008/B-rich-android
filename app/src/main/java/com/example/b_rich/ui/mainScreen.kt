@@ -58,6 +58,8 @@ import com.example.b_rich.ui.components.CustomTopAppBar
 import com.example.b_rich.ui.currency_converter.CurrencyConverter
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
+import com.example.b_rich.ui.listAccounts.ListAccountsScreen
+import com.example.b_rich.ui.listAccounts.ListAccountsViewModel
 import com.example.b_rich.ui.profil.ProfilePage
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.example.b_rich.ui.wallets.WalletsViewModel
@@ -95,7 +97,8 @@ fun MainScreen(
     exchangeRateViewModel: ExchangeRateViewModel = viewModel(),
     addAccountViewModel: AddAccountViewModel = viewModel(),
     currencyConverterViewModel: CurrencyConverterViewModel,
-    walletsViewModel: WalletsViewModel
+    walletsViewModel: WalletsViewModel,
+    listAccountsViewModel: ListAccountsViewModel
 ) {
     val navigationBarItems = remember { NavigationBarItems.values() }
     var selectedIndex by remember { mutableStateOf(0) }
@@ -170,7 +173,10 @@ fun MainScreen(
                 NavigationBarItems.Home.ordinal -> ExchangeRate(exchangeRateViewModel)
                 NavigationBarItems.Convert.ordinal -> CurrencyConverter(currencyConverterViewModel)
                 NavigationBarItems.Wallet.ordinal -> WalletsScreen(walletsViewModel, currencyConverterViewModel)
-                NavigationBarItems.Account.ordinal -> AddAccountScreen(viewModel = addAccountViewModel)
+                NavigationBarItems.Account.ordinal ->  ListAccountsScreen(
+                    viewModel = listAccountsViewModel,
+                    onAddAccountClick = { navHostController.navigate("addAccount") }
+                )
                 NavigationBarItems.Person.ordinal -> ProfilePage(user,viewModel)
             }
         }

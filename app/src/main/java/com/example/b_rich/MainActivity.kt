@@ -18,16 +18,19 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.b_rich.data.entities.user
 import com.example.b_rich.data.network.RetrofitClient
+import com.example.b_rich.data.repositories.AccountRepository
 import com.example.b_rich.data.repositories.CurrencyConverterRepository
 import com.example.b_rich.data.repositories.ExchangeRateRepository
 import com.example.b_rich.data.repositories.UserRepository
 import com.example.b_rich.data.repositories.WalletRepository
 import com.example.b_rich.injection.ViewModelFactory
+import com.example.b_rich.ui.AddAccount.AddAccountScreen
 import com.example.b_rich.ui.AddAccount.AddAccountViewModel
 import com.example.b_rich.ui.MainScreen
 import com.example.b_rich.ui.currency_converter.CurrencyConverter
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
+import com.example.b_rich.ui.listAccounts.ListAccountsViewModel
 import com.example.b_rich.ui.resetPassword.CodeEntryScreen
 import com.example.b_rich.ui.resetPassword.PasswordEntryScreen
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
@@ -51,12 +54,15 @@ class MainActivity : FragmentActivity() {
         val exchangeRateRepository =ExchangeRateRepository(apiService)
         val currencyRepository= CurrencyConverterRepository(apiService)
         val walletRepository= WalletRepository(apiService)
+        val accountRepository= AccountRepository(apiService)
         // Create ViewModelFactory with all repositories
         val viewModelFactory = ViewModelFactory.getInstance(
             userRepository,
             exchangeRateRepository,
             currencyRepository,
-            walletRepository
+            walletRepository,
+            accountRepository,
+            apiService
         )
         // Use ViewModelProvider to create all ViewModels
         val signinViewModel: SigninViewModel = ViewModelProvider(this, viewModelFactory)[SigninViewModel::class.java]
@@ -66,6 +72,7 @@ class MainActivity : FragmentActivity() {
         val addAccountViewModel: AddAccountViewModel = ViewModelProvider(this, viewModelFactory)[AddAccountViewModel::class.java]
         val currencyConverterViewModel: CurrencyConverterViewModel = ViewModelProvider(this, viewModelFactory)[CurrencyConverterViewModel::class.java]
         val walletsViewModel: WalletsViewModel = ViewModelProvider(this, viewModelFactory)[WalletsViewModel::class.java]
+        val listAccountsViewModel:ListAccountsViewModel = ViewModelProvider(this, viewModelFactory)[ListAccountsViewModel:: class.java]
         setContent {
             BrichTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) {
@@ -80,6 +87,9 @@ class MainActivity : FragmentActivity() {
                         composable("loginPage") {
                             LoginScreen(signinViewModel, navController)
                         }
+                        composable("addAccount") {
+                            AddAccountScreen(addAccountViewModel,onBackToAccounts = { navController.popBackStack() })
+                        }
                         composable("currencyConvert") {
                             CurrencyConverter(currencyConverterViewModel)
                         }
@@ -91,7 +101,7 @@ class MainActivity : FragmentActivity() {
                         ) { backStackEntry ->
                             val userJson = backStackEntry.arguments?.getString("userJson")
                             val user = userJson?.let { Gson().fromJson(it, user::class.java) }
-                            user?.let { MainScreen(it, navController, resetPasswordViewModel,exchangeRateViewModel,addAccountViewModel,currencyConverterViewModel,walletsViewModel) }
+                            user?.let { MainScreen(it, navController, resetPasswordViewModel,exchangeRateViewModel,addAccountViewModel,currencyConverterViewModel,walletsViewModel,listAccountsViewModel) }
                         }
                         composable(
                             route = "codeVerification/{userJson}",

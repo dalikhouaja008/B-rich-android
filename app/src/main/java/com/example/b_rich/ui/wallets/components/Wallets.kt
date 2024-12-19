@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.b_rich.ui.wallets.Wallets
+import com.example.b_rich.ui.wallets.components.dialogs.CreateTNDWalletDialog
 
 @Composable
 fun WalletsScreen(
@@ -32,6 +33,7 @@ fun WalletsScreen(
     val recentTransactions by viewModel.recentTransactions.collectAsState()
     var selectedWallet by remember { mutableStateOf<Wallet?>(null) }
     val hasResponse by viewModel.hasResponse.collectAsState()
+    var showCreateDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = true) {
         viewModel.fetchWallets()
@@ -55,7 +57,7 @@ fun WalletsScreen(
                 ) {
                     Button(
                         onClick = {
-                            // Logique pour créer un wallet TND
+                            showCreateDialog=true
                         },
                         modifier = Modifier.fillMaxWidth(0.8f)
                     ) {
@@ -67,7 +69,6 @@ fun WalletsScreen(
                 Wallets(
                     wallets = currencyWallets,
                     TNDWallet = tndWallet!!,
-                    recentTransactions = recentTransactions,
                     onWalletSelected = { wallet -> selectedWallet = wallet },
                     selectedWallet = selectedWallet,
                     currencyConverterViewModel = currencyConverterViewModel,
@@ -75,5 +76,15 @@ fun WalletsScreen(
                 )
             }
         }
+    }
+    if (showCreateDialog) {
+        CreateTNDWalletDialog(
+            onDismiss = { showCreateDialog = false },
+            onConfirm = { amount ->
+                viewModel.createTNDWallet(amount)
+                showCreateDialog = false
+            },
+            viewModel = viewModel
+        )
     }
 }

@@ -8,6 +8,7 @@ import com.example.b_rich.data.entities.Transaction
 import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.network.SendTransactionRequest
 import com.example.b_rich.data.repositories.WalletRepository
+import com.example.b_rich.ui.wallets.components.CreateWalletState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -44,12 +45,42 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
     private val _tndWallet = MutableStateFlow<Wallet?>(null)
     val tndWallet: StateFlow<Wallet?> = _tndWallet
 
+    private val _createWalletState = MutableStateFlow<CreateWalletState>(CreateWalletState.Idle)
+    val createWalletState: StateFlow<CreateWalletState> = _createWalletState
+
     init {
         loadData()
     }
 
     private val _sendTransactionState = MutableStateFlow<SendTransactionState>(SendTransactionState.Idle)
     val sendTransactionState: StateFlow<SendTransactionState> = _sendTransactionState.asStateFlow()
+    fun createTNDWallet(amount: Double) {
+        viewModelScope.launch {
+            _createWalletState.value = CreateWalletState.Loading
+            try {
+                repository.createTNDWallet(amount).fold(
+                    onSuccess = { wallet ->
+                        _createWalletState.value = CreateWalletState.Success(wallet)
+                        fetchWallets() // Rafraîchir la liste des wallets après création
+                    },
+                    onFailure = { exception ->
+                        _createWalletState.value = CreateWalletState.Error(
+                            exception.message ?: "Failed to create wallet"
+                        )
+                    }
+                )
+            } catch (e: Exception) {
+                _createWalletState.value = CreateWalletState.Error(
+                    e.message ?: "Failed to create wallet"
+                )
+            }
+        }
+    }
+
+    // Réinitialiser l'état lors de la fermeture du dialog
+    fun resetCreateWalletState() {
+        _createWalletState.value = CreateWalletState.Idle
+    }
 
     fun sendTransaction(
         fromWalletPublicKey: String,
@@ -114,7 +145,7 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
     fun fetchWallets() {
         viewModelScope.launch {
             try {
-                val fetchedWallets = repository.getUserWallets()
+                val fetchedWallets = repository.getWalletsWithTransactions()
                 println(fetchedWallets)
                 _tndWallet.value = fetchedWallets.find { it.currency == "TND" }
                 _currencyWallets.value = fetchedWallets.filter { it.currency != "TND" }

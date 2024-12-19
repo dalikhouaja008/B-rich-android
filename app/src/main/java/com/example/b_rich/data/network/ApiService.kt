@@ -1,14 +1,20 @@
 package com.example.b_rich.data.network
 
+import com.example.b_rich.data.dataModel.CreateTNDWalletRequest
+import com.example.b_rich.data.dataModel.NicknameUpdateRequest
 import com.example.b_rich.data.dataModel.PredictionRequest
 import com.example.b_rich.data.dataModel.PredictionResponse
+import com.example.b_rich.data.entities.AddAccount
+import com.example.b_rich.data.entities.CustomAccount
 import com.example.b_rich.data.entities.ExchangeRate
 import com.example.b_rich.data.entities.NewsItem
 import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.entities.user
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 
@@ -116,4 +122,55 @@ interface ApiService {
 
     @GET("solana/my-wallets")
     suspend fun getUserWallets(): List<Wallet>
+
+    @GET("solana/wallets-with-transactions")
+    suspend fun getWalletsWithTransactions(): List<Wallet>
+
+    //Partie Gestion account
+    @POST("accounts")
+    suspend fun addAccountToUserList(@Body account: AddAccount): Response<CustomAccount>
+
+    // Get all accounts
+    @GET("accounts")
+    suspend fun getAllAccounts(): Response<List<CustomAccount>>
+
+    // Get account by ID
+    @GET("accounts/{id}")
+    suspend fun getAccountById(@Path("id") id: String): Response<CustomAccount>
+
+
+    // Delete account by ID
+    @DELETE("accounts/{id}")
+    suspend fun deleteAccount(@Path("id") id: String): Response<Unit>
+
+    // Get account by RIB
+    @GET("accounts/rib/{rib}")
+    suspend fun getAccountByRIB(@Path("rib") rib: String): Response<CustomAccount>
+
+    // Update account nickname
+    @PATCH("accounts/nickname/{rib}")
+    suspend fun updateNickname(
+        @Path("rib") rib: String,
+        @Body request: NicknameUpdateRequest
+    ): Response<CustomAccount>
+    // Set default account
+    @PATCH("accounts/default/{rib}")
+    suspend fun setDefaultAccount(@Path("rib") rib: String): Response<CustomAccount>
+
+    // Get default account
+    @GET("accounts/default")
+    suspend fun getDefaultAccount(): Response<CustomAccount>
+
+    suspend fun topUpWallet(accountId: String, amount: Double): Response<Unit>
+    // Update account balance
+    // Get dashboard metrics
+    @GET("accounts/dashboard/metrics")
+    suspend fun getDashboardMetrics(): Response<Any> // Replace Any with proper metrics type
+
+    // Get account details
+    @GET("accounts/{id}/details")
+    suspend fun getAccountDetails(@Path("id") id: String): Response<Any> // Replace Any with proper details type
+
+    @POST("solana/create-tnd-wallet")
+    suspend fun createTNDWallet(@Body request: CreateTNDWalletRequest): Response<Wallet>
 }
