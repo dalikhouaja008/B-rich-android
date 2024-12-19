@@ -1,19 +1,14 @@
 package com.example.b_rich.ui
 
+
 import ExchangeRate
-import ListAccountsViewModel
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.CurrencyExchange
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Wallet
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,7 +27,8 @@ import com.example.b_rich.ui.components.CustomTopAppBar
 import com.example.b_rich.ui.currency_converter.CurrencyConverter
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
-import com.example.b_rich.ui.listAccounts.ListAccountsView
+import com.example.b_rich.ui.listAccounts.ListAccountsScreen
+import com.example.b_rich.ui.listAccounts.ListAccountsViewModel
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.example.b_rich.ui.wallets.WalletsScreen
 import com.example.b_rich.ui.wallets.WalletsViewModel
@@ -40,7 +36,6 @@ import com.exyte.animatednavbar.AnimatedNavigationBar
 import com.exyte.animatednavbar.animation.balltrajectory.Parabolic
 import com.exyte.animatednavbar.animation.indendshape.Height
 import com.exyte.animatednavbar.animation.indendshape.shapeCornerRadius
-import com.exyte.animatednavbar.utils.noRippleClickable
 
 enum class NavigationBarItems(val icon: ImageVector) {
     Home(icon = Icons.Default.Home),
@@ -67,10 +62,10 @@ fun MainScreen(
     navHostController: NavHostController,
     viewModel: ResetPasswordViewModel = viewModel(),
     exchangeRateViewModel: ExchangeRateViewModel = viewModel(),
-    listAccountsViewModel: ListAccountsViewModel = viewModel(),
     addAccountViewModel: AddAccountViewModel = viewModel(),
     currencyConverterViewModel: CurrencyConverterViewModel,
-    walletsViewModel: WalletsViewModel
+    walletsViewModel: WalletsViewModel,
+    listAccountsViewModel: ListAccountsViewModel
 ) {
     val navigationBarItems = remember { NavigationBarItems.values() }
     var selectedIndex by remember { mutableStateOf(0) }
@@ -103,7 +98,7 @@ fun MainScreen(
                     ) {
                         Icon(
                             imageVector = item.icon,
-                            contentDescription = null,
+                            contentDescription = item.name,
                             tint = if (selectedIndex == item.ordinal) Color(0xFF2196F3) else MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -121,11 +116,17 @@ fun MainScreen(
                 NavigationBarItems.Home.ordinal -> ExchangeRate(exchangeRateViewModel)
                 NavigationBarItems.Convert.ordinal -> CurrencyConverter(currencyConverterViewModel)
                 NavigationBarItems.Wallet.ordinal -> WalletsScreen(walletsViewModel)
-                NavigationBarItems.Account.ordinal -> AddAccountScreen(viewModel = addAccountViewModel)
-                NavigationBarItems.ListAccount.ordinal -> ListAccountsView(
-                    viewModel = listAccountsViewModel,
-                    onAddAccountClick = { navHostController.navigate("addAccount") }
+                NavigationBarItems.Account.ordinal -> AddAccountScreen(
+                   viewModel = addAccountViewModel,
+                    onBackToAccounts = { selectedIndex = NavigationBarItems.ListAccount.ordinal }
                 )
+                NavigationBarItems.ListAccount.ordinal -> ListAccountsScreen(
+                    viewModel = listAccountsViewModel,
+                    onAddAccountClick = { selectedIndex = NavigationBarItems.Account.ordinal }
+                )
+                NavigationBarItems.Settings.ordinal -> {
+                    // Handle Settings screen when implemented
+                }
             }
         }
     }

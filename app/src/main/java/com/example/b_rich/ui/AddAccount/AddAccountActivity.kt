@@ -1,191 +1,241 @@
 package com.example.b_rich.ui.AddAccount
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddAccountScreen(viewModel: AddAccountViewModel = remember { AddAccountViewModel() }) {
-    val gradientBackground = Brush.verticalGradient(
-        colors = listOf(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.primary)
+fun AddAccountScreen(
+    viewModel: AddAccountViewModel,
+    onBackToAccounts: () -> Unit
+) {
+    // State and constants
+    val steps = 2
+    var currentStep by remember { mutableStateOf(1) }
+    val scrollState = rememberScrollState()
+
+    // Theme colors
+    val gradientColors = listOf(
+        Color(0xFF6200EE),
+        Color(0xFF9C27B0),
+        Color(0xFF3700B3)
     )
 
     Scaffold(
-        content = { innerPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .background(gradientBackground)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.SpaceBetween
-                ) {
-                    // Step Header
-                    Column {
-                        Text(
-                            text = viewModel.getStepTitle(viewModel.currentStep.value),
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                        )
+        topBar = {
+            AddAccountTopBar(onBackToAccounts = onBackToAccounts)
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.surface)
+        ) {
+            // Progress indicator
+            ProgressIndicator(
+                currentStep = currentStep,
+                totalSteps = steps,
+                gradientColors = gradientColors
+            )
 
-                        StepProgressBar(
-                            currentStep = viewModel.currentStep.value,
-                            totalSteps = viewModel.totalSteps
+            // Main content
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 20.dp)
+            ) {
+                // Step 1: RIB Number
+                StepCard(
+                    stepNumber = 1,
+                    isCurrentStep = currentStep == 1,
+                    title = "RIB Number",
+                    subtitle = "Enter your bank identifier",
+                    onClick = { currentStep = 1 }
+                ) {
+                    if (currentStep == 1) {
+                        AccountTextField(
+                            value = viewModel.rib.value,
+                            onValueChange = { viewModel.rib.value = it },
+                            placeholder = "Enter your RIB",
+                            gradientColor = gradientColors[0]
                         )
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                    // Step Content
-                    StepContent(step = viewModel.currentStep.value, viewModel = viewModel)
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // Navigation Buttons
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            if (viewModel.currentStep.value > 1) {
-                                Button(
-                                    onClick = { viewModel.currentStep.value -= 1 },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                                    ),
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text(
-                                        text = "Back",
-                                        style = MaterialTheme.typography.labelLarge
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.width(8.dp))
-
-                            Button(
-                                onClick = {
-                                    when (viewModel.currentStep.value) {
-                                        1 -> viewModel.searchAccountByRIB(
-                                            onSuccess = { viewModel.currentStep.value += 1 },
-                                            onFailure = { viewModel.backendMessage.value = "RIB not found." }
-                                        )
-                                        2 -> viewModel.sendOtp(
-                                            onSuccess = { viewModel.currentStep.value += 1 },
-                                            onFailure = { viewModel.backendMessage.value = "Failed to send OTP." }
-                                        )
-                                        3 -> viewModel.verifyOtpAndSaveNickname(
-                                            onSuccess = { viewModel.backendMessage.value = "Account added successfully!" },
-                                            onFailure = { viewModel.backendMessage.value = "Failed to verify OTP." }
-                                        )
-                                    }
-                                },
-                                enabled = viewModel.isStepValid(),
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary
-                                )
-                            ) {
-                                Text(
-                                    text = if (viewModel.currentStep.value < viewModel.totalSteps) "Next" else "Finish",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = Color.White
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Backend Message
-                        if (viewModel.backendMessage.value.isNotBlank()) {
-                            Text(
-                                text = viewModel.backendMessage.value,
-                                color = if (viewModel.isBackendCallSuccessful.value) Color.Green else Color.Red,
-                                style = MaterialTheme.typography.bodyMedium,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 16.dp) // Added bottom padding
-                            )
-                        }
+                // Step 2: Account Name
+                StepCard(
+                    stepNumber = 2,
+                    isCurrentStep = currentStep == 2,
+                    title = "Account Name",
+                    subtitle = "Personalize your account",
+                    onClick = { currentStep = 2 }
+                ) {
+                    if (currentStep == 2) {
+                        AccountTextField(
+                            value = viewModel.nickname.value,
+                            onValueChange = { viewModel.nickname.value = it },
+                            placeholder = "Choose a name for this account",
+                            gradientColor = gradientColors[0]
+                        )
                     }
                 }
             }
+
+            // Bottom navigation button
+            GradientButton(
+                text = if (currentStep < steps) "Next" else "Finish",
+                showArrow = currentStep < steps,
+                enabled = when (currentStep) {
+                    1 -> viewModel.rib.value.isNotEmpty()
+                    2 -> viewModel.nickname.value.isNotEmpty()
+                    else -> false
+                },
+                gradientColors = gradientColors,
+                onClick = {
+                    if (currentStep < steps) {
+                        currentStep++
+                    } else {
+                        viewModel.addAccountToList(
+                            onSuccess = onBackToAccounts,
+                            onFailure = { /* Handle error */ }
+                        )
+                    }
+                }
+            )
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddAccountTopBar(onBackToAccounts: () -> Unit) {
+    TopAppBar(
+        title = { Text("Add Account") },
+        navigationIcon = {
+            IconButton(onClick = onBackToAccounts) {
+                Icon(Icons.Default.Close, contentDescription = "Close")
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     )
 }
 
 @Composable
-fun StepContent(step: Int, viewModel: AddAccountViewModel) {
-    when (step) {
-        1 -> {
-            OutlinedTextField(
-                value = viewModel.rib.value,
-                onValueChange = { viewModel.rib.value = it },
-                label = { Text("Enter RIB") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp)
+private fun ProgressIndicator(
+    currentStep: Int,
+    totalSteps: Int,
+    gradientColors: List<Color>
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 10.dp)
+            .height(6.dp)
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(3.dp)
             )
-        }
-        2 -> {
-            OutlinedTextField(
-                value = viewModel.nickname.value,
-                onValueChange = { viewModel.nickname.value = it },
-                label = { Text("Enter Nickname") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp)
-            )
-        }
-        3 -> {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "Enter the 6-digit OTP sent to your email.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth(currentStep.toFloat() / totalSteps)
+                .height(6.dp)
+                .background(
+                    brush = Brush.horizontalGradient(gradientColors),
+                    shape = RoundedCornerShape(3.dp)
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    for (index in 0..5) {
-                        OutlinedTextField(
-                            value = viewModel.otp.value[index],
-                            onValueChange = {
-                                if (it.length <= 1) viewModel.otp.value[index] = it
-                            },
-                            modifier = Modifier
-                                .width(40.dp)
-                                .height(56.dp),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            singleLine = true,
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                    }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AccountTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    gradientColor: Color
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+        placeholder = { Text(placeholder) },
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = gradientColor,
+            focusedLabelColor = gradientColor
+        )
+    )
+}
+
+@Composable
+private fun GradientButton(
+    text: String,
+    showArrow: Boolean,
+    enabled: Boolean,
+    gradientColors: List<Color>,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier.padding(20.dp)
+    ) {
+        Button(
+            onClick = onClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+                .background(
+                    brush = Brush.horizontalGradient(gradientColors),
+                    shape = RoundedCornerShape(16.dp)
+                ),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            ),
+            enabled = enabled
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White
+                )
+                if (showArrow) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        Icons.Default.ArrowForward,
+                        contentDescription = "Next",
+                        tint = Color.White
+                    )
                 }
             }
         }
@@ -193,29 +243,75 @@ fun StepContent(step: Int, viewModel: AddAccountViewModel) {
 }
 
 @Composable
-fun StepProgressBar(currentStep: Int, totalSteps: Int) {
-    Row(
+private fun StepCard(
+    stepNumber: Int,
+    isCurrentStep: Boolean,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isCurrentStep)
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
+            else
+                MaterialTheme.colorScheme.surface
+        )
     ) {
-        for (step in 1..totalSteps) {
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(8.dp)
-                    .background(
-                        color = if (step <= currentStep) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                        RoundedCornerShape(4.dp)
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(
+                            if (isCurrentStep)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                MaterialTheme.colorScheme.surfaceVariant,
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "$stepNumber",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (isCurrentStep)
+                            Color.White
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
                     )
-            )
+                }
+
+                Column {
+                    Text(
+                        title,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = if (isCurrentStep)
+                            MaterialTheme.colorScheme.onSurface
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        subtitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            content()
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewAddAccountScreen() {
-    AddAccountScreen()
 }

@@ -2,10 +2,12 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("org.jetbrains.kotlin.kapt")
-    id("kotlin-kapt")
+
+
 
 
 }
+
 
 android {
     namespace = "com.example.b_rich"
@@ -54,6 +56,7 @@ android {
 }
 
 dependencies {
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -106,8 +109,12 @@ dependencies {
     implementation("androidx.biometric:biometric:1.1.0")
     implementation(libs.biometric)
     //hilt dagger
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
     implementation(libs.hilt.android)
+    implementation("com.google.dagger:hilt-android:2.44")
     kapt(libs.hilt.android.compiler)
+    kapt("com.google.dagger:hilt-android-compiler:2.44")
+
     //google authentication
     implementation(libs.play.services.auth)
     implementation(libs.androidx.credentials)
@@ -117,6 +124,18 @@ dependencies {
     implementation(libs.animated.navigation.bar)
     //YChart
     implementation (libs.ycharts)
+
+    /////////////////
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+    implementation ("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
+    implementation ("androidx.compose.runtime:runtime-livedata:1.5.4")
+    implementation ("androidx.compose.runtime:runtime:1.5.4")
+
+    /////////
+    implementation ("androidx.compose.foundation:foundation:1.5.0")
+    implementation ("androidx.compose.ui:ui:1.5.0")
+    implementation ("androidx.compose.material3:material3:1.1.1" )// Update as needed
+    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
 }
 kapt {
     correctErrorTypes = true

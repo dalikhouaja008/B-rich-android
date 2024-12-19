@@ -2,116 +2,154 @@ package com.example.b_rich.ui.AddAccount
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.b_rich.data.entities.CustomAccount
 import com.example.b_rich.data.entities.AddAccount
-import com.example.b_rich.data.network.RetrofitClient
+import com.example.b_rich.data.network.ApiService
+import com.example.b_rich.data.network.NicknameUpdateRequest
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class AddAccountViewModel : ViewModel() {
+class AddAccountViewModel(private val apiService: ApiService) : ViewModel() {
 
-    val rib = mutableStateOf("") // Step 1: RIB input
-    val nickname = mutableStateOf("") // Step 2: Nickname input
-    val otp = mutableStateOf(MutableList(6) { "" }) // Step 3: OTP input
-    val currentStep = mutableStateOf(1) // Current step of the process
-    val totalSteps = 3
+    val rib = mutableStateOf("") // Holds the RIB input by the user
+    val nickname = mutableStateOf("") // Holds the nickname input by the user
 
-    // Feedback for the user
-    val backendMessage = mutableStateOf("")
-    val isBackendCallSuccessful = mutableStateOf(false)
+    private val _accountDetails = MutableStateFlow<CustomAccount?>(null) // Holds the fetched account details
+    val accountDetails: StateFlow<CustomAccount?> = _accountDetails
 
-    // Step validation logic
-    fun isStepValid(): Boolean {
-        return when (currentStep.value) {
-            1 -> rib.value.isNotBlank()
-            2 -> nickname.value.isNotBlank()
-            3 -> otp.value.all { it.isNotBlank() }
-            else -> false
-        }
+    private val _uiState = MutableStateFlow<UiState>(UiState.Idle) // Manages UI state
+    val uiState: StateFlow<UiState> = _uiState
+
+    private val _accountAdded = MutableStateFlow(false) // New state to track successful account addition
+    val accountAdded: StateFlow<Boolean> = _accountAdded
+
+    // Defines possible UI states
+    sealed class UiState {
+        object Idle : UiState()
+        object Loading : UiState()
+        data class Success(val message: String) : UiState()
+        data class Error(val message: String) : UiState()
     }
 
-    fun getStepTitle(step: Int): String {
-        return when (step) {
-            1 -> "Enter RIB"
-            2 -> "Add Nickname"
-            3 -> "Enter OTP"
-            else -> ""
-        }
+    /**
+     * Reset the state when leaving the screen
+     */
+    fun resetState() {
+        _uiState.value = UiState.Idle
+        _accountAdded.value = false
+        _accountDetails.value = null
+        rib.value = ""
+        nickname.value = ""
     }
 
-    // Step 1: Search for an account using RIB
-    fun searchAccountByRIB(onSuccess: () -> Unit, onFailure: () -> Unit) {
+    /**
+     * Fetch an account by RIB from the backend
+     */
+    fun fetchAccountByRib(onSuccess: () -> Unit, onFailure: () -> Unit) {
+        if (rib.value.isBlank()) {
+            _uiState.value = UiState.Error("RIB cannot be empty")
+            onFailure()
+            return
+        }
+
         viewModelScope.launch {
+            _uiState.value = UiState.Loading
             try {
-                val response = RetrofitClient.getApiService().getAccountByRIB(rib.value)
-
+                val response = apiService.getAccountByRIB(rib.value)
                 if (response.isSuccessful) {
-                    backendMessage.value = "Account found! Proceed to add a nickname."
-                    isBackendCallSuccessful.value = true
-                    onSuccess()
+                    response.body()?.let { account ->
+                        _accountDetails.value = account
+                        nickname.value = account.name ?: ""
+                        _uiState.value = UiState.Success("Account fetched successfully!")
+                        onSuccess()
+                    } ?: run {
+                        _uiState.value = UiState.Error("Account not found.")
+                        onFailure()
+                    }
                 } else {
-                    backendMessage.value = "Account not found. Please check the RIB."
-                    isBackendCallSuccessful.value = false
+                    _uiState.value = UiState.Error("Failed to fetch account. Response code: ${response.code()}")
                     onFailure()
                 }
             } catch (e: Exception) {
-                backendMessage.value = "Error: ${e.localizedMessage}"
-                isBackendCallSuccessful.value = false
+                _uiState.value = UiState.Error("Error: ${e.localizedMessage}")
                 onFailure()
             }
         }
     }
 
-    // Step 2: Send OTP after adding a nickname
-    fun sendOtp(onSuccess: () -> Unit, onFailure: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                val response = RetrofitClient.getApiService().sendOtp()
-
-                if (response.isSuccessful) {
-                    backendMessage.value = "OTP sent to your email. Proceed to verify it."
-                    isBackendCallSuccessful.value = true
-                    onSuccess()
-                } else {
-                    backendMessage.value = "Failed to send OTP. Try again."
-                    isBackendCallSuccessful.value = false
-                    onFailure()
-                }
-            } catch (e: Exception) {
-                backendMessage.value = "Error: ${e.localizedMessage}"
-                isBackendCallSuccessful.value = false
-                onFailure()
-            }
+    /**
+     * Add an account to the user's list after updating its nickname
+     */
+    fun addAccountToList(onSuccess: () -> Unit, onFailure: () -> Unit) {
+        val currentAccount = _accountDetails.value ?: run {
+            _uiState.value = UiState.Error("No account fetched to add.")
+            onFailure()
+            return
         }
-    }
 
-
-
-    // Step 3: Verify the OTP and save the nickname
-    fun verifyOtpAndSaveNickname(onSuccess: () -> Unit, onFailure: () -> Unit) {
-        val enteredOtp = otp.value.joinToString("") // Concatenate OTP digits
+        if (nickname.value.isBlank()) {
+            _uiState.value = UiState.Error("Nickname cannot be empty")
+            onFailure()
+            return
+        }
 
         viewModelScope.launch {
             try {
-                val response = RetrofitClient.getApiService().verifyAndUpdateNickname(
-                    rib = rib.value,
-                    otp = enteredOtp,
-                    nickname = nickname.value
+                val nicknameUpdateResponse = apiService.updateNickname(
+                    rib = currentAccount.rib,
+                    request = NicknameUpdateRequest(nickname = nickname.value)
                 )
 
-                if (response.isSuccessful) {
-                    backendMessage.value = "Nickname added successfully!"
-                    isBackendCallSuccessful.value = true
+                if (!nicknameUpdateResponse.isSuccessful) {
+                    _uiState.value = UiState.Error("Failed to update nickname. Response code: ${nicknameUpdateResponse.code()}")
+                    onFailure()
+                    return@launch
+                }
+
+                // Prepare the account data to be added to the user's account list
+                val accountToAdd = AddAccount(
+                    rib = currentAccount.rib,
+                    name = nickname.value.ifBlank { currentAccount.name ?: "" },
+                    balance = currentAccount.balance ?: 0.0,
+                    isDefault = false
+                )
+
+                // Add the account to the user's account list
+                val addAccountResponse = apiService.addAccountToUserList(accountToAdd)
+                if (addAccountResponse.isSuccessful) {
+                    _accountAdded.value = true
+                    _uiState.value = UiState.Success("Account added successfully!")
                     onSuccess()
                 } else {
-                    backendMessage.value = "Invalid OTP or failed to add nickname."
-                    isBackendCallSuccessful.value = false
+                    _uiState.value = UiState.Error("Failed to add account. Response code: ${addAccountResponse.code()}")
                     onFailure()
                 }
             } catch (e: Exception) {
-                backendMessage.value = "Error: ${e.localizedMessage}"
-                isBackendCallSuccessful.value = false
+                _uiState.value = UiState.Error("Error: ${e.localizedMessage}")
                 onFailure()
             }
+        }
+    }
+
+    /**
+     * Validate input before submitting
+     */
+    fun validateInput(): Boolean {
+        return rib.value.isNotBlank() && nickname.value.isNotBlank()
+    }
+
+    /**
+     * Factory for creating instances of AddAccountViewModel
+     */
+    class Factory(private val apiService: ApiService) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(AddAccountViewModel::class.java)) {
+                return AddAccountViewModel(apiService) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
         }
     }
 }
