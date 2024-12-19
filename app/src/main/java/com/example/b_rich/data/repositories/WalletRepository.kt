@@ -1,5 +1,6 @@
 package com.example.b_rich.data.repositories
 
+import com.example.b_rich.data.dataModel.CreateTNDWalletRequest
 import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.network.ApiService
 import com.example.b_rich.data.network.CurrencyConversionRequest
@@ -8,6 +9,10 @@ import retrofit2.Response
 
 class WalletRepository(private val apiService: ApiService) {
     suspend fun getUserWallets(): List<Wallet> = apiService.getUserWallets()
+
+    suspend fun getWalletsWithTransactions(): List<Wallet> {
+        return apiService.getWalletsWithTransactions()
+    }
 
     suspend fun sendTransaction(
         fromWalletPublicKey: String,
@@ -29,5 +34,19 @@ class WalletRepository(private val apiService: ApiService) {
 
     suspend fun convertCurrency(amount: Double, fromCurrency: String): Wallet {
         return apiService.convertCurrency(CurrencyConversionRequest(amount, fromCurrency))
+    }
+
+    suspend fun createTNDWallet(amount: Double): Result<Wallet> {
+        return try {
+            val request = CreateTNDWalletRequest(amount)
+            val response = apiService.createTNDWallet(request)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception(response.errorBody()?.string() ?: "Unknown error"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

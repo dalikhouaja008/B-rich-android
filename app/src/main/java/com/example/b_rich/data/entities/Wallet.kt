@@ -17,5 +17,6 @@ data class Wallet(
     val createdAt: Date,
     val currency: String,
     val originalAmount:Number,
-    val convertedAmount:Number
+    val convertedAmount:Number,
+    val transactions: List<TransactionSolana>
 )

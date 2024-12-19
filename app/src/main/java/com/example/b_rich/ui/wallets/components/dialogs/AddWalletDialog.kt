@@ -46,7 +46,27 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.wallets.WalletsViewModel
-/*
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddWalletDialogWrapper(
+    showDialog: Boolean,
+    availableCurrencies: List<String>,
+    currencyConverterViewModel: CurrencyConverterViewModel,
+    walletsViewModel: WalletsViewModel,
+    onDismiss: () -> Unit
+) {
+    if (showDialog) {
+        AddWalletDialog(
+            availableCurrencies = availableCurrencies,
+            currencyConverterViewModel = currencyConverterViewModel,
+            walletsViewModel = walletsViewModel,
+            onDismiss = onDismiss
+        )
+    }
+}
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddWalletDialog(
@@ -64,7 +84,8 @@ fun AddWalletDialog(
     val conversionError by walletsViewModel.conversionError.collectAsState()
     val convertedWallet by walletsViewModel.convertedWallet.collectAsState()
     var expanded by remember { mutableStateOf(false) }
-
+// Collecter l'état une seule fois au niveau du composant
+    val uiState by currencyConverterViewModel.uiStateCurrency.collectAsState()
     // Conversion Effect
     LaunchedEffect(dinarsAmount, selectedCurrency) {
         if (dinarsAmount.isNotEmpty() && selectedCurrency.isNotEmpty()) {
@@ -77,13 +98,13 @@ fun AddWalletDialog(
     }
 
     // Update converted amount
-    LaunchedEffect(currencyConverterViewModel.uiStateCurrency.collectAsState().value.convertedAmount) {
-        val uiState = currencyConverterViewModel.uiStateCurrency.collectAsState().value
+    LaunchedEffect(uiState.convertedAmount) {
         if (uiState.convertedAmount > 0) {
             convertedAmount = uiState.convertedAmount.toString()
             conversionInProgress = false
         }
     }
+
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -243,4 +264,4 @@ fun AddWalletDialog(
         containerColor = Color.White,
         modifier = Modifier.padding(horizontal = 16.dp)
     )
-}*/
+}
