@@ -11,7 +11,6 @@ import com.example.b_rich.data.repositories.WalletRepository
 import com.example.b_rich.ui.AddAccount.AddAccountViewModel
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
-import com.example.b_rich.ui.forgetpassword.ForgetpasswordViewModel
 import com.example.b_rich.ui.listAccounts.ListAccountsViewModel
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.example.b_rich.ui.signin.SigninViewModel

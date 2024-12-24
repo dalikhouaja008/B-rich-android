@@ -1,6 +1,8 @@
 package com.example.b_rich.data.network
 
 import com.example.b_rich.data.dataModel.CreateTNDWalletRequest
+import com.example.b_rich.data.dataModel.ForgotPasswordRequest
+import com.example.b_rich.data.dataModel.ForgotPasswordResponse
 import com.example.b_rich.data.dataModel.NicknameUpdateRequest
 import com.example.b_rich.data.dataModel.PredictionRequest
 import com.example.b_rich.data.dataModel.PredictionResponse
@@ -29,7 +31,7 @@ data class LoginRequest(
 data class LoginResponse(
     val accessToken: String,  // JWT token returned from the server
     val refreshToken: String,  // Refresh token returned from the server
-    val user: user         // User returned from the server
+    val user: user
 )
 
 data class ResponseReset(
@@ -37,6 +39,7 @@ data class ResponseReset(
     val message : String,
     val user: user
 )
+
 data class RequestResetBody(
     val email: String
 )
@@ -67,6 +70,9 @@ data class SendTransactionRequest(
 data class TransactionResponse(
     val signature: String
 )
+data class RequestResetResponse(
+    val message: String
+)
 
 interface ApiService {
 
@@ -80,13 +86,20 @@ interface ApiService {
     suspend fun loginwithbiometric(@Body loginRequest: LoginRequest):Response<LoginResponse>
 
     @POST("auth/request")
-    suspend fun requestReset(@Body body: RequestResetBody): Response<ResponseReset>
+    suspend fun requestReset(@Body body: RequestResetBody): Response<RequestResetResponse>
 
     @POST("auth/verify")
     suspend fun verifyCode(@Body body: VerifyCodeBody): Response<ResponseReset>
 
     @POST("auth/reset")
     suspend fun resetPassword(@Body body: ResetPasswordBody): Response<ResponseReset>
+
+    @POST("auth/forgot-password")
+    suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<ForgotPasswordResponse>
+
+
+
+
 
     @GET("exchange-rate")
     suspend fun getExchangeRate():Response<List<ExchangeRate>>

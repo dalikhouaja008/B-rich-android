@@ -1,10 +1,13 @@
 package com.example.b_rich.data.repositories
 
+import com.example.b_rich.data.dataModel.ForgotPasswordRequest
+import com.example.b_rich.data.dataModel.ForgotPasswordResponse
 import com.example.b_rich.data.entities.user
 import com.example.b_rich.data.network.ApiService
 import com.example.b_rich.data.network.LoginRequest
 import com.example.b_rich.data.network.LoginResponse
 import com.example.b_rich.data.network.RequestResetBody
+import com.example.b_rich.data.network.RequestResetResponse
 import com.example.b_rich.data.network.ResetPasswordBody
 import com.example.b_rich.data.network.ResponseReset
 import com.example.b_rich.data.network.VerifyCodeBody
@@ -43,12 +46,21 @@ public class UserRepository @Inject constructor(
         }
     }
 
-    suspend fun requestReset(email: String): Response<ResponseReset> {
+    suspend fun requestPasswordReset(email: String): Response<RequestResetResponse> {
         return try {
             apiService.requestReset(RequestResetBody(email))
         } catch (e: Exception) {
             e.printStackTrace()
             Response.error(500, ResponseBody.create(null, "Error requesting password reset"))
+        }
+    }
+
+    suspend fun forgotPassword(email: String): Response<ForgotPasswordResponse> {
+        return try {
+            apiService.forgotPassword(ForgotPasswordRequest(email))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Response.error(500, ResponseBody.create(null, "Error requesting forget password"))
         }
     }
 

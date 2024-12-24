@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.b_rich.data.entities.user
-import com.example.b_rich.navigateToCodeVerification
 import com.example.b_rich.ui.profil.componenets.LogoutConfirmationDialog
 import com.example.b_rich.ui.resetPassword.PasswordEntryBottomSheet
 //import com.example.b_rich.ui.resetPassword.PasswordEntryBottomSheet
