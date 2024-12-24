@@ -38,51 +38,56 @@ import com.example.b_rich.ui.signin.SigninViewModel
 fun WelcomeScreen(viewModel: SigninViewModel = viewModel(), navHostController: NavHostController) {
     val context = LocalContext.current
     val loginUiState by viewModel.loginUiState.observeAsState(LoginUiState())
-    val biometricAuthenticator= BiometricAuthenticator(context)
+    val biometricAuthenticator = BiometricAuthenticator(context)
     val activity = LocalContext.current as FragmentActivity
-    var message by  remember{
-        mutableStateOf("")
-    }
-   /* var showBiometricDialog by remember { mutableStateOf(false) }
+    var message by remember { mutableStateOf("") }
+    var showBiometricDialog by remember { mutableStateOf(false) }
     val mSharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
+
+    // Vérifier les credentials sauvegardés et lancer l'authentification biométrique
     LaunchedEffect(Unit) {
         if (mSharedPreferences.getBoolean(IS_REMEMBERED, false)) {
             val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
             val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
             if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
                 showBiometricDialog = true
-                // Déclencher l'authentification biométrique
                 biometricAuthenticator.promptBiometricAuth(
-                    title ="login",
-                    subTitle ="Use your finger print or face id",
-                    negativeButtonText ="Cancel",
+                    title = "Welcome Back",
+                    subTitle = "Use your fingerprint or face ID to login",
+                    negativeButtonText = "Use Password",
                     fragmentActivity = activity,
                     onSuccess = {
-                        message="Success"
+                        message = "Success"
                     },
                     onFailed = {
-                        message="Wrong fingerprint or face id"
+                        message = "Authentication failed"
                     },
-                    onError = { _, error->
-                        message= error.toString()
-
+                    onError = { _, error ->
+                        message = error.toString()
                     }
                 )
             }
         }
     }
-    // Gérer le résultat de l'authentification biométrique
+
+    // Gérer l'authentification réussie
     LaunchedEffect(message) {
         if (message == "Success") {
             val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
             val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
             if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
-                // Appeler loginWithBiometric au lieu de login normal
                 viewModel.loginUserWithBiometricAuth(savedEmail, savedPassword)
-                loginUiState.user?.let { navigateToExchangeRate(it, navHostController) }
             }
         }
-    }*/
+    }
+
+    // Gérer la navigation après login réussi
+    LaunchedEffect(loginUiState.isLoggedIn) {
+        if (loginUiState.isLoggedIn) {
+            loginUiState.user?.let { navigateToExchangeRate(it, navHostController) }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -132,20 +137,63 @@ fun WelcomeScreen(viewModel: SigninViewModel = viewModel(), navHostController: N
 
             Spacer(modifier = Modifier.height(10.dp))
 
-
-
             // Sign In Button
             Button(
-                onClick = { navHostController.navigate("loginPage") },
+                onClick = {
+                    val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
+                    val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
+
+                    if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
+                        // Si des credentials sont sauvegardés, lancer l'authentification biométrique
+                        biometricAuthenticator.promptBiometricAuth(
+                            title = "Sign In",
+                            subTitle = "Use your fingerprint or face ID to login",
+                            negativeButtonText = "Use Password",
+                            fragmentActivity = activity,
+                            onSuccess = {
+                                message = "Success"
+                            },
+                            onFailed = {
+                                // En cas d'échec, naviguer vers la page de login
+                                navHostController.navigate("loginPage")
+                            },
+                            onError = { _, _ ->
+                                // En cas d'erreur, naviguer vers la page de login
+                                navHostController.navigate("loginPage")
+                            }
+                        )
+                    } else {
+                        // Si pas de credentials sauvegardés, aller directement à la page de login
+                        navHostController.navigate("loginPage")
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF44336))
             ) {
+                if (loginUiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White
+                    )
+                } else {
+                    Text(
+                        text = "Sign In",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            // Afficher les erreurs éventuelles
+            loginUiState.errorMessage?.let { error ->
                 Text(
-                    text = "Sign In",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    text = error,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(vertical = 8.dp)
                 )
             }
 
@@ -183,6 +231,8 @@ fun WelcomeScreen(viewModel: SigninViewModel = viewModel(), navHostController: N
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
+
+
         }
     }
 }

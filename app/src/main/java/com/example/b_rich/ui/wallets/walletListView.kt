@@ -1,18 +1,9 @@
 package com.example.b_rich.ui.wallets
 
-import TransactionRow
-import androidx.collection.emptyLongSet
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -21,21 +12,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.b_rich.data.entities.Wallet
-import com.example.b_rich.data.entities.Transaction
-import com.example.b_rich.data.entities.TransactionSolana
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
-import com.example.b_rich.ui.wallets.components.QuickActionsRow
 import com.example.b_rich.ui.wallets.components.SectionTitle
-import com.example.b_rich.ui.wallets.components.TNDWalletCard
-import com.example.b_rich.ui.wallets.components.TransactionsSection
-import com.example.b_rich.ui.wallets.components.WalletCard
 import com.example.b_rich.ui.wallets.components.dialogs.AddWalletDialogWrapper
 import com.example.b_rich.ui.wallets.components.dialogs.CreateTNDWalletDialog
-
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import androidx.fragment.app.FragmentActivity
+import com.example.b_rich.ui.biometricDialog.BiometricAuthenticator
+import com.example.b_rich.ui.wallets.components.TNDWalletCard
+import com.example.b_rich.ui.wallets.components.TransactionsSection
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.ui.text.style.TextAlign
+import com.example.b_rich.ui.wallets.components.QuickActionsRow
+import com.example.b_rich.ui.wallets.components.WalletCard
 
 @Composable
 fun Wallets(
@@ -48,6 +43,45 @@ fun Wallets(
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var showCreateDialog by remember { mutableStateOf(false) }
+
+    // Configuration de l'authentification biométrique
+    val context = LocalContext.current
+    val activity = LocalContext.current as FragmentActivity
+    val biometricAuthenticator = remember { BiometricAuthenticator(context) }
+
+    // Fonction pour gérer l'authentification biométrique
+    fun handleBiometricAuth(action: String) {
+        biometricAuthenticator.promptBiometricAuth(
+            title = when (action) {
+                "add_wallet" -> "Add New Wallet"
+                "aliment_wallet" -> "Add Funds to Wallet"
+                else -> "Authenticate"
+            },
+            subTitle = "Please authenticate to continue",
+            negativeButtonText = "Cancel",
+            fragmentActivity = activity,
+            onSuccess = {
+                when (action) {
+                    "add_wallet" -> showDialog = true
+                    "aliment_wallet" -> showCreateDialog = true
+                }
+            },
+            onFailed = {
+                Toast.makeText(
+                    context,
+                    "Authentication failed",
+                    Toast.LENGTH_SHORT
+                ).show()
+            },
+            onError = { _, error ->
+                Toast.makeText(
+                    context,
+                    "Error: $error",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        )
+    }
 
     Box(
         modifier = Modifier
@@ -85,8 +119,9 @@ fun Wallets(
 
                             Spacer(modifier = Modifier.width(16.dp))
 
+                            // Bouton Aliment TND wallet avec authentification
                             Button(
-                                onClick = { showCreateDialog=true },
+                                onClick = { handleBiometricAuth("aliment_wallet") },
                                 modifier = Modifier.wrapContentWidth(),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Color(0xFF3D5AFE),
@@ -132,7 +167,6 @@ fun Wallets(
                             )
 
                             if (wallets.isEmpty()) {
-                                // Empty state with add first wallet button
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -166,8 +200,9 @@ fun Wallets(
                                             modifier = Modifier.padding(horizontal = 32.dp)
                                         )
 
+                                        // Bouton Add Foreign Currency Wallet avec authentification
                                         Button(
-                                            onClick = { showDialog = true },
+                                            onClick = { handleBiometricAuth("add_wallet") },
                                             colors = ButtonDefaults.buttonColors(
                                                 containerColor = Color(0xFF3D5AFE),
                                                 contentColor = Color.White
@@ -197,8 +232,9 @@ fun Wallets(
                                 }
                             } else {
                                 Box(modifier = Modifier.fillMaxWidth()) {
+                                    // Bouton Add Wallet avec authentification
                                     Button(
-                                        onClick = { showDialog = true },
+                                        onClick = { handleBiometricAuth("add_wallet") },
                                         modifier = Modifier
                                             .align(Alignment.TopEnd)
                                             .height(40.dp),
@@ -243,7 +279,7 @@ fun Wallets(
                     }
                 }
 
-                // Quick Actions Section - Only show if there are foreign currency wallets
+                // Quick Actions Section
                 if (wallets.isNotEmpty()) {
                     item {
                         SectionTitle(
@@ -258,7 +294,7 @@ fun Wallets(
                     }
                 }
 
-                // Transactions Section - Only show for selected non-TND wallet with transactions
+                // Transactions Section
                 item {
                     selectedWallet?.let { wallet ->
                         if (wallet != TNDWallet && wallet.transactions.isNotEmpty()) {
@@ -271,6 +307,8 @@ fun Wallets(
                 }
             }
         }
+
+        // Dialogs
         if (showCreateDialog) {
             CreateTNDWalletDialog(
                 onDismiss = { showCreateDialog = false },
@@ -281,15 +319,19 @@ fun Wallets(
                 viewModel = viewModel
             )
         }
-        AddWalletDialogWrapper(
-            showDialog = showDialog,
-            availableCurrencies = listOf("EUR", "USD", "GBP"), // Vos devises disponibles
-            currencyConverterViewModel = currencyConverterViewModel,
-            walletsViewModel = viewModel,
-            onDismiss = { showDialog = false }
-        )
+
+        if (showDialog) {
+            AddWalletDialogWrapper(
+                showDialog = true,
+                availableCurrencies = listOf("EUR", "USD", "GBP"),
+                currencyConverterViewModel = currencyConverterViewModel,
+                walletsViewModel = viewModel,
+                onDismiss = { showDialog = false }
+            )
+        }
     }
 }
+
 data class QuickAction(
     val icon: ImageVector,
     val label: String

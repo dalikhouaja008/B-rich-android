@@ -15,10 +15,13 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,23 +34,44 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.b_rich.data.entities.TransactionSolana
 
+// Créez d'abord un enum pour les filtres
+enum class TransactionFilter(val label: String) {
+    ALL("All"),
+    SENT("Sent"),
+    RECEIVED("Received")
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionsSection(
     transactions: List<TransactionSolana>,
     walletPublicKey: String
 ) {
-    var showAllTransactions by remember { mutableStateOf(false) }
-    val displayedTransactions = if (showAllTransactions) {
-        transactions
-    } else {
-        transactions.take(5)
+    var showBottomSheet by remember { mutableStateOf(false) }
+    var selectedFilter by remember { mutableStateOf(TransactionFilter.ALL) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredTransactions = remember(selectedFilter, searchQuery, transactions) {
+        transactions.filter { transaction ->
+            val matchesFilter = when (selectedFilter) {
+                TransactionFilter.ALL -> true
+                TransactionFilter.SENT -> transaction.fromAddress == walletPublicKey
+                TransactionFilter.RECEIVED -> transaction.toAddress == walletPublicKey
+            }
+
+            val matchesSearch = searchQuery.isEmpty() ||
+                    transaction.type.contains(searchQuery, ignoreCase = true) ||
+                    transaction.status.contains(searchQuery, ignoreCase = true)
+
+            matchesFilter && matchesSearch
+        }
     }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Header with transaction count
+        // En-tête avec le nombre de transactions
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -57,72 +81,53 @@ fun TransactionsSection(
                 title = "Wallet Transactions",
                 description = "${transactions.size} transactions in total"
             )
-
-            // Filter or sort options could be added here
-            IconButton(onClick = { /* Add filter/sort logic */ }) {
-                Icon(
-                    imageVector = Icons.Default.FilterList,
-                    contentDescription = "Filter transactions",
-                    tint = Color(0xFF3D5AFE)
-                )
-            }
         }
 
-        // Transactions list
+        // Afficher les 6 premières transactions
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .animateContentSize(), // Smooth animation when expanding/collapsing
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            displayedTransactions.forEach { transaction ->
+            transactions.take(6).forEach { transaction ->
                 TransactionRow(transaction = transaction)
             }
         }
 
-        // "View More" button - only show if there are more than 5 transactions
-        if (transactions.size > 5) {
+        // Bouton View More
+        if (transactions.size > 6) {
             Button(
-                onClick = { showAllTransactions = !showAllTransactions },
+                onClick = { showBottomSheet = true },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF3D5AFE).copy(alpha = 0.1f),
-                    contentColor = Color(0xFF3D5AFE)
+                    containerColor = Color(0xFF3D5AFE)
                 ),
-                shape = RoundedCornerShape(12.dp),
-                elevation = ButtonDefaults.elevatedButtonElevation(
-                    defaultElevation = 0.dp
-                )
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = if (showAllTransactions) "Show Less" else "View All Transactions",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Icon(
-                        imageVector = if (showAllTransactions)
-                            Icons.Default.KeyboardArrowUp
-                        else
-                            Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .size(20.dp)
-                    )
-                }
+                Text(
+                    text = "View All Transactions",
+                    color = Color.White,
+                    style = MaterialTheme.typography.labelLarge
+                )
             }
         }
+    }
 
-        // Transaction summary card
-        TransactionSummaryCard(transactions = transactions)
+    // BottomSheet pour les transactions
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = rememberModalBottomSheetState()
+        ) {
+            TransactionsBottomSheet(
+                transactions = filteredTransactions,
+                selectedFilter = selectedFilter,
+                onFilterSelected = { selectedFilter = it },
+                searchQuery = searchQuery,
+                onSearchQueryChange = { searchQuery = it },
+                onDismiss = { showBottomSheet = false }
+            )
+        }
     }
 }

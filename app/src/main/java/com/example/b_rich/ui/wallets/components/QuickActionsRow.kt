@@ -1,5 +1,6 @@
 package com.example.b_rich.ui.wallets.components
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,8 +18,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import com.example.b_rich.data.entities.Wallet
+import com.example.b_rich.ui.biometricDialog.BiometricAuthenticator
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.wallets.QuickAction
 import com.example.b_rich.ui.wallets.WalletsViewModel
@@ -43,6 +47,47 @@ fun QuickActionsRow(
     var showReceiveDialog by remember { mutableStateOf(false) }
     val uiState by currencyConverterViewModel.uiStateCurrency.collectAsState()
 
+    // Ajouter le contexte et l'authentificateur biométrique
+    val context = LocalContext.current
+    val activity = LocalContext.current as FragmentActivity
+    val biometricAuthenticator = remember { BiometricAuthenticator(context) }
+    var pendingAction by remember { mutableStateOf<String?>(null) }
+
+    // Fonction pour gérer l'authentification biométrique
+    fun handleBiometricAuth(actionType: String) {
+        if (selectedWallet != null) {
+            biometricAuthenticator.promptBiometricAuth(
+                title = "Authenticate",
+                subTitle = "Please authenticate to continue",
+                negativeButtonText = "Cancel",
+                fragmentActivity = activity,
+                onSuccess = {
+                    when (actionType) {
+                        "Aliment" -> showAlimentDialog = true
+                        "Send" -> showSendDialog = true
+                        "Receive" -> showReceiveDialog = true
+                    }
+                },
+                onFailed = {
+                    // Afficher un message d'erreur
+                    Toast.makeText(
+                        context,
+                        "Authentication failed",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                },
+                onError = { _, error ->
+                    // Afficher un message d'erreur
+                    Toast.makeText(
+                        context,
+                        "Error: $error",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            )
+        }
+    }
+
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -55,19 +100,9 @@ fun QuickActionsRow(
                 label = action.label,
                 onClick = {
                     when (action.label) {
-                        "Aliment" -> {
+                        "Aliment", "Send", "Receive" -> {
                             if (selectedWallet != null) {
-                                showAlimentDialog = true
-                            }
-                        }
-                        "Send" -> {
-                            if (selectedWallet != null) {
-                                showSendDialog = true
-                            }
-                        }
-                        "Receive" -> {
-                            if (selectedWallet != null) {
-                                showReceiveDialog = true
+                                handleBiometricAuth(action.label)
                             }
                         }
                     }
@@ -82,7 +117,10 @@ fun QuickActionsRow(
             uiState = uiState,
             walletsViewModel = walletsViewModel,
             currencyConverterViewModel = currencyConverterViewModel,
-            onDismiss = { showAlimentDialog = false }
+            onDismiss = {
+                showAlimentDialog = false
+                pendingAction = null
+            }
         )
     }
 
@@ -90,14 +128,20 @@ fun QuickActionsRow(
         SendFundsDialog(
             selectedWallet = selectedWallet,
             walletsViewModel = walletsViewModel,
-            onDismiss = { showSendDialog = false }
+            onDismiss = {
+                showSendDialog = false
+                pendingAction = null
+            }
         )
     }
 
     if (showReceiveDialog && selectedWallet != null) {
         ReceiveDialog(
             selectedWallet = selectedWallet,
-            onDismiss = { showReceiveDialog = false }
+            onDismiss = {
+                showReceiveDialog = false
+                pendingAction = null
+            }
         )
     }
 }
