@@ -2,6 +2,7 @@ package com.example.b_rich.data.repositories
 
 import com.example.b_rich.data.dataModel.ForgotPasswordRequest
 import com.example.b_rich.data.dataModel.ForgotPasswordResponse
+import com.example.b_rich.data.dataModel.VerifyCodeResponse
 import com.example.b_rich.data.entities.user
 import com.example.b_rich.data.network.ApiService
 import com.example.b_rich.data.network.LoginRequest
@@ -64,13 +65,9 @@ public class UserRepository @Inject constructor(
         }
     }
 
-    suspend fun verifyCode(email: String, code: String): Response<ResponseReset> {
-        return try {
-            apiService.verifyCode(VerifyCodeBody(email, code))
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Response.error(500, ResponseBody.create(null, "Error verifying code"))
-        }
+
+    suspend fun verifyCode(email: String, code: String): Response<VerifyCodeResponse> {
+        return apiService.verifyCode(VerifyCodeBody(email, code))
     }
 
     suspend fun resetPassword(email: String, code: String, newPassword: String): Response<ResponseReset> {

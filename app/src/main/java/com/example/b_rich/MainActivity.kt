@@ -37,8 +37,6 @@ import com.example.b_rich.ui.currency_converter.CurrencyConverter
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
 import com.example.b_rich.ui.listAccounts.ListAccountsViewModel
-import com.example.b_rich.ui.resetPassword.CodeEntryScreen
-import com.example.b_rich.ui.resetPassword.PasswordEntryScreen
 import com.example.b_rich.ui.resetPassword.ResetPasswordViewModel
 import com.example.b_rich.ui.signin.LoginScreen
 import com.example.b_rich.ui.signin.SigninViewModel
@@ -151,34 +149,6 @@ class MainActivity : FragmentActivity() {
                                     currencyConverterViewModel,
                                     walletsViewModel,
                                     listAccountsViewModel
-                                )
-                            }
-                        }
-                        composable(
-                            route = "codeVerification/{userJson}",
-                            arguments = listOf(
-                                navArgument("userJson") { type = NavType.StringType }
-                            )
-                        ) { backStackEntry ->
-                            val userJson = backStackEntry.arguments?.getString("userJson")
-                            val user = userJson?.let { Gson().fromJson(it, user::class.java) }
-                            user?.let { CodeEntryScreen(it, resetPasswordViewModel, navController) }
-                        }
-                        composable(
-                            "changepassword/{code}/{email}",
-                            arguments = listOf(
-                                navArgument("code") { type = NavType.StringType },
-                                navArgument("email") { type = NavType.StringType }
-                            )
-                        ) { backStackEntry ->
-                            val code = backStackEntry.arguments?.getString("code")
-                            val email = backStackEntry.arguments?.getString("email")
-                            if (code != null && email != null) {
-                                PasswordEntryScreen(
-                                    code,
-                                    email,
-                                    resetPasswordViewModel,
-                                    navController
                                 )
                             }
                         }

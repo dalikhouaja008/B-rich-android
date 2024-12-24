@@ -6,6 +6,7 @@ import com.example.b_rich.data.dataModel.ForgotPasswordResponse
 import com.example.b_rich.data.dataModel.NicknameUpdateRequest
 import com.example.b_rich.data.dataModel.PredictionRequest
 import com.example.b_rich.data.dataModel.PredictionResponse
+import com.example.b_rich.data.dataModel.VerifyCodeResponse
 import com.example.b_rich.data.entities.AddAccount
 import com.example.b_rich.data.entities.CustomAccount
 import com.example.b_rich.data.entities.ExchangeRate
@@ -89,7 +90,7 @@ interface ApiService {
     suspend fun requestReset(@Body body: RequestResetBody): Response<RequestResetResponse>
 
     @POST("auth/verify")
-    suspend fun verifyCode(@Body body: VerifyCodeBody): Response<ResponseReset>
+    suspend fun verifyCode(@Body body: VerifyCodeBody): Response<VerifyCodeResponse>
 
     @POST("auth/reset")
     suspend fun resetPassword(@Body body: ResetPasswordBody): Response<ResponseReset>
