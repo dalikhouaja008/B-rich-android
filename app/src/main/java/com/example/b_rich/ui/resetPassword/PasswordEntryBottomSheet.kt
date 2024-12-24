@@ -1,5 +1,6 @@
 package com.example.b_rich.ui.resetPassword
 
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.unit.dp
@@ -18,8 +19,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
+import com.example.b_rich.ui.theme.PASSWORD
+import com.example.b_rich.ui.theme.PREF_FILE
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,8 +37,21 @@ fun PasswordEntryBottomSheet(
     var passwordError by remember { mutableStateOf("") }
     var confirmPasswordError by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var showSuccessDialog by remember { mutableStateOf(false) }
     val resetPasswordUiState by viewModel.resetPasswordUiState.observeAsState(ResetPasswordUiState())
-    val isLoading = resetPasswordUiState.isLoading
+    val context = LocalContext.current
+    val sharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
+
+    // Gérer le succès de la réinitialisation
+    LaunchedEffect(resetPasswordUiState.isPasswordReset) {
+        if (resetPasswordUiState.isPasswordReset) {
+            sharedPreferences.edit().apply {
+                putString(PASSWORD, newPassword)
+                apply()
+            }
+            showSuccessDialog = true
+        }
+    }
 
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -142,15 +159,14 @@ fun PasswordEntryBottomSheet(
                     }
 
                     if (isNewPasswordValid && isConfirmValid) {
-                        //viewModel.resetPassword(mail, code, newPassword)
-                        onDismiss()
+                        viewModel.resetPassword(mail, resetPasswordUiState.verificationCode!!, newPassword)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !isLoading,
+                enabled = !resetPasswordUiState.isLoading,
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
             ) {
-                if (isLoading) {
+                if (resetPasswordUiState.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
                         color = Color.White
@@ -160,6 +176,27 @@ fun PasswordEntryBottomSheet(
                 }
             }
         }
+    }
+    // Dialog de succès
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showSuccessDialog = false
+                onDismiss()
+            },
+            title = { Text("Success") },
+            text = { Text("Your password has been successfully reset.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showSuccessDialog = false
+                        onDismiss()
+                    }
+                ) {
+                    Text("OK")
+                }
+            }
+        )
     }
 }
 

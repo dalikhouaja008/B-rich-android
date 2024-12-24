@@ -1,5 +1,6 @@
 package com.example.b_rich.ui.forgetpassword
 
+import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -41,6 +43,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.b_rich.ui.signin.SigninViewModel
+import com.example.b_rich.ui.theme.PASSWORD
+import com.example.b_rich.ui.theme.PREF_FILE
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,7 +62,8 @@ fun PasswordResetBottomSheet(
     var isLoading by remember { mutableStateOf(false) }
     var showAlert by remember { mutableStateOf(false) }
     var resultMessage by remember { mutableStateOf("") }
-
+    val context = LocalContext.current
+    val sharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
@@ -167,6 +172,13 @@ fun PasswordResetBottomSheet(
                         viewModel.resetPassword(email, token, newPassword) { message ->
                             resultMessage = message
                             isLoading = false
+                            if (message.contains("success", ignoreCase = true)) {
+                                // Mettre à jour le mot de passe dans SharedPreferences
+                                sharedPreferences.edit().apply {
+                                    putString(PASSWORD, newPassword)
+                                    apply()
+                                }
+                            }
                             showAlert = true
                         }
                     }

@@ -14,44 +14,30 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
-data class ResetPasswordUiState(
-    val isLoading: Boolean = false,
-    val isCodeVerified: Boolean = false,
-    val isCodeSent:Boolean =false,
-    var isPasswordReset: Boolean = false,
-    val errorMessage: String? = null,
-    val hasNavigated: Boolean = false,
-    val user: user? =null
-)
-
-class ResetPasswordViewModel @Inject constructor(
-    private val userRepository: UserRepository,
-) : ViewModel() {
-
-
-    private var _resetPasswordUiState: MutableLiveData<ResetPasswordUiState> = MutableLiveData(ResetPasswordUiState())
-    val resetPasswordUiState: LiveData<ResetPasswordUiState> get() = _resetPasswordUiState
+class ResetPasswordViewModel(private val userRepository: UserRepository) : ViewModel() {
+    private val _resetPasswordUiState = MutableLiveData(ResetPasswordUiState())
+    val resetPasswordUiState: LiveData<ResetPasswordUiState> = _resetPasswordUiState
 
     fun requestReset(email: String) {
         viewModelScope.launch {
-            _resetPasswordUiState.value = ResetPasswordUiState(isLoading = true)
-
+            _resetPasswordUiState.value = _resetPasswordUiState.value?.copy(isLoading = true)
             try {
                 val response = userRepository.requestPasswordReset(email)
-
                 if (response.isSuccessful) {
-                    _resetPasswordUiState.value = ResetPasswordUiState(isCodeSent = true)
+                    _resetPasswordUiState.value = _resetPasswordUiState.value?.copy(
+                        isCodeSent = true,
+                        isLoading = false
+                    )
                 } else {
-                    val errorBody = response.errorBody()?.string()
-                    Log.e("ResetPassword", "Error: $errorBody")
-                    _resetPasswordUiState.value = ResetPasswordUiState(
-                        errorMessage = "Request failed: ${response.code()} - ${response.message()}"
+                    _resetPasswordUiState.value = _resetPasswordUiState.value?.copy(
+                        errorMessage = "Failed to send reset code",
+                        isLoading = false
                     )
                 }
             } catch (e: Exception) {
-                Log.e("ResetPassword", "Exception during request reset", e)
-                _resetPasswordUiState.value = ResetPasswordUiState(
-                    errorMessage = "Error: ${e.localizedMessage}"
+                _resetPasswordUiState.value = _resetPasswordUiState.value?.copy(
+                    errorMessage = e.message,
+                    isLoading = false
                 )
             }
         }
@@ -59,23 +45,40 @@ class ResetPasswordViewModel @Inject constructor(
 
     fun verifyCode(email: String, code: String) {
         viewModelScope.launch {
-            _resetPasswordUiState.value = ResetPasswordUiState(isLoading = true)
-
+            _resetPasswordUiState.value = _resetPasswordUiState.value?.copy(isLoading = true)
             try {
                 val response = userRepository.verifyCode(email, code)
-
                 if (response.isSuccessful) {
-                    _resetPasswordUiState.value = ResetPasswordUiState(isCodeVerified = true)
+                    response.body()?.let { verifyResponse ->
+                        if (verifyResponse.success) {
+                            _resetPasswordUiState.value = _resetPasswordUiState.value?.copy(
+                                isCodeVerified = true,
+                                verificationCode = code,
+                                isLoading = false,
+                                errorMessage = null
+                            )
+                        } else {
+                            _resetPasswordUiState.value = _resetPasswordUiState.value?.copy(
+                                isCodeVerified = false,
+                                isLoading = false,
+                                errorMessage = verifyResponse.message
+                            )
+                        }
+                    } ?: run {
+                        _resetPasswordUiState.value = _resetPasswordUiState.value?.copy(
+                            isLoading = false,
+                            errorMessage = "Invalid response from server"
+                        )
+                    }
                 } else {
-                    val errorBody = response.errorBody()?.string()
-                    Log.e("ResetPassword", "Error: $errorBody")
-                    _resetPasswordUiState.value = ResetPasswordUiState(
-                        errorMessage = "Verification failed: ${response.code()} - ${response.message()}"
+                    _resetPasswordUiState.value = _resetPasswordUiState.value?.copy(
+                        isLoading = false,
+                        errorMessage = "Code verification failed: ${response.message()}"
                     )
                 }
             } catch (e: Exception) {
-                Log.e("ResetPassword", "Exception during code verification", e)
-                _resetPasswordUiState.value = ResetPasswordUiState(
+                _resetPasswordUiState.value = _resetPasswordUiState.value?.copy(
+                    isLoading = false,
                     errorMessage = "Error: ${e.localizedMessage}"
                 )
             }
@@ -84,51 +87,60 @@ class ResetPasswordViewModel @Inject constructor(
 
     fun resetPassword(email: String, code: String, newPassword: String) {
         viewModelScope.launch {
-            _resetPasswordUiState.value = ResetPasswordUiState(isLoading = true)
-
+            _resetPasswordUiState.value = _resetPasswordUiState.value?.copy(isLoading = true)
             try {
                 val response = userRepository.resetPassword(email, code, newPassword)
-
                 if (response.isSuccessful) {
-                    _resetPasswordUiState.value = ResetPasswordUiState(isPasswordReset = true, user = response.body()?.user)
+                    _resetPasswordUiState.value = _resetPasswordUiState.value?.copy(
+                        isPasswordReset = true,
+                        isLoading = false
+                    )
                 } else {
-                    val errorBody = response.errorBody()?.string()
-                    Log.e("ResetPassword", "Error: $errorBody")
-                    _resetPasswordUiState.value = ResetPasswordUiState(
-                        errorMessage = "Reset failed: ${response.code()} - ${response.message()}"
+                    _resetPasswordUiState.value = _resetPasswordUiState.value?.copy(
+                        errorMessage = "Failed to reset password",
+                        isLoading = false
                     )
                 }
             } catch (e: Exception) {
-                Log.e("ResetPassword", "Exception during password reset", e)
-                _resetPasswordUiState.value = ResetPasswordUiState(
-                    errorMessage = "Error: ${e.localizedMessage}"
+                _resetPasswordUiState.value = _resetPasswordUiState.value?.copy(
+                    errorMessage = e.message,
+                    isLoading = false
                 )
             }
         }
     }
-    // Function to validate password
+
     fun validateNewPassword(password: String, setError: (String) -> Unit): Boolean {
         return when {
             password.isEmpty() -> {
-                setError("New password must not be empty")
+                setError("Password cannot be empty")
                 false
             }
             password.length < 6 -> {
-                setError("New password must be at least 6 characters")
+                setError("Password must be at least 6 characters")
+                false
+            }
+            !password.any { it.isDigit() } -> {
+                setError("Password must contain at least one number")
+                false
+            }
+            !password.any { it.isUpperCase() } -> {
+                setError("Password must contain at least one uppercase letter")
                 false
             }
             else -> true
         }
     }
-
-    // Function to validate verification code
-    fun validateCode(code: String, setError: (String) -> Unit): Boolean {
-        return when {
-            code.isEmpty() -> {
-                setError("Verification code must not be empty")
-                false
-            }
-            else -> true
-        }
+    fun resetState() {
+        _resetPasswordUiState.value = ResetPasswordUiState()
     }
 }
+
+data class ResetPasswordUiState(
+    val isLoading: Boolean = false,
+    val isCodeSent: Boolean = false,
+    val isCodeVerified: Boolean = false,
+    val isPasswordReset: Boolean = false,
+    val verificationCode: String? = null,
+    val errorMessage: String? = null
+)

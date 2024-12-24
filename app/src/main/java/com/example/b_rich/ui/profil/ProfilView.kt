@@ -42,6 +42,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.b_rich.data.entities.user
 import com.example.b_rich.ui.profil.componenets.LogoutConfirmationDialog
+import com.example.b_rich.ui.resetPassword.CodeEntryBottomSheet
 import com.example.b_rich.ui.resetPassword.PasswordEntryBottomSheet
 //import com.example.b_rich.ui.resetPassword.PasswordEntryBottomSheet
 import com.example.b_rich.ui.resetPassword.ResetPasswordUiState
@@ -63,12 +64,19 @@ fun ProfilePage(
     user: user,
     viewModel: ResetPasswordViewModel = viewModel(),
 ) {
-    var showPasswordBottomSheet by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     val resetPasswordUiState by viewModel.resetPasswordUiState.observeAsState(ResetPasswordUiState())
     val isLoading = resetPasswordUiState.isLoading
     val context = LocalContext.current
     val sharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
+    var currentStep by remember { mutableStateOf(ResetPasswordStep.None) }
+
+    // Modifier le LaunchedEffect pour ne gérer que la vérification du code
+    LaunchedEffect(resetPasswordUiState.isCodeVerified) {
+        if (resetPasswordUiState.isCodeVerified) {
+            currentStep = ResetPasswordStep.PasswordEntry
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -129,6 +137,10 @@ fun ProfilePage(
                 Button(
                     onClick = {
                         viewModel.requestReset(user.email)
+                        // Ne pas forcer directement l'état ici
+                        if (!resetPasswordUiState.isCodeVerified) {
+                            currentStep = ResetPasswordStep.CodeEntry
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -155,13 +167,34 @@ fun ProfilePage(
             }
         }
 
-        // Show Password Entry Bottom Sheet
-        if (showPasswordBottomSheet) {
-            PasswordEntryBottomSheet(
-                mail = user.email,
-                viewModel = viewModel,
-                onDismiss = { showPasswordBottomSheet = false }
-            )
+        // Gérer les différentes étapes avec les BottomSheets
+        when (currentStep) {
+            ResetPasswordStep.CodeEntry -> {
+                CodeEntryBottomSheet(
+                    user = user,
+                    viewModel = viewModel,
+                    onDismiss = {
+                        currentStep = ResetPasswordStep.None
+                        viewModel.resetState() // Réinitialiser l'état si l'utilisateur ferme
+                    },
+                    onVerificationSuccess = {
+                        // La transition vers PasswordEntry se fait via le LaunchedEffect
+                    }
+                )
+            }
+            ResetPasswordStep.PasswordEntry -> {
+                PasswordEntryBottomSheet(
+                    mail = user.email,
+                    viewModel = viewModel,
+                    onDismiss = {
+                        currentStep = ResetPasswordStep.None
+                        viewModel.resetState()
+                    }
+                )
+            }
+            ResetPasswordStep.None -> {
+                // Rien à afficher
+            }
         }
 
         // Show Logout Confirmation Dialog
@@ -181,13 +214,6 @@ fun ProfilePage(
                 },
                 onDismiss = { showLogoutDialog = false }
             )
-        }
-    }
-
-    //Show Password Bottom Sheet on Reset Request Success
-    LaunchedEffect(resetPasswordUiState.isCodeSent) {
-        if (resetPasswordUiState.isCodeSent) {
-            showPasswordBottomSheet = true
         }
     }
 }

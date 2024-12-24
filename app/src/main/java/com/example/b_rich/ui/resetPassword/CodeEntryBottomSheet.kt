@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.b_rich.data.entities.user
+import com.example.b_rich.ui.components.OtpInput
 import com.example.b_rich.ui.signin.SigninViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,25 +58,52 @@ fun CodeEntryBottomSheet(
     user: user,
     viewModel: ResetPasswordViewModel = viewModel(),
     onDismiss: () -> Unit,
+    onVerificationSuccess: () -> Unit
 ) {
     var code by remember { mutableStateOf("") }
     var codeError by remember { mutableStateOf<String?>(null) }
     val resetPasswordUiState by viewModel.resetPasswordUiState.observeAsState(ResetPasswordUiState())
-    val focusRequesters = remember {
-        List(6) { FocusRequester() }
-    }
-    val focusManager = LocalFocusManager.current
+    var showAlert by remember { mutableStateOf(false) }
 
-    // Bottom sheet state
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
     )
 
-    // Handle code verification success
+    // Gérer la vérification réussie
     LaunchedEffect(resetPasswordUiState.isCodeVerified) {
         if (resetPasswordUiState.isCodeVerified) {
-            //je veux fermer bottom sheet et aafficher un message de succès
+            showAlert = true
         }
+    }
+
+    if (showAlert) {
+        AlertDialog(
+            onDismissRequest = {
+                showAlert = false
+                if (resetPasswordUiState.isCodeVerified) {
+                    onVerificationSuccess()
+                }
+            },
+            title = { Text(if (resetPasswordUiState.isCodeVerified) "Success" else "Error") },
+            text = {
+                Text(
+                    resetPasswordUiState.errorMessage
+                        ?: "Code verified successfully. You can now reset your password."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showAlert = false
+                        if (resetPasswordUiState.isCodeVerified) {
+                            onVerificationSuccess()
+                        }
+                    }
+                ) {
+                    Text("OK")
+                }
+            }
+        )
     }
 
     ModalBottomSheet(
@@ -82,7 +113,7 @@ fun CodeEntryBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -94,68 +125,33 @@ fun CodeEntryBottomSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // OTP Input Fields
-            Row(
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                repeat(6) { index ->
-                    BasicTextField(
-                        value = if (index < code.length) code[index].toString() else "",
-                        onValueChange = { newValue ->
-                            if (newValue.isEmpty()) {
-                                if (index > 0) {
-                                    code = code.substring(0, index)
-                                    focusManager.moveFocus(FocusDirection.Previous)
-                                }
-                            } else if (newValue.length <= 1 && newValue.all { it.isDigit() }) {
-                                val newCode = if (index < code.length) {
-                                    code.substring(0, index) + newValue + code.substring(index + 1)
-                                } else {
-                                    code + newValue
-                                }
-                                code = newCode.take(6)
-                                if (newCode.length < 6 && index < 5) {
-                                    focusManager.moveFocus(FocusDirection.Next)
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .size(48.dp)
-                            .border(
-                                width = 1.dp,
-                                color = MaterialTheme.colorScheme.outline,
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .focusRequester(focusRequesters[index]),
-                        textStyle = TextStyle(
-                            fontSize = 24.sp,
-                            textAlign = TextAlign.Center,
-                            fontWeight = FontWeight.Bold
-                        ),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = if (index == 5) ImeAction.Done else ImeAction.Next
-                        ),
-                        decorationBox = { innerTextField ->
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                innerTextField()
-                            }
-                        },
-                        singleLine = true
-                    )
-                }
-            }
+            Text(
+                text = "Please enter the verification code sent to your email",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = 32.dp)
+            )
 
-            codeError?.let {
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // OTP Input
+            OtpInput(
+                otpLength = 6,
+                onOtpTextChange = { newValue ->
+                    code = newValue
+                    codeError = null
+                },
+                otp = code,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            if (codeError != null) {
                 Text(
-                    text = it,
+                    text = codeError!!,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 4.dp)
                 )
             }
 
@@ -175,15 +171,16 @@ fun CodeEntryBottomSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                enabled = !resetPasswordUiState.isLoading
+                enabled = !resetPasswordUiState.isLoading,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
             ) {
                 if (resetPasswordUiState.isLoading) {
                     CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(24.dp),
+                        color = Color.White
                     )
                 } else {
-                    Text(text = "Verify Code")
+                    Text("Verify Code")
                 }
             }
 
@@ -201,7 +198,10 @@ fun CodeEntryBottomSheet(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 TextButton(
-                    onClick = { viewModel.requestReset(user.email) },
+                    onClick = {
+                        viewModel.requestReset(user.email)
+                        code = "" // Réinitialiser le code
+                    },
                     enabled = !resetPasswordUiState.isLoading
                 ) {
                     Text(
@@ -211,23 +211,30 @@ fun CodeEntryBottomSheet(
                 }
             }
 
-            resetPasswordUiState.errorMessage?.let { errorMessage ->
-                Text(
-                    text = errorMessage,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-
             if (resetPasswordUiState.isCodeSent) {
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Code sent successfully. Please check your email.",
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 8.dp)
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
+
+            resetPasswordUiState.errorMessage?.let { errorMessage ->
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
+
+            // Ajouter un espace en bas pour éviter que le contenu ne soit coupé
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
