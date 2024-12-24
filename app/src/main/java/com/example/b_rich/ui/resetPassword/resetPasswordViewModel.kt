@@ -37,7 +37,7 @@ class ResetPasswordViewModel @Inject constructor(
             _resetPasswordUiState.value = ResetPasswordUiState(isLoading = true)
 
             try {
-                val response = userRepository.requestReset(email)
+                val response = userRepository.requestPasswordReset(email)
 
                 if (response.isSuccessful) {
                     _resetPasswordUiState.value = ResetPasswordUiState(isCodeSent = true)

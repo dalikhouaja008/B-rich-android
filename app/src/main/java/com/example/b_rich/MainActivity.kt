@@ -1,12 +1,17 @@
 package com.example.b_rich
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
@@ -16,6 +21,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.b_rich.data.dataModel.DeepLinkData
 import com.example.b_rich.data.entities.user
 import com.example.b_rich.data.network.RetrofitClient
 import com.example.b_rich.data.repositories.AccountRepository
@@ -51,10 +57,10 @@ class MainActivity : FragmentActivity() {
         // Initialize your API service and repository here
         val apiService = RetrofitClient.getApiService()
         val userRepository = UserRepository(apiService)
-        val exchangeRateRepository =ExchangeRateRepository(apiService)
-        val currencyRepository= CurrencyConverterRepository(apiService)
-        val walletRepository= WalletRepository(apiService)
-        val accountRepository= AccountRepository(apiService)
+        val exchangeRateRepository = ExchangeRateRepository(apiService)
+        val currencyRepository = CurrencyConverterRepository(apiService)
+        val walletRepository = WalletRepository(apiService)
+        val accountRepository = AccountRepository(apiService)
         // Create ViewModelFactory with all repositories
         val viewModelFactory = ViewModelFactory.getInstance(
             userRepository,
@@ -65,30 +71,64 @@ class MainActivity : FragmentActivity() {
             apiService
         )
         // Use ViewModelProvider to create all ViewModels
-        val signinViewModel: SigninViewModel = ViewModelProvider(this, viewModelFactory)[SigninViewModel::class.java]
-        val resetPasswordViewModel: ResetPasswordViewModel = ViewModelProvider(this, viewModelFactory)[ResetPasswordViewModel::class.java]
-        val signupViewModel: SignupViewModel = ViewModelProvider(this, viewModelFactory)[SignupViewModel::class.java]
-        val exchangeRateViewModel: ExchangeRateViewModel = ViewModelProvider(this, viewModelFactory)[ExchangeRateViewModel::class.java]
-        val addAccountViewModel: AddAccountViewModel = ViewModelProvider(this, viewModelFactory)[AddAccountViewModel::class.java]
-        val currencyConverterViewModel: CurrencyConverterViewModel = ViewModelProvider(this, viewModelFactory)[CurrencyConverterViewModel::class.java]
-        val walletsViewModel: WalletsViewModel = ViewModelProvider(this, viewModelFactory)[WalletsViewModel::class.java]
-        val listAccountsViewModel:ListAccountsViewModel = ViewModelProvider(this, viewModelFactory)[ListAccountsViewModel:: class.java]
+        val signinViewModel: SigninViewModel =
+            ViewModelProvider(this, viewModelFactory)[SigninViewModel::class.java]
+        val resetPasswordViewModel: ResetPasswordViewModel =
+            ViewModelProvider(this, viewModelFactory)[ResetPasswordViewModel::class.java]
+        val signupViewModel: SignupViewModel =
+            ViewModelProvider(this, viewModelFactory)[SignupViewModel::class.java]
+        val exchangeRateViewModel: ExchangeRateViewModel =
+            ViewModelProvider(this, viewModelFactory)[ExchangeRateViewModel::class.java]
+        val addAccountViewModel: AddAccountViewModel =
+            ViewModelProvider(this, viewModelFactory)[AddAccountViewModel::class.java]
+        val currencyConverterViewModel: CurrencyConverterViewModel =
+            ViewModelProvider(this, viewModelFactory)[CurrencyConverterViewModel::class.java]
+        val walletsViewModel: WalletsViewModel =
+            ViewModelProvider(this, viewModelFactory)[WalletsViewModel::class.java]
+        val listAccountsViewModel: ListAccountsViewModel =
+            ViewModelProvider(this, viewModelFactory)[ListAccountsViewModel::class.java]
+        //DeepLink
+        val isDeepLink = intent?.data?.let { uri ->
+            uri.scheme == "myapp" && uri.host == "reset-password"
+        } ?: false
         setContent {
             BrichTheme {
+                //DeepLink
+                val deepLinkData = remember {
+                    mutableStateOf<DeepLinkData?>(null)
+                }
+                // Gérer le deep link
+                LaunchedEffect(intent) {
+                    intent?.data?.let { uri ->
+                        if (uri.scheme == "myapp" && uri.host == "reset-password") {
+                            val token = uri.getQueryParameter("token")
+                            val email = uri.getQueryParameter("email")
+                            if (token != null && email != null) {
+                                deepLinkData.value = DeepLinkData(token, email)
+                            }
+                        }
+                    }
+                }
+
                 Scaffold(modifier = Modifier.fillMaxSize()) {
                     val navController = rememberNavController()
-                    NavHost(navController, startDestination = "welcomepage") {
-                        composable("welcomepage"){
-                            WelcomeScreen(signinViewModel,navController)
+                    NavHost(
+                        navController,
+                        startDestination = if (isDeepLink) "loginPage" else "welcomepage"
+                    ) {
+                        composable("welcomepage") {
+                            WelcomeScreen(signinViewModel, navController)
                         }
-                        composable("signup"){
-                            SignUpScreen(signupViewModel,navController)
+                        composable("signup") {
+                            SignUpScreen(signupViewModel, navController)
                         }
                         composable("loginPage") {
-                            LoginScreen(signinViewModel, navController)
+                            LoginScreen(signinViewModel, navController, deepLinkData.value)
                         }
                         composable("addAccount") {
-                            AddAccountScreen(addAccountViewModel,onBackToAccounts = { navController.popBackStack() })
+                            AddAccountScreen(
+                                addAccountViewModel,
+                                onBackToAccounts = { navController.popBackStack() })
                         }
                         composable("currencyConvert") {
                             CurrencyConverter(currencyConverterViewModel)
@@ -101,7 +141,18 @@ class MainActivity : FragmentActivity() {
                         ) { backStackEntry ->
                             val userJson = backStackEntry.arguments?.getString("userJson")
                             val user = userJson?.let { Gson().fromJson(it, user::class.java) }
-                            user?.let { MainScreen(it, navController, resetPasswordViewModel,exchangeRateViewModel,addAccountViewModel,currencyConverterViewModel,walletsViewModel,listAccountsViewModel) }
+                            user?.let {
+                                MainScreen(
+                                    it,
+                                    navController,
+                                    resetPasswordViewModel,
+                                    exchangeRateViewModel,
+                                    addAccountViewModel,
+                                    currencyConverterViewModel,
+                                    walletsViewModel,
+                                    listAccountsViewModel
+                                )
+                            }
                         }
                         composable(
                             route = "codeVerification/{userJson}",
@@ -123,7 +174,20 @@ class MainActivity : FragmentActivity() {
                             val code = backStackEntry.arguments?.getString("code")
                             val email = backStackEntry.arguments?.getString("email")
                             if (code != null && email != null) {
-                                PasswordEntryScreen(code, email, resetPasswordViewModel, navController)
+                                PasswordEntryScreen(
+                                    code,
+                                    email,
+                                    resetPasswordViewModel,
+                                    navController
+                                )
+                            }
+                        }
+                    }
+                    // Navigation automatique si deep link existe
+                    LaunchedEffect(deepLinkData.value) {
+                        if (deepLinkData.value != null && !isDeepLink) {
+                            navController.navigate("loginPage") {
+                                popUpTo("welcomepage") { inclusive = true }
                             }
                         }
                     }
@@ -131,8 +195,16 @@ class MainActivity : FragmentActivity() {
             }
         }
     }
-}
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        // Recréer l'activité pour gérer le nouveau deep link
+        recreate()
+    }
+
+
+}
 fun navigateToExchangeRate(user: user, navController: NavController) {
     val userJson = Uri.encode(Gson().toJson(user))
     navController.navigate("exchangeRate/$userJson")
@@ -142,5 +214,8 @@ fun navigateToCodeVerification(user: user, navController: NavController) {
     val userJson = Uri.encode(Gson().toJson(user))
     navController.navigate("codeVerification/$userJson")
 }
+
+
+
 
 

@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.b_rich.data.dataModel.ForgotPasswordRequest
 import com.example.b_rich.data.entities.user
 import com.example.b_rich.data.network.AuthInterceptor
 import com.example.b_rich.data.network.LoginResponse
@@ -183,4 +184,35 @@ class SigninViewModel(private val userRepository: UserRepository) : ViewModel() 
        // Réinitialiser l'état de connexion
        _loginUiState.value = LoginUiState()
    }*/
+
+    fun forgotPassword(email: String, onResult: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = userRepository.forgotPassword(email)
+                if (response.isSuccessful) {
+                    onResult(response.body()?.message ?: "Check your email for reset instructions")
+                } else {
+                    onResult("Failed to send reset email")
+                }
+            } catch (e: Exception) {
+                onResult("Error: ${e.localizedMessage}")
+            }
+        }
+    }
+    fun resetPassword(email: String, token: String, newPassword: String, onResult: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val response = userRepository.resetPassword(email, token, newPassword)
+                if (response.isSuccessful) {
+                    onResult("Password reset successful")
+                } else {
+                    onResult("Failed to reset password")
+                }
+            } catch (e: Exception) {
+                onResult("Error: ${e.localizedMessage}")
+            }
+        }
+    }
 }
+
+

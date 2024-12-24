@@ -1,6 +1,7 @@
 package com.example.b_rich.ui.signin
 
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -35,8 +36,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavHostController
 import com.example.b_rich.R
+import com.example.b_rich.data.dataModel.DeepLinkData
 import com.example.b_rich.navigateToExchangeRate
 import com.example.b_rich.ui.biometricDialog.BiometricAuthenticator
+import com.example.b_rich.ui.forgetpassword.ForgotPasswordBottomSheet
+import com.example.b_rich.ui.forgetpassword.PasswordResetBottomSheet
 import com.example.b_rich.ui.theme.EMAIL
 import com.example.b_rich.ui.theme.IS_REMEMBERED
 import com.example.b_rich.ui.theme.PASSWORD
@@ -45,7 +49,7 @@ import com.google.gson.Gson
 import java.net.URLEncoder
 
 @Composable
-fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: NavHostController) {
+fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: NavHostController, deepLinkData: DeepLinkData? = null) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val isChecked = remember { mutableStateOf(false) }
@@ -62,7 +66,18 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
         mutableStateOf("")
     }
     var showBiometricDialog by remember { mutableStateOf(false) }
+    //Partie forget password
+    var showForgotPasswordSheet by remember { mutableStateOf(false) }
+    var showResetPasswordSheet by remember { mutableStateOf(false) }
+    var resetToken by remember { mutableStateOf<String?>(null) }
+    var resetEmail by remember { mutableStateOf<String?>(null) }
 
+    // Gérer le deep link
+    LaunchedEffect(deepLinkData) {
+        if (deepLinkData != null) {
+            showResetPasswordSheet = true
+        }
+    }
 
     //login standard
   LaunchedEffect(key1 = loginUiState.isLoggedIn) {
@@ -70,6 +85,7 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
             loginUiState.user?.let { navigateToExchangeRate(it, navHostController) }
         }
     }
+
     // Vérifier l'état "Remember me" au lancement
     // Effet de lancement pour vérifier l'authentification biométrique
    LaunchedEffect(Unit) {
@@ -130,7 +146,7 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            //txt titree
+            //txt titre
             Text(
                 text = "Welcome Back",
                 style = MaterialTheme.typography.headlineMedium,
@@ -217,12 +233,24 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
                     })
                 Text(text = "Remember me")
             }
-            //forgetpwd
-            ClickableText(
-                text = AnnotatedString("Forgot your password?"),
-                onClick = { },
-                style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
-            )
+            //forgot password button
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "Forgot your password?", color = Color.Gray)
+                Spacer(modifier = Modifier.width(4.dp))
+                ClickableText(
+                    text = AnnotatedString("Please click here"),
+                    onClick = { showForgotPasswordSheet = true },
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = Color(0xFF3D5AFE),
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             //sign in boutton
@@ -264,7 +292,7 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
             loginUiState.errorMessage?.let { errorMessage ->
                 Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
             }
-            //navigation pour page principale et detruire signin page /////TO DO
+            //navigation pour page principale et detruire signin page
            if (loginUiState.isLoggedIn) {
              Text(text = "Login successful!", color = Color.Green)
 
@@ -288,6 +316,19 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
             }
         }
     }
+    if (showForgotPasswordSheet) {
+        ForgotPasswordBottomSheet(onDismiss = { showForgotPasswordSheet = false }, viewModel = viewModel)
+    }
+    // ResetPassword BottomSheet
+    if (showResetPasswordSheet && deepLinkData != null) {
+        PasswordResetBottomSheet(
+            email = deepLinkData.email,
+            token = deepLinkData.token,
+            onDismiss = { showResetPasswordSheet = false },
+            viewModel = viewModel
+        )
+    }
+
 }
 
 
