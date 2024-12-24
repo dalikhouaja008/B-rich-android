@@ -59,18 +59,9 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
     val loginUiState by viewModel.loginUiState.observeAsState(LoginUiState())
     val context = LocalContext.current
     val mSharedPreferences = remember { context.getSharedPreferences(PREF_FILE, Context.MODE_PRIVATE) }
-    //biometric var
-    val biometricAuthenticator= BiometricAuthenticator(context)
-    val activity = LocalContext.current as FragmentActivity
-    var message by  remember{
-        mutableStateOf("")
-    }
-    var showBiometricDialog by remember { mutableStateOf(false) }
     //Partie forget password
     var showForgotPasswordSheet by remember { mutableStateOf(false) }
     var showResetPasswordSheet by remember { mutableStateOf(false) }
-    var resetToken by remember { mutableStateOf<String?>(null) }
-    var resetEmail by remember { mutableStateOf<String?>(null) }
 
     // Gérer le deep link
     LaunchedEffect(deepLinkData) {
@@ -80,52 +71,12 @@ fun LoginScreen(viewModel: SigninViewModel = viewModel(), navHostController: Nav
     }
 
     //login standard
-  LaunchedEffect(key1 = loginUiState.isLoggedIn) {
+    LaunchedEffect(key1 = loginUiState.isLoggedIn) {
         if (loginUiState.isLoggedIn) {
             loginUiState.user?.let { navigateToExchangeRate(it, navHostController) }
         }
     }
 
-    // Vérifier l'état "Remember me" au lancement
-    // Effet de lancement pour vérifier l'authentification biométrique
-   LaunchedEffect(Unit) {
-        if (mSharedPreferences.getBoolean(IS_REMEMBERED, false)) {
-            val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
-            val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
-            if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
-                showBiometricDialog = true
-                // Déclencher l'authentification biométrique
-                biometricAuthenticator.promptBiometricAuth(
-                    title ="login",
-                    subTitle ="Use your finger print or face id",
-                    negativeButtonText ="Cancel",
-                    fragmentActivity = activity,
-                    onSuccess = {
-                        message="Success"
-                    },
-                    onFailed = {
-                        message="Wrong fingerprint or face id"
-                    },
-                    onError = { _, error->
-                        message= error.toString()
-
-                    }
-                )
-            }
-        }
-    }
-
-    // Gérer le résultat de l'authentification biométrique
-    LaunchedEffect(message) {
-        if (message == "Success") {
-            val savedEmail = mSharedPreferences.getString(EMAIL, "") ?: ""
-            val savedPassword = mSharedPreferences.getString(PASSWORD, "") ?: ""
-            if (savedEmail.isNotEmpty() && savedPassword.isNotEmpty()) {
-                // Appeler loginWithBiometric au lieu de login normal
-                viewModel.loginUserWithBiometricAuth(savedEmail, savedPassword)
-            }
-        }
-    }
     //background
     Box(
         modifier = Modifier

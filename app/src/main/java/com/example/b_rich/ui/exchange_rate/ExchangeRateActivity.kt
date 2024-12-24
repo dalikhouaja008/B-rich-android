@@ -3,17 +3,14 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.b_rich.ui.components.ExchangeRateComponents.CurrencyRatesContent
-import com.example.b_rich.ui.components.ExchangeRateComponents.NewsCarousel
+import com.example.b_rich.ui.components.ExchangeRateComponents.NewsSection.NewsCarousel
+import com.example.b_rich.ui.components.ExchangeRateComponents.TableauCoursDeChange.CurrencyRatesContent
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
 import com.example.b_rich.ui.components.SectionTitle
 
@@ -40,30 +37,37 @@ fun ExchangeRate(
                 .padding(innerPadding)
                 .background(Color.White.copy(alpha = 0.95f))
         ) {
-            // Conteneur principal avec scrolling
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Section Actualités (scrollable)
+                // Section Actualités
                 item {
-                    SectionTitle(
-                        title = "Latest News",
-                        description = "See the latest news about currencies"
-                    )
-                    //NewsCarousel(newsUiState)
+                    Column(
+                        modifier = Modifier.padding(horizontal = 16.dp) // Ajout du padding horizontal
+                    ) {
+                        SectionTitle(
+                            title = "Latest News",
+                            description = "See the latest news about currencies"
+                        )
+                    }
+                    NewsCarousel(newsUiState)
                 }
 
-                // Section des taux de change (non scrollable)
+                // Section des taux de change
                 item {
-                    SectionTitle(
-                        title = "Currency converter",
-                        description = "Here you can find today's exchange rate"
-                    )
+                    Column(
+                        modifier = Modifier.padding(horizontal = 16.dp) // Ajout du padding horizontal
+                    ) {
+                        SectionTitle(
+                            title = "Currency converter",
+                            description = "Here you can find today's exchange rate"
+                        )
+                    }
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(max = 600.dp) // Section fixe avec une hauteur maximale
+                            .heightIn(max = 600.dp)
                     ) {
                         CurrencyRatesContent(exchangeRateUiState)
                     }

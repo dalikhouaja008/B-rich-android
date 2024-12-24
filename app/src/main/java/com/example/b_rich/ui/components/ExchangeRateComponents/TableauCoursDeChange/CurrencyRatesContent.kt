@@ -1,4 +1,4 @@
-package com.example.b_rich.ui.components.ExchangeRateComponents
+package com.example.b_rich.ui.components.ExchangeRateComponents.TableauCoursDeChange
 
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
