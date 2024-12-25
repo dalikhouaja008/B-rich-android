@@ -54,7 +54,6 @@ class AddAccountViewModel(private val apiService: ApiService) : ViewModel() {
             onFailure()
             return
         }
-
         viewModelScope.launch {
             _uiState.value = UiState.Loading
             try {

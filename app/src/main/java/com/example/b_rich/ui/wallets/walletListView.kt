@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,22 +14,22 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
-import com.example.b_rich.ui.wallets.components.SectionTitle
 import com.example.b_rich.ui.wallets.components.dialogs.AddWalletDialogWrapper
 import com.example.b_rich.ui.wallets.components.dialogs.CreateTNDWalletDialog
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.fragment.app.FragmentActivity
 import com.example.b_rich.ui.biometricDialog.BiometricAuthenticator
-import com.example.b_rich.ui.wallets.components.TNDWalletCard
-import com.example.b_rich.ui.wallets.components.TransactionsSection
+import com.example.b_rich.ui.wallets.components.walletsSection.TNDWalletCard
+import com.example.b_rich.ui.wallets.components.transactions.TransactionsSection
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.ui.text.style.TextAlign
-import com.example.b_rich.ui.wallets.components.QuickActionsRow
-import com.example.b_rich.ui.wallets.components.WalletCard
+import com.example.b_rich.ui.components.SectionTitle
+import com.example.b_rich.ui.wallets.components.QuickActionSection.QuickActionsRow
+import com.example.b_rich.ui.wallets.components.walletsSection.WalletCard
 
 @Composable
 fun Wallets(

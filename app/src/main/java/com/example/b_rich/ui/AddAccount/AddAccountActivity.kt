@@ -16,9 +16,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import com.example.b_rich.ui.AddAccount.componenets.AccountTextField
+import com.example.b_rich.ui.AddAccount.componenets.AddAccountTopBar
+import com.example.b_rich.ui.AddAccount.componenets.GradientButton
+import com.example.b_rich.ui.AddAccount.componenets.ProgressIndicator
+import com.example.b_rich.ui.AddAccount.componenets.StepCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,7 +103,6 @@ fun AddAccountScreen(
                     }
                 }
             }
-
             // Bottom navigation button
             GradientButton(
                 text = if (currentStep < steps) "Next" else "Finish",
@@ -127,191 +128,11 @@ fun AddAccountScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AddAccountTopBar(onBackToAccounts: () -> Unit) {
-    TopAppBar(
-        title = { Text("Add Account") },
-        navigationIcon = {
-            IconButton(onClick = onBackToAccounts) {
-                Icon(Icons.Default.Close, contentDescription = "Close")
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    )
-}
 
-@Composable
-private fun ProgressIndicator(
-    currentStep: Int,
-    totalSteps: Int,
-    gradientColors: List<Color>
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 10.dp)
-            .height(6.dp)
-            .background(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(3.dp)
-            )
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(currentStep.toFloat() / totalSteps)
-                .height(6.dp)
-                .background(
-                    brush = Brush.horizontalGradient(gradientColors),
-                    shape = RoundedCornerShape(3.dp)
-                )
-        )
-    }
-}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AccountTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    gradientColor: Color
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp),
-        placeholder = { Text(placeholder) },
-        shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = gradientColor,
-            focusedLabelColor = gradientColor
-        )
-    )
-}
 
-@Composable
-private fun GradientButton(
-    text: String,
-    showArrow: Boolean,
-    enabled: Boolean,
-    gradientColors: List<Color>,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier.padding(20.dp)
-    ) {
-        Button(
-            onClick = onClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(54.dp)
-                .background(
-                    brush = Brush.horizontalGradient(gradientColors),
-                    shape = RoundedCornerShape(16.dp)
-                ),
-            shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Transparent
-            ),
-            enabled = enabled
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White
-                )
-                if (showArrow) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        Icons.Default.ArrowForward,
-                        contentDescription = "Next",
-                        tint = Color.White
-                    )
-                }
-            }
-        }
-    }
-}
 
-@Composable
-private fun StepCard(
-    stepNumber: Int,
-    isCurrentStep: Boolean,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit,
-    content: @Composable () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isCurrentStep)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
-            else
-                MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            if (isCurrentStep)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.surfaceVariant,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "$stepNumber",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = if (isCurrentStep)
-                            Color.White
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
 
-                Column {
-                    Text(
-                        title,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold
-                        ),
-                        color = if (isCurrentStep)
-                            MaterialTheme.colorScheme.onSurface
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        subtitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
 
-            content()
-        }
-    }
-}
+
+
