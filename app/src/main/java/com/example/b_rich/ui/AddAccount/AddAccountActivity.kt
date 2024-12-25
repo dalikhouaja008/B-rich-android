@@ -1,39 +1,38 @@
 package com.example.b_rich.ui.AddAccount
 
-import androidx.compose.animation.*
+import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
-import com.example.b_rich.ui.AddAccount.componenets.AccountTextField
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Brush
+import com.example.b_rich.ui.AddAccount.componenets.AccountCustomizationStep
+import com.example.b_rich.ui.AddAccount.componenets.AccountVerificationStep
 import com.example.b_rich.ui.AddAccount.componenets.AddAccountTopBar
-import com.example.b_rich.ui.AddAccount.componenets.GradientButton
-import com.example.b_rich.ui.AddAccount.componenets.ProgressIndicator
-import com.example.b_rich.ui.AddAccount.componenets.StepCard
+import com.example.b_rich.ui.AddAccount.componenets.LinkAccountButton
+import com.example.b_rich.ui.AddAccount.componenets.RibEntryStep
+import com.example.b_rich.ui.AddAccount.componenets.VerticalStepIndicator
+import com.example.b_rich.ui.AddAccount.componenets.WelcomeStep
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAccountScreen(
     viewModel: AddAccountViewModel,
     onBackToAccounts: () -> Unit
 ) {
-    // State and constants
-    val steps = 2
-    var currentStep by remember { mutableStateOf(1) }
+    val steps = remember { listOf("Welcome", "Enter RIB", "Verification", "Customize") }
+    var currentStep by remember { mutableStateOf(0) }
     val scrollState = rememberScrollState()
+    val isRibValid by viewModel.isRibValid.collectAsState()
 
-    // Theme colors
     val gradientColors = listOf(
         Color(0xFF6200EE),
         Color(0xFF9C27B0),
@@ -42,91 +41,141 @@ fun AddAccountScreen(
 
     Scaffold(
         topBar = {
-            AddAccountTopBar(onBackToAccounts = onBackToAccounts)
+            AddAccountTopBar(
+                onBackToAccounts = onBackToAccounts,
+                currentStep = steps[currentStep]
+            )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.surface)
         ) {
-            // Progress indicator
-            ProgressIndicator(
-                currentStep = currentStep,
-                totalSteps = steps,
-                gradientColors = gradientColors
-            )
-
-            // Main content
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = 20.dp)
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.Start
             ) {
-                // Step 1: RIB Number
-                StepCard(
-                    stepNumber = 1,
-                    isCurrentStep = currentStep == 1,
-                    title = "RIB Number",
-                    subtitle = "Enter your bank identifier",
-                    onClick = { currentStep = 1 }
+                // Left side - Progress panel with increased width
+                Card(
+                    modifier = Modifier
+                        .width(240.dp) // Augmenté à 240dp pour plus d'espace
+                        .fillMaxHeight()
+                        .padding(8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    ),
+                    elevation = CardDefaults.cardElevation(2.dp)
                 ) {
-                    if (currentStep == 1) {
-                        AccountTextField(
-                            value = viewModel.rib.value,
-                            onValueChange = { viewModel.rib.value = it },
-                            placeholder = "Enter your RIB",
-                            gradientColor = gradientColors[0]
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(vertical = 16.dp, horizontal = 16.dp) // Padding horizontal augmenté
+                    ) {
+                        Text(
+                            text = "Progress",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
+                        )
+
+                        VerticalStepIndicator(
+                            steps = steps,
+                            currentStep = currentStep,
+                            gradientColors = gradientColors,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Step 2: Account Name
-                StepCard(
-                    stepNumber = 2,
-                    isCurrentStep = currentStep == 2,
-                    title = "Account Name",
-                    subtitle = "Personalize your account",
-                    onClick = { currentStep = 2 }
+                // Right side content
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
                 ) {
-                    if (currentStep == 2) {
-                        AccountTextField(
-                            value = viewModel.nickname.value,
-                            onValueChange = { viewModel.nickname.value = it },
-                            placeholder = "Choose a name for this account",
-                            gradientColor = gradientColors[0]
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .verticalScroll(scrollState),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        AnimatedContent(
+                            targetState = currentStep,
+                            label = "step_transition"
+                        ) { step ->
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                when (step) {
+                                    0 -> WelcomeStep()
+                                    1 -> RibEntryStep(viewModel)
+                                    2 -> AccountVerificationStep(viewModel)
+                                    3 -> AccountCustomizationStep(viewModel)
+                                }
+                            }
+                        }
+                    }
+
+                    // Navigation buttons with gradient overlay
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                                        MaterialTheme.colorScheme.surface
+                                    ),
+                                    startY = 0f,
+                                    endY = 100f
+                                )
+                            )
+                            .padding(16.dp)
+                    ) {
+                        LinkAccountButton(
+                            currentStep = currentStep,
+                            totalSteps = steps.size,
+                            isEnabled = when (currentStep) {
+                                0 -> true
+                                1 -> isRibValid
+                                2 -> viewModel.accountDetails.value != null
+                                3 -> viewModel.nickname.value.isNotBlank()
+                                else -> false
+                            },
+                            onNext = {
+                                if (currentStep < steps.size - 1) {
+                                    currentStep++
+                                } else {
+                                    viewModel.linkAccount(onSuccess = onBackToAccounts)
+                                }
+                            },
+                            onBack = {
+                                if (currentStep > 0) {
+                                    currentStep--
+                                }
+                            },
+                            gradientColors = gradientColors
                         )
                     }
                 }
             }
-            // Bottom navigation button
-            GradientButton(
-                text = if (currentStep < steps) "Next" else "Finish",
-                showArrow = currentStep < steps,
-                enabled = when (currentStep) {
-                    1 -> viewModel.rib.value.isNotEmpty()
-                    2 -> viewModel.nickname.value.isNotEmpty()
-                    else -> false
-                },
-                gradientColors = gradientColors,
-                onClick = {
-                    if (currentStep < steps) {
-                        currentStep++
-                    } else {
-                        viewModel.addAccountToList(
-                            onSuccess = onBackToAccounts,
-                            onFailure = { /* Handle error */ }
-                        )
-                    }
-                }
-            )
         }
     }
 }
+
+
+
+
+
 
 
 
