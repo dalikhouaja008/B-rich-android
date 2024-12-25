@@ -1,5 +1,6 @@
 package com.example.b_rich.ui.AddAccount
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -59,9 +60,6 @@ class AddAccountViewModel @Inject constructor(
     private val _selectedAccountType = MutableStateFlow<String?>(null)
     val selectedAccountType: StateFlow<String?> = _selectedAccountType.asStateFlow()
 
-    fun updateNickname(newNickname: String) {
-        _nickname.value = newNickname
-    }
 
     fun updateAccountType(type: String) {
         _selectedAccountType.value = type
@@ -144,7 +142,6 @@ class AddAccountViewModel @Inject constructor(
     }
 
     // Nouvelle fonction pour lier un compte
-    // Modifiez la fonction linkAccount pour utiliser le repository
     fun linkAccount(onSuccess: () -> Unit) {
         if (!validateInput()) {
             _uiState.value = UiState.Error("Please fill all required fields")
@@ -154,20 +151,33 @@ class AddAccountViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = UiState.Loading
             try {
+                Log.d("AddAccountViewModel", "Starting account linking...")
+                Log.d("AddAccountViewModel", "RIB: ${rib.value}, Nickname: ${nickname.value}")
+
                 accountRepository.linkAccount(
                     rib = rib.value,
                     nickname = nickname.value.takeIf { it.isNotBlank() }
                 ).fold(
                     onSuccess = { account ->
+                        Log.d("AddAccountViewModel", "Account linked successfully: $account")
                         _accountAdded.value = true
+                        _accountDetails.value = account
                         _uiState.value = UiState.Success("Account linked successfully!")
                         onSuccess()
                     },
                     onFailure = { error ->
-                        _uiState.value = UiState.Error(error.message ?: "Unknown error")
+                        Log.e("AddAccountViewModel", "Failed to link account", error)
+                        _uiState.value = UiState.Error(
+                            when {
+                                error.message?.contains("500") == true ->
+                                    "Server error. Please try again later or contact support."
+                                else -> error.message ?: "Unknown error"
+                            }
+                        )
                     }
                 )
             } catch (e: Exception) {
+                Log.e("AddAccountViewModel", "Exception in linkAccount", e)
                 _uiState.value = UiState.Error("Error: ${e.localizedMessage}")
             }
         }
@@ -190,15 +200,13 @@ class AddAccountViewModel @Inject constructor(
         }
     }
 
-
     fun isStepValid(step: Int): Boolean = when(step) {
-        0 -> true // Welcome step is always valid
+        0 -> true
         1 -> _isRibValid.value
         2 -> _accountDetails.value != null
         3 -> _nickname.value.isNotBlank()
         else -> false
     }
-
     /**
      * Reset the state when leaving the screen
      */
@@ -268,9 +276,13 @@ class AddAccountViewModel @Inject constructor(
     /**
      * Validate input before submitting
      */
-    fun validateInput(): Boolean {
-        return rib.value.isNotBlank() && nickname.value.isNotBlank()
+    private fun validateInput(): Boolean {
+        return _rib.value.isNotBlank() && _isRibValid.value && _nickname.value.isNotBlank()
     }
+    fun updateNickname(newNickname: String) {
+        _nickname.value = newNickname
+    }
+
 
 
 }
