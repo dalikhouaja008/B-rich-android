@@ -50,7 +50,7 @@ class ViewModelFactory(
                 WalletsViewModel(walletRepository) as T
             }
             modelClass.isAssignableFrom(AddAccountViewModel::class.java) -> {
-                AddAccountViewModel(apiService) as T
+                AddAccountViewModel(apiService,accountRepository) as T
             }
             modelClass.isAssignableFrom(ListAccountsViewModel::class.java) -> {
                 ListAccountsViewModel(apiService) as T

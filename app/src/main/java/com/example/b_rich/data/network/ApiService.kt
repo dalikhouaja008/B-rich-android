@@ -3,6 +3,7 @@ package com.example.b_rich.data.network
 import com.example.b_rich.data.dataModel.CreateTNDWalletRequest
 import com.example.b_rich.data.dataModel.ForgotPasswordRequest
 import com.example.b_rich.data.dataModel.ForgotPasswordResponse
+import com.example.b_rich.data.dataModel.LinkAccountRequest
 import com.example.b_rich.data.dataModel.NicknameUpdateRequest
 import com.example.b_rich.data.dataModel.PredictionRequest
 import com.example.b_rich.data.dataModel.PredictionResponse
@@ -144,6 +145,8 @@ interface ApiService {
     @POST("accounts")
     suspend fun addAccountToUserList(@Body account: AddAccount): Response<CustomAccount>
 
+
+
     // Get all accounts
     @GET("accounts")
     suspend fun getAllAccounts(): Response<List<CustomAccount>>
@@ -152,6 +155,9 @@ interface ApiService {
     @GET("accounts/{id}")
     suspend fun getAccountById(@Path("id") id: String): Response<CustomAccount>
 
+    //Link account
+    @POST("accounts/link")
+    suspend fun linkAccount(@Body request: LinkAccountRequest): Response<CustomAccount>
 
     // Delete account by ID
     @DELETE("accounts/{id}")
