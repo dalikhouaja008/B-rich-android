@@ -9,8 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.b_rich.ui.components.ExchangeRateComponents.NewsSection.NewsCarousel
-import com.example.b_rich.ui.components.ExchangeRateComponents.TableauCoursDeChange.CurrencyRatesContent
+import com.example.b_rich.ui.exchange_rate.ExchangeRateComponents.NewsSection.NewsCarousel
+import com.example.b_rich.ui.exchange_rate.ExchangeRateComponents.TableauCoursDeChange.CurrencyRatesContent
 import com.example.b_rich.ui.exchange_rate.ExchangeRateViewModel
 import com.example.b_rich.ui.components.SectionTitle
 
@@ -25,7 +25,7 @@ fun ExchangeRate(
 
     LaunchedEffect(key1 = true) {
         exchangeRateViewModel.fetchExchangeRates()
-        exchangeRateViewModel.fetchNews()
+       // exchangeRateViewModel.fetchNews()
     }
 
     Scaffold(
@@ -51,7 +51,7 @@ fun ExchangeRate(
                             description = "See the latest news about currencies"
                         )
                     }
-                    NewsCarousel(newsUiState)
+                   // NewsCarousel(newsUiState)
                 }
 
                 // Section des taux de change

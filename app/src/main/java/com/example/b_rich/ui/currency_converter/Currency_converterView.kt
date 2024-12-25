@@ -20,7 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.text.input.KeyboardType
 import com.example.b_rich.ui.components.Charts.LineChartComponent
-import com.example.b_rich.ui.components.ExchangeRateComponents.ExpandedDropdownUi
+import com.example.b_rich.ui.exchange_rate.ExchangeRateComponents.ExpandedDropdownUi
 import com.example.b_rich.ui.components.SectionTitle
 import com.example.b_rich.ui.components.TextfieldsComponenets.InputTextFieldUi
 
