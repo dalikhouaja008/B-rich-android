@@ -40,6 +40,8 @@ fun Wallets(
     currencyConverterViewModel: CurrencyConverterViewModel,
     viewModel: WalletsViewModel,
 ) {
+    val hasTNDWallet = TNDWallet != null
+
     var showDialog by remember { mutableStateOf(false) }
     var showCreateDialog by remember { mutableStateOf(false) }
 
@@ -315,7 +317,8 @@ fun Wallets(
                     viewModel.createTNDWallet(amount)
                     showCreateDialog = false
                 },
-                viewModel = viewModel
+                viewModel = viewModel,
+                hasTNDWallet = hasTNDWallet  // Nouveau paramètre
             )
         }
 

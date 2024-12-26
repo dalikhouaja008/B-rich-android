@@ -1,6 +1,7 @@
 package com.example.b_rich.data.repositories
 
 import com.example.b_rich.data.dataModel.CreateTNDWalletRequest
+import com.example.b_rich.data.entities.CustomAccount
 import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.network.ApiService
 import com.example.b_rich.data.network.CurrencyConversionRequest
@@ -13,7 +14,12 @@ class WalletRepository(private val apiService: ApiService) {
     suspend fun getWalletsWithTransactions(): List<Wallet> {
         return apiService.getWalletsWithTransactions()
     }
-
+    suspend fun getDefaultAccount(): Result<CustomAccount> = try {
+        val response = apiService.getDefaultAccount()
+        Result.success(response)
+    } catch (e: Exception) {
+        Result.failure(e)
+    }
     suspend fun sendTransaction(
         fromWalletPublicKey: String,
         toWalletPublicKey: String,

@@ -1,16 +1,11 @@
 package com.example.b_rich.ui.wallets.components.dialogs
 
-
-import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,10 +13,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.Money
-import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,8 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -44,15 +39,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.b_rich.data.entities.CustomAccount
+import com.example.b_rich.ui.wallets.UIState
 import com.example.b_rich.ui.wallets.WalletsViewModel
 import com.example.b_rich.ui.wallets.components.CreateWalletState
 import com.example.b_rich.ui.wallets.components.showNotification
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.util.TimeZone
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,14 +54,21 @@ import java.util.TimeZone
 fun CreateTNDWalletDialog(
     onDismiss: () -> Unit,
     onConfirm: (Double) -> Unit,
-    viewModel: WalletsViewModel
+    viewModel: WalletsViewModel,
+    hasTNDWallet: Boolean
 ) {
     var amount by remember { mutableStateOf("") }
     var isAmountError by remember { mutableStateOf(false) }
     val isLoading by viewModel.isLoading.collectAsState()
     val createWalletState by viewModel.createWalletState.collectAsState()
     val context = LocalContext.current
-
+    val defaultAccountState by viewModel.defaultAccount.collectAsState()
+    // Vérifier si le compte a un solde suffisant
+    val currentBalance = when (defaultAccountState) {
+        is UIState.Success -> (defaultAccountState as UIState.Success<CustomAccount>).data.balance ?: 0.0
+        else -> 0.0
+    }
+    var showEmptyBalanceDialog by remember { mutableStateOf(false) }
     // Observer l'état de création et afficher les notifications
     LaunchedEffect(createWalletState) {
         when (createWalletState) {
@@ -81,10 +82,44 @@ fun CreateTNDWalletDialog(
             else -> {}
         }
     }
+    LaunchedEffect(key1 = true) {
+        viewModel.loadDefaultAccount()
+    }
     DisposableEffect(Unit) {
         onDispose {
             viewModel.resetCreateWalletState()
         }
+    }
+    // Dialog pour compte vide
+    if (showEmptyBalanceDialog) {
+        AlertDialog(
+            onDismissRequest = { showEmptyBalanceDialog = false },
+            title = {
+                Text(
+                    text = "Insufficient Balance",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color(0xFF3D5AFE)
+                )
+            },
+            text = {
+                Text(
+                    text = "Your account balance is empty. Please add funds to your account before proceeding.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { showEmptyBalanceDialog = false },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = Color(0xFF3D5AFE)
+                    )
+                ) {
+                    Text("OK")
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -100,7 +135,7 @@ fun CreateTNDWalletDialog(
                     tint = Color(0xFF3D5AFE)
                 )
                 Text(
-                    text = "Create TND Wallet",
+                    text = if (hasTNDWallet) "Aliment your TND wallet" else "Create TND Wallet",
                     style = MaterialTheme.typography.titleMedium,
                     color = Color(0xFF3D5AFE)
                 )
@@ -113,29 +148,32 @@ fun CreateTNDWalletDialog(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Date and Time
-                Text(
-                    text = "Current Date and Time (UTC):",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                        .apply { timeZone = TimeZone.getTimeZone("UTC") }
-                        .format(Date()),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                // User Login
-                Text(
-                    text = "Current User's Login:",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = "raednas",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (currentBalance > 0) Color(0xFFF5F5F5) else Color(0xFFFFEBEE)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            text = "Available Balance",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (currentBalance > 0) Color.Gray else Color.Red
+                        )
+                        Text(
+                            text = "%.2f TND".format(currentBalance),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = if (currentBalance > 0) Color(0xFF3D5AFE) else Color.Red,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
 
                 // Amount Input
                 OutlinedTextField(
@@ -144,7 +182,7 @@ fun CreateTNDWalletDialog(
                         amount = it.replace(",", ".")
                         isAmountError = try {
                             val numericAmount = amount.toDoubleOrNull() ?: 0.0
-                            numericAmount <= 0
+                            numericAmount <= 0 || numericAmount > currentBalance
                         } catch (e: Exception) {
                             true
                         }
@@ -168,7 +206,10 @@ fun CreateTNDWalletDialog(
 
                 if (isAmountError) {
                     Text(
-                        text = "Please enter a valid amount greater than 0",
+                        text = if ((amount.toDoubleOrNull() ?: 0.0) > currentBalance)
+                            "Amount cannot exceed your available balance"
+                        else
+                            "Please enter a valid amount greater than 0",
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -185,12 +226,20 @@ fun CreateTNDWalletDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val numericAmount = amount.toDoubleOrNull()
-                    if (numericAmount != null && numericAmount > 0) {
-                        onConfirm(numericAmount)
+                    if (currentBalance <= 0) {
+                        showEmptyBalanceDialog = true
+                    } else {
+                        val numericAmount = amount.toDoubleOrNull()
+                        if (numericAmount != null && numericAmount > 0 && numericAmount <= currentBalance) {
+                            onConfirm(numericAmount)
+                        }
                     }
                 },
-                enabled = !isAmountError && amount.isNotBlank() && !isLoading,
+                enabled = !isAmountError &&
+                        amount.isNotBlank() &&
+                        !isLoading &&
+                        currentBalance > 0 &&
+                        (amount.toDoubleOrNull() ?: 0.0) <= currentBalance,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3D5AFE))
             ) {
                 if (isLoading) {
@@ -199,7 +248,10 @@ fun CreateTNDWalletDialog(
                         color = Color.White
                     )
                 } else {
-                    Text("Create Wallet", color = Color.White)
+                    Text(
+                        text = if (hasTNDWallet) "Confirm" else "Create Wallet",
+                        color = Color.White
+                    )
                 }
             }
         },
@@ -207,8 +259,7 @@ fun CreateTNDWalletDialog(
             OutlinedButton(
                 onClick = onDismiss,
                 border = BorderStroke(1.dp, Color(0xFF3D5AFE)),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF3D5AFE)),
-                enabled = !isLoading
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF3D5AFE))
             ) {
                 Text("Cancel")
             }

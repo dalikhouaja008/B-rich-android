@@ -176,8 +176,8 @@ interface ApiService {
     suspend fun setDefaultAccount(@Path("rib") rib: String): Response<CustomAccount>
 
     // Get default account
-    @GET("accounts/default")
-    suspend fun getDefaultAccount(): Response<CustomAccount>
+    @GET("accounts/my/default")
+    suspend fun getDefaultAccount(): CustomAccount
 
     suspend fun topUpWallet(accountId: String, amount: Double): Response<Unit>
     // Update account balance
