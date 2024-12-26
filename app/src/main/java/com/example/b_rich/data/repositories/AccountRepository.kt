@@ -27,6 +27,8 @@ class AccountRepository @Inject constructor(
         }
     }
 
+
+
     suspend fun linkAccount(rib: String, nickname: String?): Result<CustomAccount> =
         withContext(Dispatchers.IO) {
             try {

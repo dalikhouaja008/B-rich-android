@@ -126,7 +126,8 @@ fun WalletsScreen(
                 viewModel.createTNDWallet(amount)
                 showCreateDialog = false
             },
-            viewModel = viewModel
+            viewModel = viewModel,
+            hasTNDWallet = false
         )
     }
 }

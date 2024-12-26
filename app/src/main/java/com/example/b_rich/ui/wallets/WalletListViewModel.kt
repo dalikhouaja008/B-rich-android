@@ -4,6 +4,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.b_rich.data.entities.CustomAccount
 import com.example.b_rich.data.entities.Transaction
 import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.network.SendTransactionRequest
@@ -21,12 +22,17 @@ sealed class SendTransactionState {
     data class Success(val signature: String?= null) : SendTransactionState()
     data class Error(val message: String) : SendTransactionState()
 }
+sealed class UIState<out T> {
+    object Idle : UIState<Nothing>()
+    object Loading : UIState<Nothing>()
+    data class Success<T>(val data: T) : UIState<T>()
+    data class Error(val message: String) : UIState<Nothing>()
+}
 class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
 
     private val _currencyWallets = MutableStateFlow<List<Wallet>>(emptyList())
     val currencyWallets: StateFlow<List<Wallet>> = _currencyWallets
 
-    //transactions récent
     private val _recentTransactions = MutableStateFlow<List<Transaction>>(emptyList())
     val recentTransactions: StateFlow<List<Transaction>> get() = _recentTransactions
 
@@ -48,12 +54,31 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
     private val _createWalletState = MutableStateFlow<CreateWalletState>(CreateWalletState.Idle)
     val createWalletState: StateFlow<CreateWalletState> = _createWalletState
 
-    init {
-        loadData()
-    }
-
     private val _sendTransactionState = MutableStateFlow<SendTransactionState>(SendTransactionState.Idle)
     val sendTransactionState: StateFlow<SendTransactionState> = _sendTransactionState.asStateFlow()
+
+    private val _defaultAccount = MutableStateFlow<UIState<CustomAccount>>(UIState.Idle)
+    val defaultAccount = _defaultAccount.asStateFlow()
+
+    fun loadDefaultAccount() {
+        viewModelScope.launch {
+            _defaultAccount.value = UIState.Loading
+            try {
+                repository.getDefaultAccount()
+                    .fold(
+                        onSuccess = { account ->
+                            _defaultAccount.value = UIState.Success(account)
+                        },
+                        onFailure = { error ->
+                            _defaultAccount.value = UIState.Error(error.message ?: "Unknown error")
+                        }
+                    )
+            } catch (e: Exception) {
+                _defaultAccount.value = UIState.Error(e.message ?: "Unknown error")
+            }
+        }
+    }
+
     fun createTNDWallet(amount: Double) {
         viewModelScope.launch {
             _createWalletState.value = CreateWalletState.Loading
@@ -153,19 +178,6 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
             } catch (e: Exception) {
                 // Handle error
             }
-        }
-    }
-
-
-
-    private fun loadData() {
-        viewModelScope.launch {
-            // Définition des transactions récentes
-            _recentTransactions.value = listOf(
-                Transaction(1, "Completed", "Deposit", 200.0, Date()),
-                Transaction(2, "Completed", "Shopping", -50.0, Date()),
-                Transaction(3, "Pending", "Transfer to USD", -100.0, Date())
-            )
         }
     }
 }
