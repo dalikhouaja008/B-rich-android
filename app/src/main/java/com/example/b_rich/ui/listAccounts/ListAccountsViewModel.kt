@@ -91,6 +91,7 @@ class ListAccountsViewModel(
                 _selectedAccount.value?.let { selected ->
                     _selectedAccount.value = _accounts.value.find { it.id == selected.id }
                 }
+                refreshAccounts()
             } catch (e: Exception) {
                 // Handle error
                 Log.e("ListAccountsViewModel", "Error setting default account", e)
