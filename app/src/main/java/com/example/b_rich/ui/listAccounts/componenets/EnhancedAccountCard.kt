@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.b_rich.data.entities.CustomAccount
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 public fun EnhancedAccountCard(
     account: CustomAccount,
@@ -43,7 +45,7 @@ public fun EnhancedAccountCard(
 
     Card(
         modifier = Modifier
-            .width(200.dp)
+            .width(300.dp)  // Augmenter la largeur de la carte
             .height(160.dp)
             .shadow(
                 elevation = elevation,

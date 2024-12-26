@@ -22,11 +22,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
+import android.util.Log
+
 @Composable
-public fun DotsIndicator(
+fun DotsIndicator(
     totalDots: Int,
     selectedIndex: Int
 ) {
+    // Log the selectedIndex to check if it changes correctly
+    Log.d("DotsIndicator", "Selected Index: $selectedIndex")
+
     Row(
         modifier = Modifier
             .height(48.dp)

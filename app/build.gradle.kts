@@ -77,6 +77,8 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.androidx.storage)
     implementation(libs.androidx.foundation.android)
+    implementation(libs.play.services.mlkit.text.recognition.common)
+    implementation(libs.play.services.mlkit.text.recognition)
 
 
     testImplementation(libs.junit)

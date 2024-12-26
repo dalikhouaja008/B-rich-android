@@ -44,10 +44,10 @@ public fun AnimatedAccountDetails(
     selectedAccount: CustomAccount?,
     onToggleDefault: (CustomAccount) -> Unit,
     gradientColors: List<Color>,
-    allAccounts: List<CustomAccount> // Ajout de la liste de tous les comptes
+    allAccounts: List<CustomAccount>
 ) {
     var showConfirmDialog by remember { mutableStateOf(false) }
-    var showErrorDialog by remember { mutableStateOf(false) } // État pour l'erreur de suppression du compte par défaut
+    var showErrorDialog by remember { mutableStateOf(false) }
     var isEnabling by remember { mutableStateOf(false) }
 
     AnimatedVisibility(
@@ -62,24 +62,26 @@ public fun AnimatedAccountDetails(
                     .padding(16.dp),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.background
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(24.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     Text(
                         text = "Account Settings",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.primary
                     )
 
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            containerColor = MaterialTheme.colorScheme.surface
                         ),
                         shape = RoundedCornerShape(16.dp)
                     ) {
@@ -87,7 +89,7 @@ public fun AnimatedAccountDetails(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -103,18 +105,19 @@ public fun AnimatedAccountDetails(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
                                     text = "Default Account",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
 
                             Text(
                                 text = "Use this account for automatic transactions",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 36.dp)
                             )
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -137,7 +140,6 @@ public fun AnimatedAccountDetails(
                                     checked = account.isDefault ?: false,
                                     onCheckedChange = { newValue ->
                                         if (!newValue && allAccounts.count { it.isDefault == true } <= 1) {
-                                            // Si on essaie de désactiver le seul compte par défaut
                                             showErrorDialog = true
                                         } else {
                                             isEnabling = newValue
