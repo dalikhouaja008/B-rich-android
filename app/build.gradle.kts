@@ -79,6 +79,7 @@ dependencies {
     implementation(libs.androidx.foundation.android)
     implementation(libs.play.services.mlkit.text.recognition.common)
     implementation(libs.play.services.mlkit.text.recognition)
+    implementation ("com.google.mlkit:digital-ink-recognition:18.1.0")
 
 
     testImplementation(libs.junit)

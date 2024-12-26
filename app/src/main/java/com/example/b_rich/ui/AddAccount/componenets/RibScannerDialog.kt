@@ -1,7 +1,7 @@
 package com.example.b_rich.ui.AddAccount.componenets
 
 import android.Manifest
-import android.content.pm.PackageManager
+import android.graphics.*
 import android.net.Uri
 import android.util.Log
 import android.util.Size
@@ -32,6 +32,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
+
+import com.google.mlkit.vision.digitalink.*
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.io.File
 import java.util.concurrent.Executors
@@ -47,20 +49,71 @@ fun RibScannerDialog(
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
 
+    // Configuration des reconnaisseurs
+    val textRecognizer = remember {
+        TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    }
+
     // Configuration améliorée de la capture d'image
     val imageCapture = remember {
         ImageCapture.Builder()
             .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
             .setTargetRotation(Surface.ROTATION_0)
-            .setTargetResolution(Size(2400, 1800)) // Résolution plus élevée
-            .setJpegQuality(100) // Qualité maximale
+            .setTargetResolution(Size(3840, 2160))
+            .setJpegQuality(100)
             .build()
     }
 
+    // Fonction de prétraitement de l'image
+    fun preprocessImage(bitmap: Bitmap): Bitmap? {
+        val matrix = ColorMatrix().apply {
+            setSaturation(0f)
+            setScale(1.5f, 1.5f, 1.5f, 1f)
+        }
 
+        return bitmap.config?.let {
+            Bitmap.createBitmap(bitmap.width, bitmap.height, it).apply {
+                Canvas(this).apply {
+                    val paint = Paint().apply {
+                        colorFilter = ColorMatrixColorFilter(matrix)
+                    }
+                    drawBitmap(bitmap, 0f, 0f, paint)
+                }
+            }
+        }
+    }
 
-    val textRecognizer = remember {
-        TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    // Fonction de traitement améliorée
+    fun processImage(image: InputImage) {
+        Log.d("RibScanner", "Processing image...")
+        textRecognizer.process(image)
+            .addOnSuccessListener { visionText ->
+                Log.d("RibScanner", "Raw text detected: ${visionText.text}")
+
+                // Traitement du texte
+                val processedText = visionText.text
+                    .replace(" ", "")
+                    .replace("\n", "")
+                    .replace("[^0-9]".toRegex(), "")
+
+                Log.d("RibScanner", "Processed text (numbers only): $processedText")
+
+                if (processedText.length >= 20) {
+                    val potentialRib = processedText.substring(0, 20)
+                    Log.d("RibScanner", "Found potential RIB: $potentialRib")
+                    onRibDetected(potentialRib)
+                    overlayText = "RIB détecté !"
+                } else {
+                    Log.d("RibScanner", "No valid RIB sequence found")
+                    overlayText = "Aucun RIB trouvé. Réessayez."
+                }
+                isProcessing = false
+            }
+            .addOnFailureListener { e ->
+                Log.e("RibScanner", "Text recognition failed", e)
+                overlayText = "Erreur de lecture: ${e.localizedMessage}"
+                isProcessing = false
+            }
     }
 
     // Permission de la caméra
@@ -70,8 +123,6 @@ fun RibScannerDialog(
         if (!isGranted) {
             Log.d("RibScanner", "Camera permission denied")
             onDismiss()
-        } else {
-            Log.d("RibScanner", "Camera permission granted")
         }
     }
 
@@ -115,28 +166,23 @@ fun RibScannerDialog(
                                     imageCapture
                                 )
 
-                                // Configuration de l'autofocus
-                                camera.cameraControl.enableTorch(false)
-                                camera.cameraControl.setLinearZoom(0f)
-
                                 preview.setSurfaceProvider(previewView.surfaceProvider)
 
                             } catch (e: Exception) {
                                 Log.e("RibScanner", "Camera initialization error", e)
-                                e.printStackTrace()
                             }
                         }
                     },
                     modifier = Modifier.fillMaxSize()
                 )
 
-                // Overlay pour guider l'utilisateur
+                // Interface utilisateur
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    // Guide visuel amélioré
+                    // Guide visuel
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(0.9f)
@@ -152,15 +198,30 @@ fun RibScannerDialog(
                             )
                     )
 
-                    // Instructions plus claires
-                    Text(
-                        text = "Alignez votre RIB dans le cadre",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White,
+                    // Instructions
+                    Column(
                         modifier = Modifier
                             .align(Alignment.TopCenter)
-                            .padding(top = 32.dp)
-                    )
+                            .padding(top = 32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Instructions:",
+                            color = Color.White,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = """
+                                • Placez le RIB dans le cadre
+                                • Assurez un bon éclairage
+                                • Évitez les reflets
+                                • Gardez l'appareil stable
+                            """.trimIndent(),
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
 
                     // Bouton de fermeture
                     IconButton(
@@ -176,7 +237,7 @@ fun RibScannerDialog(
                         )
                     }
 
-                    // Instructions et état
+                    // État actuel
                     Card(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
@@ -205,7 +266,7 @@ fun RibScannerDialog(
                         }
                     }
 
-                    // Bouton de capture amélioré
+                    // Bouton de capture
                     Button(
                         onClick = {
                             isProcessing = true
@@ -231,48 +292,10 @@ fun RibScannerDialog(
                                 ContextCompat.getMainExecutor(context),
                                 object : ImageCapture.OnImageSavedCallback {
                                     override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                                        Log.d("RibScanner", "Image saved successfully")
                                         try {
+                                            Log.d("RibScanner", "Image saved successfully")
                                             val image = InputImage.fromFilePath(context, Uri.fromFile(photoFile))
-
-                                            textRecognizer.process(image)
-                                                .addOnSuccessListener { visionText ->
-                                                    Log.d("RibScanner", "Full text detected: ${visionText.text}")
-
-                                                    // Extraction améliorée du RIB
-                                                    val text = visionText.text.replace(" ", "")
-                                                    val ribPattern = Regex("\\d{20}")
-                                                    val matches = ribPattern.findAll(text)
-                                                    var ribFound = false
-
-                                                    matches.forEach { match ->
-                                                        val potentialRib = match.value
-                                                        Log.d("RibScanner", "Found potential RIB: $potentialRib")
-                                                        if (potentialRib.length == 20) {
-                                                            ribFound = true
-                                                            onRibDetected(potentialRib)
-                                                        }
-                                                    }
-
-                                                    if (!ribFound) {
-                                                        // Si aucun RIB n'est trouvé, chercher des séquences de chiffres
-                                                        val numbers = text.replace("[^0-9]".toRegex(), "")
-                                                        if (numbers.length >= 20) {
-                                                            val extractedRib = numbers.substring(0, 20)
-                                                            Log.d("RibScanner", "Extracted RIB from numbers: $extractedRib")
-                                                            onRibDetected(extractedRib)
-                                                        } else {
-                                                            Log.d("RibScanner", "No valid RIB found in text")
-                                                            overlayText = "Aucun RIB trouvé. Réessayez."
-                                                        }
-                                                    }
-                                                    isProcessing = false
-                                                }
-                                                .addOnFailureListener { e ->
-                                                    Log.e("RibScanner", "Text recognition failed", e)
-                                                    overlayText = "Erreur de lecture: ${e.localizedMessage}"
-                                                    isProcessing = false
-                                                }
+                                            processImage(image)
                                         } catch (e: Exception) {
                                             Log.e("RibScanner", "Error processing image", e)
                                             overlayText = "Erreur de traitement: ${e.localizedMessage}"
