@@ -1,6 +1,7 @@
 package com.example.b_rich.ui.exchange_rate.ExchangeRateComponents
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,54 +42,58 @@ fun ExpandedDropdownUi(
     var expanded by remember { mutableStateOf(false) }
     var selectedOptionText by remember { mutableStateOf(selectedOption) }
 
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = modifier
-    ) {
-        OutlinedTextField(
-            value = selectedOptionText,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            isError = isError,
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-            },
-            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
-                focusedLabelColor = Color(0xFF3D5AFE),
-                unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            ),
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Outlined.CurrencyExchange,
-                    contentDescription = "$label Currency Icon"
-                )
-            },
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        )
+    BoxWithConstraints(modifier = modifier) {
+        val isLargeScreen = maxWidth >= 600.dp
 
-        ExposedDropdownMenu(
+        ExposedDropdownMenuBox(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onExpandedChange = { expanded = !expanded },
+            modifier = modifier
         ) {
-            options.forEach { selectionOption ->
-                DropdownMenuItem(
-                    text = { Text(selectionOption, color = MaterialTheme.colorScheme.onSurface) },
-                    onClick = {
-                        selectedOptionText = selectionOption
-                        expanded = false
-                        onSelectedItem(selectionOption)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White) // Fond transparent
-                        .padding(vertical = 8.dp) // Ajouter de l'espacement vertical
-                        .clip(RoundedCornerShape(8.dp)) // Coins arrondis pour chaque item
-                )
+            OutlinedTextField(
+                value = selectedOptionText,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(label) },
+                isError = isError,
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                    focusedLabelColor = Color(0xFF3D5AFE),
+                    unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                ),
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.CurrencyExchange,
+                        contentDescription = "$label Currency Icon"
+                    )
+                },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(if (isLargeScreen) 12.dp else 8.dp) // Ajustement de la forme
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                options.forEach { selectionOption ->
+                    DropdownMenuItem(
+                        text = { Text(selectionOption, color = MaterialTheme.colorScheme.onSurface) },
+                        onClick = {
+                            selectedOptionText = selectionOption
+                            expanded = false
+                            onSelectedItem(selectionOption)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White)
+                            .padding(vertical = if (isLargeScreen) 8.dp else 4.dp) // Ajustement de l'espacement
+                            .clip(RoundedCornerShape(if (isLargeScreen) 8.dp else 4.dp)) // Ajustement des coins arrondis
+                    )
+                }
             }
         }
     }

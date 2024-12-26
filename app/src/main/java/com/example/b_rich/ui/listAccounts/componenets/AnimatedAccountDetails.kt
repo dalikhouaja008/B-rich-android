@@ -43,9 +43,11 @@ import androidx.compose.ui.Alignment
 public fun AnimatedAccountDetails(
     selectedAccount: CustomAccount?,
     onToggleDefault: (CustomAccount) -> Unit,
-    gradientColors: List<Color>
+    gradientColors: List<Color>,
+    allAccounts: List<CustomAccount> // Ajout de la liste de tous les comptes
 ) {
     var showConfirmDialog by remember { mutableStateOf(false) }
+    var showErrorDialog by remember { mutableStateOf(false) } // État pour l'erreur de suppression du compte par défaut
     var isEnabling by remember { mutableStateOf(false) }
 
     AnimatedVisibility(
@@ -134,8 +136,13 @@ public fun AnimatedAccountDetails(
                                 Switch(
                                     checked = account.isDefault ?: false,
                                     onCheckedChange = { newValue ->
-                                        isEnabling = newValue
-                                        showConfirmDialog = true
+                                        if (!newValue && allAccounts.count { it.isDefault == true } <= 1) {
+                                            // Si on essaie de désactiver le seul compte par défaut
+                                            showErrorDialog = true
+                                        } else {
+                                            isEnabling = newValue
+                                            showConfirmDialog = true
+                                        }
                                     },
                                     thumbContent = if (account.isDefault == true) {
                                         {
@@ -202,6 +209,36 @@ public fun AnimatedAccountDetails(
                     imageVector = if (isEnabling) Icons.Default.CheckCircle else Icons.Default.Warning,
                     contentDescription = null,
                     tint = if (isEnabling) Color(0xFF4CAF50) else Color(0xFFFF9800)
+                )
+            }
+        )
+    }
+
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = {
+                Text("Error", style = MaterialTheme.typography.titleLarge)
+            },
+            text = {
+                Text(
+                    "You must have at least one default account.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showErrorDialog = false }) {
+                    Text("OK")
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            textContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = Color(0xFFFF9800)
                 )
             }
         )

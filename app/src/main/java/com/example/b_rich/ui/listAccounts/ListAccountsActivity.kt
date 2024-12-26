@@ -123,6 +123,7 @@ fun ListAccountsScreen(
                             selectedAccount = selectedAccount,
                             onToggleDefault = { viewModel.toggleDefault(it) },
                             gradientColors = primaryGradient,
+                            accounts
                         )
                     }
                 }
