@@ -145,10 +145,8 @@ interface ApiService {
     @POST("accounts")
     suspend fun addAccountToUserList(@Body account: AddAccount): Response<CustomAccount>
 
-
-
     // Get all accounts
-    @GET("accounts")
+    @GET("accounts/user")
     suspend fun getAllAccounts(): Response<List<CustomAccount>>
 
     // Get account by ID

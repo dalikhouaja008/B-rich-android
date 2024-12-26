@@ -68,13 +68,14 @@ public fun EmptyAccountsState(
                 .height(56.dp),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = gradientColors[0]
+                containerColor = Color.Red // Change button color to red
             )
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = null,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(24.dp),
+                tint = Color.White
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(

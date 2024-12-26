@@ -53,7 +53,7 @@ class ViewModelFactory(
                 AddAccountViewModel(apiService,accountRepository) as T
             }
             modelClass.isAssignableFrom(ListAccountsViewModel::class.java) -> {
-                ListAccountsViewModel(apiService) as T
+                ListAccountsViewModel(apiService,accountRepository) as T
             }
             else -> throw IllegalArgumentException("Unknown ViewModel class")
         }

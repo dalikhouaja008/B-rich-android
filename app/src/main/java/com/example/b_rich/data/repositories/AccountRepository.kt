@@ -12,7 +12,7 @@ class AccountRepository @Inject constructor(
     private val apiService: ApiService
 ) {
     suspend fun fetchAccounts(): List<CustomAccount> = withContext(Dispatchers.IO) {
-        val response = apiService.getAllAccounts() // Changed from getUserAccounts to getAllAccounts
+        val response = apiService.getAllAccounts()
         if (response.isSuccessful) {
             response.body() ?: emptyList()
         } else {

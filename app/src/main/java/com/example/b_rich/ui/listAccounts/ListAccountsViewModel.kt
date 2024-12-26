@@ -1,9 +1,11 @@
 package com.example.b_rich.ui.listAccounts
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.b_rich.data.entities.CustomAccount
 import com.example.b_rich.data.network.ApiService
+import com.example.b_rich.data.repositories.AccountRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -21,7 +23,8 @@ sealed class TopUpResult {
 }
 
 class ListAccountsViewModel(
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val accountRepository: AccountRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AccountsUiState>(AccountsUiState.Loading)
@@ -39,33 +42,28 @@ class ListAccountsViewModel(
     private val _isTopUpInProgress = MutableStateFlow(false)
     val isTopUpInProgress: StateFlow<Boolean> = _isTopUpInProgress
 
-    init {
-        refreshAccounts()
-    }
-
     fun refreshAccounts() {
         viewModelScope.launch {
             _uiState.value = AccountsUiState.Loading
             _isLoading.value = true
+            Log.d("ListAccountsViewModel", "Starting to fetch accounts")
 
             try {
-                val response = apiService.getAllAccounts()
-                if (response.isSuccessful) {
-                    val accountsList = response.body() ?: emptyList()
-                    _accounts.value = accountsList
-                    _uiState.value = AccountsUiState.Success(accountsList)
+                val accountsList = accountRepository.fetchAccounts()
+                _accounts.value = accountsList
+                _uiState.value = AccountsUiState.Success(accountsList)
+                Log.d("ListAccountsViewModel", "Accounts fetched successfully: $accountsList")
 
-                    // If we have a selected account, update its data
-                    _selectedAccount.value?.let { selected ->
-                        _selectedAccount.value = accountsList.find { it.id == selected.id }
-                    }
-                } else {
-                    _uiState.value = AccountsUiState.Error("Failed to fetch accounts")
+                // If we have a selected account, update its data
+                _selectedAccount.value?.let { selected ->
+                    _selectedAccount.value = accountsList.find { it.id == selected.id }
                 }
             } catch (e: Exception) {
                 _uiState.value = AccountsUiState.Error(e.message ?: "Unknown error occurred")
+                Log.e("ListAccountsViewModel", "Error fetching accounts", e)
             } finally {
                 _isLoading.value = false
+                Log.d("ListAccountsViewModel", "Loading state: ${_isLoading.value}")
             }
         }
     }
@@ -77,26 +75,25 @@ class ListAccountsViewModel(
     fun toggleDefault(account: CustomAccount) {
         viewModelScope.launch {
             try {
-                val response = apiService.setDefaultAccount(account.rib)
-                if (response.isSuccessful) {
-                    // Update the accounts list with the new default status
-                    _accounts.update { currentAccounts ->
-                        currentAccounts.map { existingAccount ->
-                            when {
-                                existingAccount.id == account.id -> existingAccount.copy(isDefault = true)
-                                existingAccount.isDefault == true -> existingAccount.copy(isDefault = false)
-                                else -> existingAccount
-                            }
+                accountRepository.setDefaultAccount(account.rib)
+                // Update the accounts list with the new default status
+                _accounts.update { currentAccounts ->
+                    currentAccounts.map { existingAccount ->
+                        when {
+                            existingAccount.id == account.id -> existingAccount.copy(isDefault = true)
+                            existingAccount.isDefault == true -> existingAccount.copy(isDefault = false)
+                            else -> existingAccount
                         }
                     }
+                }
 
-                    // Update selected account if it was affected
-                    _selectedAccount.value?.let { selected ->
-                        _selectedAccount.value = _accounts.value.find { it.id == selected.id }
-                    }
+                // Update selected account if it was affected
+                _selectedAccount.value?.let { selected ->
+                    _selectedAccount.value = _accounts.value.find { it.id == selected.id }
                 }
             } catch (e: Exception) {
                 // Handle error
+                Log.e("ListAccountsViewModel", "Error setting default account", e)
             }
         }
     }
