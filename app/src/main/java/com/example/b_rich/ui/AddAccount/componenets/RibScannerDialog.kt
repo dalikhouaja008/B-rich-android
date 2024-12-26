@@ -5,9 +5,9 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
 import android.util.Size
+import android.view.Surface
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.OptIn
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -36,7 +36,6 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import java.io.File
 import java.util.concurrent.Executors
 
-// Définition du composant RibScannerDialog
 @Composable
 fun RibScannerDialog(
     onRibDetected: (String) -> Unit,
@@ -47,15 +46,32 @@ fun RibScannerDialog(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
-    val imageCapture = remember { ImageCapture.Builder().build() }
-    val textRecognizer = remember { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
+
+    // Configuration améliorée de la capture d'image
+    val imageCapture = remember {
+        ImageCapture.Builder()
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
+            .setTargetRotation(Surface.ROTATION_0)
+            .setTargetResolution(Size(2400, 1800)) // Résolution plus élevée
+            .setJpegQuality(100) // Qualité maximale
+            .build()
+    }
+
+
+
+    val textRecognizer = remember {
+        TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    }
 
     // Permission de la caméra
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (!isGranted) {
+            Log.d("RibScanner", "Camera permission denied")
             onDismiss()
+        } else {
+            Log.d("RibScanner", "Camera permission granted")
         }
     }
 
@@ -76,13 +92,16 @@ fun RibScannerDialog(
             color = MaterialTheme.colorScheme.background
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
+                // Prévisualisation de la caméra
                 AndroidView(
                     factory = { ctx ->
                         PreviewView(ctx).apply {
-                            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+                            implementationMode = PreviewView.ImplementationMode.PERFORMANCE
                             scaleType = PreviewView.ScaleType.FILL_CENTER
                         }.also { previewView ->
-                            val preview = Preview.Builder().build()
+                            val preview = Preview.Builder()
+                                .setTargetResolution(Size(1920, 1080))
+                                .build()
                             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
                             try {
@@ -96,9 +115,14 @@ fun RibScannerDialog(
                                     imageCapture
                                 )
 
+                                // Configuration de l'autofocus
+                                camera.cameraControl.enableTorch(false)
+                                camera.cameraControl.setLinearZoom(0f)
+
                                 preview.setSurfaceProvider(previewView.surfaceProvider)
 
                             } catch (e: Exception) {
+                                Log.e("RibScanner", "Camera initialization error", e)
                                 e.printStackTrace()
                             }
                         }
@@ -112,7 +136,7 @@ fun RibScannerDialog(
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    // Guide visuel
+                    // Guide visuel amélioré
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(0.9f)
@@ -126,6 +150,16 @@ fun RibScannerDialog(
                                     Color.White,
                                 shape = RoundedCornerShape(8.dp)
                             )
+                    )
+
+                    // Instructions plus claires
+                    Text(
+                        text = "Alignez votre RIB dans le cadre",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.White,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = 32.dp)
                     )
 
                     // Bouton de fermeture
@@ -171,11 +205,12 @@ fun RibScannerDialog(
                         }
                     }
 
-                    // Bouton de capture
+                    // Bouton de capture amélioré
                     Button(
                         onClick = {
                             isProcessing = true
                             overlayText = "Analyse en cours..."
+                            Log.d("RibScanner", "Starting image capture")
 
                             val outputDirectory = context.getExternalFilesDir(null)
                             val photoFile = File(
@@ -183,41 +218,72 @@ fun RibScannerDialog(
                                 "RIB_${System.currentTimeMillis()}.jpg"
                             )
 
-                            val outputFileOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+                            val outputFileOptions = ImageCapture.OutputFileOptions.Builder(photoFile)
+                                .setMetadata(
+                                    ImageCapture.Metadata().apply {
+                                        isReversedHorizontal = false
+                                    }
+                                )
+                                .build()
 
                             imageCapture.takePicture(
                                 outputFileOptions,
                                 ContextCompat.getMainExecutor(context),
                                 object : ImageCapture.OnImageSavedCallback {
                                     override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                                        val image = InputImage.fromFilePath(context, Uri.fromFile(photoFile))
-                                        textRecognizer.process(image)
-                                            .addOnSuccessListener { visionText ->
-                                                val ribPattern = Regex("\\d{20}")
-                                                val matches = ribPattern.findAll(visionText.text)
-                                                var ribFound = false
+                                        Log.d("RibScanner", "Image saved successfully")
+                                        try {
+                                            val image = InputImage.fromFilePath(context, Uri.fromFile(photoFile))
 
-                                                matches.forEach { match ->
-                                                    val potentialRib = match.value
-                                                    if (potentialRib.length == 20) {
-                                                        ribFound = true
-                                                        onRibDetected(potentialRib)
+                                            textRecognizer.process(image)
+                                                .addOnSuccessListener { visionText ->
+                                                    Log.d("RibScanner", "Full text detected: ${visionText.text}")
+
+                                                    // Extraction améliorée du RIB
+                                                    val text = visionText.text.replace(" ", "")
+                                                    val ribPattern = Regex("\\d{20}")
+                                                    val matches = ribPattern.findAll(text)
+                                                    var ribFound = false
+
+                                                    matches.forEach { match ->
+                                                        val potentialRib = match.value
+                                                        Log.d("RibScanner", "Found potential RIB: $potentialRib")
+                                                        if (potentialRib.length == 20) {
+                                                            ribFound = true
+                                                            onRibDetected(potentialRib)
+                                                        }
                                                     }
-                                                }
 
-                                                if (!ribFound) {
-                                                    overlayText = "Aucun RIB trouvé. Réessayez."
+                                                    if (!ribFound) {
+                                                        // Si aucun RIB n'est trouvé, chercher des séquences de chiffres
+                                                        val numbers = text.replace("[^0-9]".toRegex(), "")
+                                                        if (numbers.length >= 20) {
+                                                            val extractedRib = numbers.substring(0, 20)
+                                                            Log.d("RibScanner", "Extracted RIB from numbers: $extractedRib")
+                                                            onRibDetected(extractedRib)
+                                                        } else {
+                                                            Log.d("RibScanner", "No valid RIB found in text")
+                                                            overlayText = "Aucun RIB trouvé. Réessayez."
+                                                        }
+                                                    }
+                                                    isProcessing = false
                                                 }
-                                                isProcessing = false
-                                            }
-                                            .addOnFailureListener { e ->
-                                                overlayText = "Erreur de lecture: ${e.localizedMessage}"
-                                                isProcessing = false
-                                            }
-                                        photoFile.delete() // Nettoyage du fichier temporaire
+                                                .addOnFailureListener { e ->
+                                                    Log.e("RibScanner", "Text recognition failed", e)
+                                                    overlayText = "Erreur de lecture: ${e.localizedMessage}"
+                                                    isProcessing = false
+                                                }
+                                        } catch (e: Exception) {
+                                            Log.e("RibScanner", "Error processing image", e)
+                                            overlayText = "Erreur de traitement: ${e.localizedMessage}"
+                                            isProcessing = false
+                                        } finally {
+                                            photoFile.delete()
+                                        }
                                     }
 
                                     override fun onError(exception: ImageCaptureException) {
+                                        Log.e("RibScanner", "Image capture error", exception)
                                         overlayText = "Erreur de capture: ${exception.message}"
                                         isProcessing = false
                                     }
@@ -248,124 +314,6 @@ fun RibScannerDialog(
                     }
                 }
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalGetImage::class)
-@Composable
-private fun CameraPreview(
-    onRibDetected: (String) -> Unit,
-    onProcessing: (Boolean) -> Unit,
-    onOverlayTextChange: (String) -> Unit
-) {
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
-    val textRecognizer = remember { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
-    var isAnalyzing by remember { mutableStateOf(false) }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (!isGranted) {
-            onOverlayTextChange("Permission de caméra requise")
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        permissionLauncher.launch(Manifest.permission.CAMERA)
-    }
-
-    AndroidView(
-        factory = { ctx ->
-            PreviewView(ctx).apply {
-                implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-                scaleType = PreviewView.ScaleType.FILL_CENTER
-            }
-        },
-        modifier = Modifier.fillMaxSize()
-    ) { previewView ->
-        val preview = Preview.Builder().build()
-        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-        try {
-            val cameraProvider = cameraProviderFuture.get()
-            cameraProvider.unbindAll()
-
-            val imageAnalysis = ImageAnalysis.Builder()
-                .setTargetResolution(Size(1280, 720))
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .build()
-
-            var lastAnalysisTimestamp = 0L
-            val analysisCooldown = 1000L // Augmenté à 1 seconde
-
-            imageAnalysis.setAnalyzer(
-                ContextCompat.getMainExecutor(context)
-            ) { imageProxy ->
-                val currentTimestamp = System.currentTimeMillis()
-                if (currentTimestamp - lastAnalysisTimestamp >= analysisCooldown && !isAnalyzing) {
-                    isAnalyzing = true
-                    lastAnalysisTimestamp = currentTimestamp
-
-                    val mediaImage = imageProxy.image
-                    if (mediaImage != null) {
-                        onProcessing(true)
-                        val image = InputImage.fromMediaImage(
-                            mediaImage,
-                            imageProxy.imageInfo.rotationDegrees
-                        )
-
-                        textRecognizer.process(image)
-                            .addOnSuccessListener { visionText ->
-                                val text = visionText.text
-                                // Recherche de séquences de 20 chiffres
-                                val ribPattern = Regex("\\d{20}")
-                                val matches = ribPattern.findAll(text)
-                                var ribFound = false
-
-                                matches.forEach { match ->
-                                    val potentialRib = match.value
-                                    if (potentialRib.length == 20) {
-                                        ribFound = true
-                                        onOverlayTextChange("RIB détecté !")
-                                        onRibDetected(potentialRib)
-                                    }
-                                }
-
-                                if (!ribFound && text.isNotEmpty()) {
-                                    onOverlayTextChange("Placez votre RIB dans le cadre")
-                                }
-                            }
-                            .addOnFailureListener { e ->
-                                onOverlayTextChange("Erreur de lecture: ${e.localizedMessage}")
-                            }
-                            .addOnCompleteListener {
-                                onProcessing(false)
-                                isAnalyzing = false
-                                imageProxy.close()
-                            }
-                    } else {
-                        imageProxy.close()
-                        isAnalyzing = false
-                    }
-                } else {
-                    imageProxy.close()
-                }
-            }
-
-            cameraProvider.bindToLifecycle(
-                lifecycleOwner,
-                cameraSelector,
-                imageAnalysis,
-                preview
-            )
-
-            preview.setSurfaceProvider(previewView.surfaceProvider)
-
-        } catch (e: Exception) {
-            onOverlayTextChange("Erreur: ${e.localizedMessage}")
         }
     }
 }
