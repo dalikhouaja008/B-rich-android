@@ -114,7 +114,6 @@ fun ListAccountsScreen(
                             accounts = accounts,
                             selectedAccount = selectedAccount,
                             onAccountSelected = { viewModel.selectAccount(it) },
-                            currentDotIndex = currentDotIndex,
                             lazyListState = lazyListState
                         )
 

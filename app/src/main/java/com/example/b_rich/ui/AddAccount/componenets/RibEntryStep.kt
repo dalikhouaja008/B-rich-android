@@ -30,6 +30,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,6 +49,7 @@ fun RibEntryStep(viewModel: AddAccountViewModel) {
     val isValid by viewModel.isRibValid.collectAsState()
     val isVerifying by viewModel.isRibVerificationInProgress.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
+    var showScanner by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -63,6 +67,16 @@ fun RibEntryStep(viewModel: AddAccountViewModel) {
             text = "Please enter your 20-digit RIB number",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        )
+        RibScannerButton(
+            onScanClick = { showScanner = true }
+        )
+
+        Text(
+            text = "Or enter manually",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            modifier = Modifier.padding(vertical = 8.dp)
         )
 
         Column(
@@ -235,5 +249,14 @@ fun RibEntryStep(viewModel: AddAccountViewModel) {
                 )
             }
         }
+    }
+    if (showScanner) {
+        RibScannerDialog(
+            onRibDetected = { detectedRib ->
+                viewModel.validateAndUpdateRib(detectedRib)
+                showScanner = false
+            },
+            onDismiss = { showScanner = false }
+        )
     }
 }

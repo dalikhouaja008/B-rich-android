@@ -28,6 +28,8 @@ storage = "1.5.0"
 foundationAndroid = "1.6.6"
 ycharts = "2.1.0"
 zxingAndroidEmbedded = "4.3.0"
+playServicesMlkitTextRecognitionCommon = "19.1.0"
+playServicesMlkitTextRecognition = "19.0.1"
 
 [libraries]
 androidx-biometric-v110 = { module = "androidx.biometric:biometric", version.ref = "biometric" }
@@ -69,6 +71,8 @@ androidx-storage = { group = "androidx.test.services", name = "storage", version
 androidx-foundation-android = { group = "androidx.compose.foundation", name = "foundation-android", version.ref = "foundationAndroid" }
 ycharts = { module = "co.yml:ycharts", version.ref = "ycharts" }
 zxing-android-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroidEmbedded" }
+play-services-mlkit-text-recognition-common = { group = "com.google.android.gms", name = "play-services-mlkit-text-recognition-common", version.ref = "playServicesMlkitTextRecognitionCommon" }
+play-services-mlkit-text-recognition = { group = "com.google.android.gms", name = "play-services-mlkit-text-recognition", version.ref = "playServicesMlkitTextRecognition" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
