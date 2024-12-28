@@ -79,11 +79,11 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
         }
     }
 
-    fun createTNDWallet(amount: Double) {
+    fun createTNDWallet(amount: Double, rib: String) {
         viewModelScope.launch {
             _createWalletState.value = CreateWalletState.Loading
             try {
-                repository.createTNDWallet(amount).fold(
+                repository.createTNDWallet(amount, rib).fold(
                     onSuccess = { wallet ->
                         _createWalletState.value = CreateWalletState.Success(wallet)
                         fetchWallets() // Rafraîchir la liste des wallets après création

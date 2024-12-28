@@ -201,15 +201,17 @@ fun ProfilePage(
         if (showLogoutDialog) {
             LogoutConfirmationDialog(
                 onConfirm = {
-                    sharedPreferences.edit().apply {
-                        remove(EMAIL)
-                        remove(PASSWORD)
-                        remove(IS_REMEMBERED)
-                        apply()
-                    }
-                    if (context is Activity) {
-                        context.finishAffinity()
-                        exitProcess(0)
+                    // Effacer les préférences
+                    val cleared = sharedPreferences.edit().apply {
+                        clear() // ou utilisez les remove() individuels
+                    }.commit()
+
+                    // Vérifier que les préférences sont bien effacées
+                    if (cleared) {
+                        if (context is Activity) {
+                            context.finishAffinity()
+                            exitProcess(0)
+                        }
                     }
                 },
                 onDismiss = { showLogoutDialog = false }
