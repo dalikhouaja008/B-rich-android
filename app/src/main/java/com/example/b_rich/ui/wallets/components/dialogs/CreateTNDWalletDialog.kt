@@ -39,7 +39,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.b_rich.data.entities.CustomAccount
@@ -53,7 +52,7 @@ import com.example.b_rich.ui.wallets.components.showNotification
 @Composable
 fun CreateTNDWalletDialog(
     onDismiss: () -> Unit,
-    onConfirm: (Double) -> Unit,
+    onConfirm: (Double, Any?) -> Unit,
     viewModel: WalletsViewModel,
     hasTNDWallet: Boolean
 ) {
@@ -68,27 +67,29 @@ fun CreateTNDWalletDialog(
         is UIState.Success -> (defaultAccountState as UIState.Success<CustomAccount>).data.balance ?: 0.0
         else -> 0.0
     }
+    val defaultAccount = when (defaultAccountState) {
+        is UIState.Success -> (defaultAccountState as UIState.Success<CustomAccount>).data
+        else -> null
+    }
     var showEmptyBalanceDialog by remember { mutableStateOf(false) }
     // Observer l'état de création et afficher les notifications
     LaunchedEffect(createWalletState) {
         when (createWalletState) {
             is CreateWalletState.Success -> {
                 createWalletState.showNotification(context)
+                viewModel.resetCreateWalletState()
                 onDismiss()
             }
             is CreateWalletState.Error -> {
                 createWalletState.showNotification(context)
+                viewModel.resetCreateWalletState()
             }
             else -> {}
         }
     }
-    LaunchedEffect(key1 = true) {
+    LaunchedEffect(Unit) {
+        viewModel.resetCreateWalletState()
         viewModel.loadDefaultAccount()
-    }
-    DisposableEffect(Unit) {
-        onDispose {
-            viewModel.resetCreateWalletState()
-        }
     }
     // Dialog pour compte vide
     if (showEmptyBalanceDialog) {
@@ -148,33 +149,37 @@ fun CreateTNDWalletDialog(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (currentBalance > 0) Color(0xFFF5F5F5) else Color(0xFFFFEBEE)
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp)
+                // Afficher le RIB du compte par défaut
+                defaultAccount?.let { account ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFF5F5F5)
+                        )
                     ) {
-                        Text(
-                            text = "Available Balance",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = if (currentBalance > 0) Color.Gray else Color.Red
-                        )
-                        Text(
-                            text = "%.2f TND".format(currentBalance),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (currentBalance > 0) Color(0xFF3D5AFE) else Color.Red,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp)
+                        ) {
+                            Text(
+                                text = "Selected Account",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = Color.Gray
+                            )
+                            Text(
+                                text = "RIB: ${account.rib}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color(0xFF3D5AFE)
+                            )
+                            Text(
+                                text = "Balance: ${account.balance} TND",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color(0xFF3D5AFE)
+                            )
+                        }
                     }
                 }
-
                 // Amount Input
                 OutlinedTextField(
                     value = amount,
@@ -226,12 +231,10 @@ fun CreateTNDWalletDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    if (currentBalance <= 0) {
-                        showEmptyBalanceDialog = true
-                    } else {
-                        val numericAmount = amount.toDoubleOrNull()
-                        if (numericAmount != null && numericAmount > 0 && numericAmount <= currentBalance) {
-                            onConfirm(numericAmount)
+                    val numericAmount = amount.toDoubleOrNull() ?: 0.0
+                    defaultAccount?.rib?.let { rib ->
+                        if (numericAmount > 0 && numericAmount <= (defaultAccount.balance ?: 0.0)) {
+                            onConfirm(numericAmount, rib)
                         }
                     }
                 },

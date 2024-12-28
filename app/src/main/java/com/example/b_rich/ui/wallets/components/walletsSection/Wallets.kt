@@ -122,8 +122,8 @@ fun WalletsScreen(
     if (showCreateDialog) {
         CreateTNDWalletDialog(
             onDismiss = { showCreateDialog = false },
-            onConfirm = { amount ->
-                viewModel.createTNDWallet(amount)
+            onConfirm = { amount, rib ->  // Ajout du paramètre RIB
+                viewModel.createTNDWallet(amount, rib.toString())
                 showCreateDialog = false
             },
             viewModel = viewModel,

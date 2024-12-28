@@ -1,6 +1,5 @@
 package com.example.b_rich.ui.listAccounts
 
-import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -12,7 +11,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.b_rich.ui.AddAccount.UiState
 import com.example.b_rich.ui.listAccounts.componenets.AccountsCarousel
 import com.example.b_rich.ui.listAccounts.componenets.AnimatedAccountDetails
 import com.example.b_rich.ui.listAccounts.componenets.AnimatedHeader

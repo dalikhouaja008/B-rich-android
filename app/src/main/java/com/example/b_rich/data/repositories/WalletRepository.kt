@@ -42,9 +42,9 @@ class WalletRepository(private val apiService: ApiService) {
         return apiService.convertCurrency(CurrencyConversionRequest(amount, fromCurrency))
     }
 
-    suspend fun createTNDWallet(amount: Double): Result<Wallet> {
+    suspend fun createTNDWallet(amount: Double, rib: String): Result<Wallet> {
         return try {
-            val request = CreateTNDWalletRequest(amount)
+            val request = CreateTNDWalletRequest(amount, rib)
             val response = apiService.createTNDWallet(request)
             if (response.isSuccessful && response.body() != null) {
                 Result.success(response.body()!!)
