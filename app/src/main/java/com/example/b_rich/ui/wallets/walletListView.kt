@@ -303,6 +303,14 @@ fun Wallets(
                                 transactions = wallet.transactions,
                                 walletPublicKey = wallet.publicKey ?: ""
                             )
+                        }else{
+                            Text(
+                                text = "There is any transaction for this wallet",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 32.dp)
+                            )
                         }
                     }
                 }

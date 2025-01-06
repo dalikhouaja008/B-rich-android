@@ -1,12 +1,15 @@
 package com.example.b_rich.data.repositories
 
 import com.example.b_rich.data.dataModel.CreateTNDWalletRequest
+import com.example.b_rich.data.dataModel.SwapRequest
+import com.example.b_rich.data.dataModel.SwapResponse
+import com.example.b_rich.data.dataModel.TokenInfo
 import com.example.b_rich.data.entities.CustomAccount
 import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.network.ApiService
 import com.example.b_rich.data.network.CurrencyConversionRequest
 import com.example.b_rich.data.network.SendTransactionRequest
-import retrofit2.Response
+
 
 class WalletRepository(private val apiService: ApiService) {
     suspend fun getUserWallets(): List<Wallet> = apiService.getUserWallets()
@@ -55,4 +58,45 @@ class WalletRepository(private val apiService: ApiService) {
             Result.failure(e)
         }
     }
+
+    suspend fun executeSwap(request: SwapRequest): Result<SwapResponse> {
+        return try {
+            val response = apiService.executeSwap(request)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception(response.errorBody()?.string() ?: "Swap failed"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun checkSwapStatus(signature: String): Result<SwapResponse> {
+        return try {
+            val response = apiService.checkSwapStatus(signature)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception(response.errorBody()?.string() ?: "Status check failed"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getAllTokens(): Result<List<TokenInfo>> {
+        return try {
+            val response = apiService.getAllTokens()
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Failed to fetch tokens"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
 }

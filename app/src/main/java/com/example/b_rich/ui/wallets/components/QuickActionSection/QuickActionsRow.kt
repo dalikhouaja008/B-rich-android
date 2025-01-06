@@ -1,5 +1,6 @@
 package com.example.b_rich.ui.wallets.components.QuickActionSection
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,7 +12,9 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,11 +28,14 @@ import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.ui.biometricDialog.BiometricAuthenticator
 import com.example.b_rich.ui.currency_converter.CurrencyConverterViewModel
 import com.example.b_rich.ui.wallets.QuickAction
+import com.example.b_rich.ui.wallets.SwapState
 import com.example.b_rich.ui.wallets.WalletsViewModel
 import com.example.b_rich.ui.wallets.components.dialogs.AlimentDialog
 import com.example.b_rich.ui.wallets.components.dialogs.ReceiveDialog
 import com.example.b_rich.ui.wallets.components.dialogs.SendFundsDialog
+import com.example.b_rich.ui.wallets.components.dialogs.SwapDialog
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun QuickActionsRow(
     selectedWallet: Wallet?,
@@ -39,13 +45,16 @@ fun QuickActionsRow(
         QuickAction(Icons.Default.Send, "Send"),
         QuickAction(Icons.Default.Download, "Receive"),
         QuickAction(Icons.Default.Add, "Aliment"),
-        QuickAction(Icons.Default.CreditCard, "Pay")
+        QuickAction(Icons.Default.CreditCard, "Pay"),
+        QuickAction(Icons.Default.SwapVert, "Swap"), // Ajoutez l'action Swap
     )
 ) {
     var showAlimentDialog by remember { mutableStateOf(false) }
     var showSendDialog by remember { mutableStateOf(false) }
     var showReceiveDialog by remember { mutableStateOf(false) }
+    var showSwapDialog by remember { mutableStateOf(false) }
     val uiState by currencyConverterViewModel.uiStateCurrency.collectAsState()
+    val swapState by walletsViewModel.swapState.collectAsState() // Ajoutez l'état du swap
 
     // Ajouter le contexte et l'authentificateur biométrique
     val context = LocalContext.current
@@ -66,6 +75,7 @@ fun QuickActionsRow(
                         "Aliment" -> showAlimentDialog = true
                         "Send" -> showSendDialog = true
                         "Receive" -> showReceiveDialog = true
+                        "Swap" -> showSwapDialog = true
                     }
                 },
                 onFailed = {
@@ -87,7 +97,26 @@ fun QuickActionsRow(
             )
         }
     }
-
+    // Observer l'état du swap
+    LaunchedEffect(swapState) {
+        when (swapState) {
+            is SwapState.Success -> {
+                val success = swapState as SwapState.Success
+                Toast.makeText(context, success.message, Toast.LENGTH_LONG).show()
+                if (success.status == "confirmed" || success.status == "finalized") {
+                    showSwapDialog = false
+                }
+            }
+            is SwapState.Error -> {
+                Toast.makeText(
+                    context,
+                    (swapState as SwapState.Error).message,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            else -> {}
+        }
+    }
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
@@ -100,7 +129,7 @@ fun QuickActionsRow(
                 label = action.label,
                 onClick = {
                     when (action.label) {
-                        "Aliment", "Send", "Receive" -> {
+                        "Aliment", "Send", "Receive", "Swap" -> {
                             if (selectedWallet != null) {
                                 handleBiometricAuth(action.label)
                             }
@@ -112,14 +141,13 @@ fun QuickActionsRow(
     }
 
     if (showAlimentDialog && selectedWallet != null) {
-        AlimentDialog(
-            selectedWallet = selectedWallet,
-            uiState = uiState,
-            walletsViewModel = walletsViewModel,
-            currencyConverterViewModel = currencyConverterViewModel,
-            onDismiss = {
-                showAlimentDialog = false
-                pendingAction = null
+        SwapDialog(
+            wallet = selectedWallet,
+            viewModel = walletsViewModel,
+            onDismiss = { showSwapDialog = false },
+            onSwapComplete = {
+                // Rafraîchir les données si nécessaire
+                walletsViewModel.fetchWallets()
             }
         )
     }
@@ -144,4 +172,20 @@ fun QuickActionsRow(
             }
         )
     }
+
+    if (showSwapDialog && selectedWallet != null) {
+        SwapDialog(
+            wallet = selectedWallet,
+            viewModel = walletsViewModel,
+            onDismiss = {
+                showSwapDialog = false
+                walletsViewModel.resetSwapState()
+            },
+            onSwapComplete = {
+                // Rafraîchir les données
+                walletsViewModel.fetchWallets()
+            }
+        )
+    }
+
 }

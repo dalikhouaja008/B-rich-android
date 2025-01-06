@@ -4,18 +4,22 @@ import android.content.Context
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.b_rich.data.dataModel.SwapRequest
+import com.example.b_rich.data.dataModel.TokenInfo
 import com.example.b_rich.data.entities.CustomAccount
 import com.example.b_rich.data.entities.Transaction
 import com.example.b_rich.data.entities.Wallet
 import com.example.b_rich.data.network.SendTransactionRequest
 import com.example.b_rich.data.repositories.WalletRepository
 import com.example.b_rich.ui.wallets.components.CreateWalletState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.UUID
+
 sealed class SendTransactionState {
     object Idle : SendTransactionState()
     object Loading : SendTransactionState()
@@ -28,6 +32,17 @@ sealed class UIState<out T> {
     data class Success<T>(val data: T) : UIState<T>()
     data class Error(val message: String) : UIState<Nothing>()
 }
+sealed class SwapState {
+    object Idle : SwapState()
+    object Loading : SwapState()
+    data class Success(
+        val signature: String,
+        val message: String,
+        val status: String
+    ) : SwapState()
+    data class Error(val message: String) : SwapState()
+}
+
 class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
 
     private val _currencyWallets = MutableStateFlow<List<Wallet>>(emptyList())
@@ -59,6 +74,14 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
 
     private val _defaultAccount = MutableStateFlow<UIState<CustomAccount>>(UIState.Idle)
     val defaultAccount = _defaultAccount.asStateFlow()
+
+    private val _swapState = MutableStateFlow<SwapState>(SwapState.Idle)
+    val swapState: StateFlow<SwapState> = _swapState.asStateFlow()
+
+    private val _availableTokens = MutableStateFlow<List<TokenInfo>>(emptyList())
+    val availableTokens: StateFlow<List<TokenInfo>> = _availableTokens.asStateFlow()
+
+
 
     fun loadDefaultAccount() {
         viewModelScope.launch {
@@ -180,4 +203,77 @@ class WalletsViewModel(private val repository: WalletRepository) : ViewModel() {
             }
         }
     }
+
+    //partie swap
+
+    public fun loadAvailableTokens() {
+        viewModelScope.launch {
+            repository.getAllTokens()
+                .onSuccess { tokens ->
+                    _availableTokens.value = tokens
+                }
+                .onFailure { error ->
+                    _swapState.value = SwapState.Error(error.message ?: "Failed to load tokens")
+                }
+        }
+    }
+
+    fun executeSwap(request: SwapRequest) {
+        viewModelScope.launch {
+            _swapState.value = SwapState.Loading
+
+            repository.executeSwap(request)
+                .onSuccess { response ->
+                    _swapState.value = SwapState.Success(
+                        signature = response.signature,
+                        message = response.message,
+                        status = response.status
+                    )
+                }
+                .onFailure { error ->
+                    _swapState.value = SwapState.Error(error.message ?: "Swap failed")
+                }
+        }
+    }
+
+    private fun startStatusCheck(signature: String) {
+        viewModelScope.launch {
+            while (true) {
+                delay(2000) // Attendre 2 secondes entre chaque vérification
+                try {
+                    repository.checkSwapStatus(signature)
+                        .onSuccess { response ->
+                            when (response.status) {
+                                "confirmed", "finalized" -> {
+                                    _swapState.value = SwapState.Success(
+                                        signature = response.signature,
+                                        message = "Transaction confirmed",
+                                        status = response.status
+                                    )
+                                    fetchWallets() // Rafraîchir les wallets
+
+                                }
+                                "expired", "error" -> {
+                                    _swapState.value = SwapState.Error(response.message)
+
+                                }
+                            }
+                        }
+                        .onFailure { error ->
+                            _swapState.value = SwapState.Error(error.message ?: "Status check failed")
+
+                        }
+                } catch (e: Exception) {
+                    _swapState.value = SwapState.Error(e.message ?: "Status check failed")
+                    break
+                }
+            }
+        }
+    }
+
+    fun resetSwapState() {
+        _swapState.value = SwapState.Idle
+    }
+
+
 }

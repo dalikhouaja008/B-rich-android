@@ -7,6 +7,9 @@ import com.example.b_rich.data.dataModel.LinkAccountRequest
 import com.example.b_rich.data.dataModel.NicknameUpdateRequest
 import com.example.b_rich.data.dataModel.PredictionRequest
 import com.example.b_rich.data.dataModel.PredictionResponse
+import com.example.b_rich.data.dataModel.SwapRequest
+import com.example.b_rich.data.dataModel.SwapResponse
+import com.example.b_rich.data.dataModel.TokenInfo
 import com.example.b_rich.data.dataModel.VerifyCodeResponse
 import com.example.b_rich.data.entities.AddAccount
 import com.example.b_rich.data.entities.CustomAccount
@@ -191,4 +194,15 @@ interface ApiService {
 
     @POST("solana/create-tnd-wallet")
     suspend fun createTNDWallet(@Body request: CreateTNDWalletRequest): Response<Wallet>
+
+    //trading
+    @GET("swap/tokens")
+    suspend fun getAllTokens(): Response<List<TokenInfo>>
+
+
+    @POST("swap/prepare")
+    suspend fun executeSwap(@Body request: SwapRequest): Response<SwapResponse>
+
+    @GET("swap/status/{signature}")
+    suspend fun checkSwapStatus(@Path("signature") signature: String): Response<SwapResponse>
 }
